@@ -13,6 +13,7 @@ import de.chojo.jdautil.localization.Localizer;
 import de.chojo.jdautil.localization.util.Language;
 import de.chojo.sqlutil.datasource.DataSourceCreator;
 import de.chojo.sqlutil.logging.LoggerAdapter;
+import de.chojo.sqlutil.updater.QueryReplacement;
 import de.chojo.sqlutil.updater.SqlType;
 import de.chojo.sqlutil.updater.SqlUpdater;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -108,6 +109,7 @@ public class Bot {
 
         SqlUpdater.builder(dataSource, SqlType.POSTGRES)
                 .withLogger(LoggerAdapter.wrap(log))
+                .setReplacements(new QueryReplacement("gamejam", configuration.database().schema()))
                 .execute();
     }
 }
