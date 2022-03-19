@@ -1,7 +1,8 @@
 CREATE TABLE gamejam.jam
 (
     id       SERIAL,
-    guild_id BIGINT NOT NULL,
+    guild_id BIGINT                NOT NULL,
+    active   BOOLEAN DEFAULT FALSE NOT NULL,
     CONSTRAINT jam_pk
         PRIMARY KEY (id)
 );
@@ -11,28 +12,28 @@ CREATE INDEX jam_guild_id_index
 
 CREATE TABLE gamejam.jam_time
 (
-    id                 INTEGER   NOT NULL,
+    jam_id             INTEGER   NOT NULL,
     registration_start TIMESTAMP NOT NULL,
     registration_end   TIMESTAMP NOT NULL,
-    start_time         TIMESTAMP NOT NULL,
-    vote_start         TIMESTAMP NOT NULL,
-    vote_end           TIMESTAMP NOT NULL,
-    end_time           TIMESTAMP NOT NULL,
+    zone_id            TEXT      NOT NULL,
+    jam_start          TIMESTAMP NOT NULL,
+    jam_end            TIMESTAMP NOT NULL,
     CONSTRAINT jam_times_pk
-        PRIMARY KEY (id),
+        PRIMARY KEY (jam_id),
     CONSTRAINT jam_times_jam_id_fk
-        FOREIGN KEY (id) REFERENCES gamejam.jam
+        FOREIGN KEY (jam_id) REFERENCES gamejam.jam
             ON DELETE CASCADE
 );
 
-CREATE TABLE gamejam.jam_topic
+CREATE TABLE gamejam.jam_meta
 (
-    id    INTEGER NOT NULL,
-    topic TEXT    NOT NULL,
+    jam_id INTEGER NOT NULL,
+    topic  TEXT    NOT NULL,
     CONSTRAINT jam_topic_pk
-        PRIMARY KEY (id),
+        PRIMARY KEY (jam_id),
     CONSTRAINT jam_topic_jam_id_fk
-        FOREIGN KEY (id) REFERENCES gamejam.jam
+        FOREIGN KEY (jam_id) REFERENCES gamejam.jam
+            ON DELETE CASCADE
 );
 
 CREATE TABLE gamejam.team
@@ -55,6 +56,9 @@ CREATE TABLE gamejam.team_member
 CREATE UNIQUE INDEX team_member_team_id_user_id_uindex
     ON gamejam.team_member (team_id, user_id);
 
+CREATE INDEX team_member_team_id_index
+    ON gamejam.team_member (team_id);
+
 CREATE TABLE gamejam.team_meta
 (
     team_id          INTEGER NOT NULL,
@@ -67,6 +71,7 @@ CREATE TABLE gamejam.team_meta
         PRIMARY KEY (team_id),
     CONSTRAINT team_meta_team_id_fk
         FOREIGN KEY (team_id) REFERENCES gamejam.team
+            ON DELETE CASCADE
 );
 
 CREATE TABLE gamejam.vote
@@ -85,3 +90,25 @@ CREATE TABLE gamejam.vote
 
 CREATE UNIQUE INDEX vote_jam_id_team_id_voter_id_uindex
     ON gamejam.vote (jam_id, team_id, voter_id);
+
+CREATE TABLE gamejam.jam_registrations
+(
+    jam_id  INTEGER NOT NULL,
+    user_id BIGINT  NOT NULL,
+    CONSTRAINT jam_registrations_jam_id_fk
+        FOREIGN KEY (jam_id) REFERENCES gamejam.jam
+            ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX jam_registrations_jam_id_user_id_uindex
+    ON gamejam.jam_registrations (jam_id, user_id);
+
+CREATE TABLE gamejam.jam_settings
+(
+    guild_id     BIGINT            NOT NULL,
+    jam_role     BIGINT  DEFAULT 0 NOT NULL,
+    team_size    INTEGER DEFAULT 4 NOT NULL,
+    manager_role BIGINT,
+    CONSTRAINT jam_settings_pk
+        PRIMARY KEY (guild_id)
+);

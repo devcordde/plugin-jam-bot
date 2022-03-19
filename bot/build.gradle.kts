@@ -17,11 +17,11 @@ dependencies {
         exclude(module = "opus-java")
     }
 
-    implementation("de.chojo", "cjda-util", "2.2.0+alpha.9-SNAPSHOT")
+    implementation("de.chojo", "cjda-util", "2.2.0c+alpha.9-SNAPSHOT")
 
 
     // database
-    implementation("de.chojo", "sql-util", "1.2.0")
+    implementation("de.chojo", "sql-util", "1.2.1")
     implementation("org.postgresql", "postgresql", "42.3.3")
 
     // Logging
