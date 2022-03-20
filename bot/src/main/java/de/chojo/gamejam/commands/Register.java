@@ -18,7 +18,7 @@ import java.time.ZonedDateTime;
 public class Register extends SimpleCommand {
     private final JamData jamData;
 
-    protected Register(JamData jamData) {
+    public Register(JamData jamData) {
         super(CommandMeta.builder("register", "Register for an upcomming Game Jam")
                 .build());
         this.jamData = jamData;
