@@ -1,5 +1,6 @@
-package de.chojo.gamejam.commands.subcommands;
+package de.chojo.gamejam.commands.jamadmin;
 
+import de.chojo.gamejam.commands.SubCommand;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.wrapper.jam.JamBuilder;
 import de.chojo.gamejam.data.wrapper.jam.JamTimes;
@@ -14,13 +15,13 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class JamAdminCreate implements SubCommand {
+public class Create implements SubCommand {
 
     private final DateTimeFormatter dateParser = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
 
     private final JamData jamData;
 
-    public JamAdminCreate(JamData jamData) {
+    public Create(JamData jamData) {
         this.jamData = jamData;
     }
 

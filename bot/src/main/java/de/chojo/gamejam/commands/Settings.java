@@ -6,18 +6,25 @@
 
 package de.chojo.gamejam.commands;
 
+import de.chojo.gamejam.commands.settings.Info;
+import de.chojo.gamejam.commands.settings.OrgaRole;
+import de.chojo.gamejam.commands.settings.Role;
+import de.chojo.gamejam.commands.settings.TeamSize;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
 import de.chojo.jdautil.command.SimpleCommand;
-import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
-import de.chojo.jdautil.util.MentionUtil;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Settings extends SimpleCommand {
     private final JamData jamData;
+
+    private final Map<String, SettingsSubcommand> settingsSubcommandMap = new HashMap<>();
 
     public Settings(JamData jamData) {
         super(CommandMeta.builder("settings", "manage bot settings")
@@ -31,38 +38,19 @@ public class Settings extends SimpleCommand {
                 .addSubCommand("info", "Show the current settings")
                 .build());
         this.jamData = jamData;
+        this.settingsSubcommandMap.put("role", new Role(jamData));
+        this.settingsSubcommandMap.put("team_size", new TeamSize(jamData));
+        this.settingsSubcommandMap.put("orga_role", new OrgaRole(jamData));
+        this.settingsSubcommandMap.put("info", new Info());
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, SlashCommandContext context) {
         jamData.getSettings(event.getGuild())
                 .thenAccept(settings -> {
-                    if ("role".equals(event.getSubcommandName())) {
-                        settings.jamRole(event.getOption("role").getAsRole().getIdLong());
-                        jamData.updateSettings(event.getGuild(), settings)
-                                .thenRun(() -> event.reply("Updated settings").setEphemeral(true).queue());
-                        return;
-                    }
-                    if ("team_size".equals(event.getSubcommandName())) {
-                        settings.teamSize(event.getOption("size").getAsInt());
-                        jamData.updateSettings(event.getGuild(), settings)
-                                .thenRun(() -> event.reply("Updated settings").setEphemeral(true).queue());
-                        return;
-                    }
-                    if ("team_size".equals(event.getSubcommandName())) {
-                        settings.orgaRole(event.getOption("role").getAsRole().getIdLong());
-                        jamData.updateSettings(event.getGuild(), settings)
-                                .thenRun(() -> event.reply("Updated settings").setEphemeral(true).queue());
-                        return;
-                    }
-                    if ("info".equals(event.getSubcommandName())) {
-                        var embed = new LocalizedEmbedBuilder(context.localizer())
-                                .setTitle("Settings")
-                                .addField("Game Jam Role", MentionUtil.role(settings.jamRole()), true)
-                                .addField("Max Team Size", String.valueOf(settings.teamSize()), true)
-                                .addField("Orga Role", MentionUtil.role(settings.orgaRole()), true)
-                                .build();
-                        event.replyEmbeds(embed).setEphemeral(true).queue();
+                    var subcommand = settingsSubcommandMap.get(event.getSubcommandName());
+                    if (subcommand != null) {
+                        subcommand.execute(event, context, settings);
                     }
                 }).whenComplete(Future.error());
     }

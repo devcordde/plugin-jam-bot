@@ -6,13 +6,11 @@
 
 package de.chojo.gamejam.commands;
 
-import de.chojo.gamejam.commands.subcommands.JamAdminChangeVotes;
-import de.chojo.gamejam.commands.subcommands.JamAdminCreate;
-import de.chojo.gamejam.commands.subcommands.JamAdminEnd;
-import de.chojo.gamejam.commands.subcommands.JamAdminStart;
-import de.chojo.gamejam.commands.subcommands.SubCommand;
+import de.chojo.gamejam.commands.jamadmin.ChangeVotes;
+import de.chojo.gamejam.commands.jamadmin.Create;
+import de.chojo.gamejam.commands.jamadmin.End;
+import de.chojo.gamejam.commands.jamadmin.Start;
 import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
 import de.chojo.jdautil.command.SimpleCommand;
@@ -50,11 +48,11 @@ public class JamAdmin extends SimpleCommand {
                 .addSubCommand("open-votes", "Open votes for the current active jam")
                 .addSubCommand("close-votes", "close votes for the current active jam")
                 .build());
-        this.subCommandMap.put("create", new JamAdminCreate(jamData));
-        this.subCommandMap.put("start-jam", new JamAdminStart(jamData));
-        this.subCommandMap.put("end-jam", new JamAdminEnd(jamData));
-        this.subCommandMap.put("open-votes", new JamAdminChangeVotes(jamData, true, "Votes opened for current jam."));
-        this.subCommandMap.put("close-votes", new JamAdminChangeVotes(jamData, false, "Votes closed for current jam."));
+        this.subCommandMap.put("create", new Create(jamData));
+        this.subCommandMap.put("start-jam", new Start(jamData));
+        this.subCommandMap.put("end-jam", new End(jamData));
+        this.subCommandMap.put("open-votes", new ChangeVotes(jamData, true, "Votes opened for current jam."));
+        this.subCommandMap.put("close-votes", new ChangeVotes(jamData, false, "Votes closed for current jam."));
     }
 
     @Override

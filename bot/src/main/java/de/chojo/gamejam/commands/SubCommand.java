@@ -1,4 +1,4 @@
-package de.chojo.gamejam.commands.subcommands;
+package de.chojo.gamejam.commands;
 
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;

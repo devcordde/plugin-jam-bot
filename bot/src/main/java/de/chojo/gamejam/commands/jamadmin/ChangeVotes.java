@@ -1,28 +1,23 @@
-package de.chojo.gamejam.commands.subcommands;
+package de.chojo.gamejam.commands.jamadmin;
 
+import de.chojo.gamejam.commands.SubCommand;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public record JamAdminEnd(JamData jamData) implements SubCommand {
+public record ChangeVotes(JamData jamData, boolean voting, String content) implements SubCommand {
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context) {
-        if (!event.getOption("confirm").getAsBoolean()) {
-            event.reply("Please confirm").queue();
-            return;
-        }
-
         jamData.getActiveJam(event.getGuild()).thenAccept(jam -> {
             if (jam.isEmpty()) {
                 event.reply("There is no active jam.").queue();
                 return;
             }
-            jam.get().finish(event.getGuild());
+            jam.get().state().voting(voting);
             jamData.updateJamState(jam.get());
-            event.reply("Jam ended.").queue();
-
+            event.reply(content).queue();
         }).whenComplete(Future.error());
     }
 }

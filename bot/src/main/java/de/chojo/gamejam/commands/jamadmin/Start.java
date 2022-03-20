@@ -1,11 +1,12 @@
-package de.chojo.gamejam.commands.subcommands;
+package de.chojo.gamejam.commands.jamadmin;
 
+import de.chojo.gamejam.commands.SubCommand;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public record JamAdminStart(JamData jamData) implements SubCommand {
+public record Start(JamData jamData) implements SubCommand {
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context) {
