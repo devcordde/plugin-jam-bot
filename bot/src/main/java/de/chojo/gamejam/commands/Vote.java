@@ -33,7 +33,7 @@ public class Vote extends SimpleCommand {
     }
 
     @Override
-    public void onTabcomplete(CommandAutoCompleteInteractionEvent event, SlashCommandContext slashCommandContext) {
-        super.onTabcomplete(event, slashCommandContext);
+    public void onAutoComplete(CommandAutoCompleteInteractionEvent event, SlashCommandContext slashCommandContext) {
+        super.onAutoComplete(event, slashCommandContext);
     }
 }

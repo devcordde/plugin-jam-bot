@@ -6,8 +6,6 @@
 
 package de.chojo.gamejam.commands;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
@@ -24,17 +22,18 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 public class Team extends SimpleCommand {
-    private Cache<Long, List<Team>> invites = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
     private final TeamData teamData;
     private final JamData jamData;
+    private static final Logger log = getLogger(Team.class);
 
     public Team(TeamData teamData, JamData jamData) {
         super(CommandMeta.builder("team", "Manage your team")
@@ -47,8 +46,9 @@ public class Team extends SimpleCommand {
                                 .add(SimpleArgument.user("user", "The user you want to invite").asRequired())
                                 .build())
                 .addSubCommand("leave", "Leave your team")
-                .addSubCommand("disband", "Disband your team")
-//                .addSubCommand("new leader", "Pass team leadership to someone else",
+                .addSubCommand("disband", "Disband your team",
+                        argsBuilder().add(SimpleArgument.bool("confirm", "confirm with true").asRequired()).build())
+//                .addSubCommand("new-leader", "Pass team leadership to someone else",
 //                        argsBuilder()
 //                                .add(SimpleArgument.user("new_leader", "The new leader").asRequired())
 //                                .build())
@@ -137,6 +137,11 @@ public class Team extends SimpleCommand {
     }
 
     private void disband(Jam jam, SlashCommandInteractionEvent event, SlashCommandContext context) {
+        if (event.getOption("confirm").getAsBoolean()) {
+            event.reply("Please confirm.").setEphemeral(true).queue();
+            return;
+        }
+
         var jamTeam = teamData.getTeamByMember(jam, event.getMember()).join();
         if (jamTeam.isEmpty()) {
             event.reply("You are not part of a team").setEphemeral(true).queue();
@@ -151,9 +156,11 @@ public class Team extends SimpleCommand {
                         member.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your team was disbanded")).queue();
                     });
         }
+        event.reply("Team disbanded").setEphemeral(true).queue();
         event.getGuild().getTextChannelById(jamTeam.get().textChannelId()).delete().queue();
         event.getGuild().getVoiceChannelById(jamTeam.get().voiceChannelId()).delete().queue();
         event.getGuild().getRoleById(jamTeam.get().roleId()).delete().queue();
+        teamData.disbandTeam(jamTeam.get());
     }
 
     private void leave(Jam jam, SlashCommandInteractionEvent event, SlashCommandContext context) {
@@ -184,16 +191,31 @@ public class Team extends SimpleCommand {
         var settings = jamData.getSettings(event.getGuild()).join();
 
         if (member.size() >= settings.teamSize()) {
-            event.reply("You team has reached the max size.").setEphemeral(true).queue();
+            event.reply("Your team has reached the max size.").setEphemeral(true).queue();
             return;
         }
 
         var user = event.getOption("user").getAsUser();
+
+        if (!jam.registrations().contains(user.getIdLong())) {
+            event.reply("This user is not registered for the game jam.").setEphemeral(true).queue();
+            return;
+        }
+
+        var join = teamData.getTeamByMember(jam, user).join();
+
+        if (join.isPresent()) {
+            event.reply("This user is already part of a team").queue();
+            return;
+        }
+
+
         user.openPrivateChannel().queue(channel -> {
             var embed = new LocalizedEmbedBuilder(context.localizer())
                     .setTitle("You received a invitation for the game jam on " + event.getGuild().getName())
                     .setDescription(event.getUser().getName() + " invited you to join their team " + team.get().name())
                     .build();
+            event.reply("Invitation send").setEphemeral(true).queue();
             context.registerButtons(embed, channel, user, ButtonEntry.of(Button.of(ButtonStyle.SUCCESS, "accept", "Accept"),
                     button -> {
                         accept(button, event.getGuild().getIdLong(), team.get(), user.getIdLong());
@@ -203,19 +225,33 @@ public class Team extends SimpleCommand {
 
     private void accept(ButtonInteraction interaction, long guildId, JamTeam team, long userId) {
         teamData.getMember(team).thenAccept(members -> {
+            interaction.deferReply().queue();
             var manager = interaction.getJDA().getShardManager();
             var guild = manager.getGuildById(guildId);
             var user = manager.retrieveUserById(userId).complete();
             var member = guild.retrieveMember(user).complete();
-            var settings = jamData.getSettings(interaction.getGuild()).join();
+            var settings = jamData.getSettings(guild).join();
 
             if (members.size() >= settings.teamSize()) {
-                interaction.reply("The team has reached the max size.").setEphemeral(true).queue();
+                interaction.getHook().editOriginal("The team has reached the max size.").queue();
                 return;
             }
+            var jam = jamData.getNextOrCurrentJam(guild).join();
+            if (jam.isEmpty()) {
+                interaction.getHook().editOriginal("The game jam is over").queue();
+                return;
+            }
+
+            var currTeam = teamData.getTeamByMember(jam.get(), user).join();
+
+            if (currTeam.isPresent()) {
+                interaction.getHook().editOriginal("This user is already part of a team").queue();
+                return;
+            }
+
             teamData.joinTeam(team, member);
             guild.addRoleToMember(member, guild.getRoleById(team.roleId())).queue();
-            interaction.reply("Du bist dem Team beigetreten.").queue();
+            interaction.getHook().editOriginal("Du bist dem Team beigetreten.").queue();
             guild.getTextChannelById(team.textChannelId()).sendMessage(user.getName() + " joined the team.").queue();
         });
     }
@@ -223,7 +259,11 @@ public class Team extends SimpleCommand {
     private void create(SlashCommandInteractionEvent event, Jam jam) {
         var team = teamData.getTeamByMember(jam, event.getMember()).join();
         if (team.isPresent()) {
-            event.reply("You are already part of a team. You need to leave first to create your own team.").queue();
+            event.reply("You are already part of a team. You need to leave first to create your own team.").setEphemeral(true).queue();
+            return;
+        }
+        if (!jam.registrations().contains(event.getMember().getIdLong())) {
+            event.reply("You need to register first to create a team").setEphemeral(true).queue();
             return;
         }
         var teamName = event.getOption("name").getAsString();
@@ -234,12 +274,14 @@ public class Team extends SimpleCommand {
             return;
         }
 
+        event.deferReply().setEphemeral(true).queue();
+
         var categoryList = event.getGuild().getCategoriesByName("Team", true);
 
-        var optCategory = categoryList.stream().filter(c -> c.getChannels().size() < 48).findFirst();
+        var optCategory = categoryList.stream().filter(cat -> cat.getChannels().size() < 48).findFirst();
         // This is really hacky and I dont like it.
         // All this stuff is blocking atm but in a different thread already
-        var category = optCategory.orElse(event.getGuild().createCategory("Team").complete());
+        var category = optCategory.orElseGet(() -> event.getGuild().createCategory("Team").complete());
 
         var role = event.getGuild()
                 .createRole()
@@ -251,13 +293,13 @@ public class Team extends SimpleCommand {
 
         var text = event.getGuild().createTextChannel(teamName.replace(" ", "-"), category)
                 .addRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
-                .addRolePermissionOverride(event.getJDA().getSelfUser().getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
+                .addMemberPermissionOverride(event.getJDA().getSelfUser().getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), Collections.emptySet())
                 .addRolePermissionOverride(event.getGuild().getPublicRole().getIdLong(), Collections.emptySet(), EnumSet.of(Permission.VIEW_CHANNEL))
                 .complete();
 
         var voice = event.getGuild().createVoiceChannel(teamName, category)
                 .addRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
-                .addRolePermissionOverride(event.getJDA().getSelfUser().getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
+                .addMemberPermissionOverride(event.getJDA().getSelfUser().getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), Collections.emptySet())
                 .addRolePermissionOverride(event.getGuild().getPublicRole().getIdLong(), Collections.emptySet(), EnumSet.of(Permission.VIEW_CHANNEL))
                 .complete();
 
@@ -266,5 +308,6 @@ public class Team extends SimpleCommand {
         teamData.createTeam(jam, newTeam);
 
         event.getGuild().addRoleToMember(event.getMember(), role).queue();
+        event.getHook().editOriginal("You team was created.").queue();
     }
 }

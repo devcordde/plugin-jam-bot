@@ -104,7 +104,7 @@ public class JamAdmin extends SimpleCommand {
         }
 
         jamData.createJam(jamBuilder.build(), event.getGuild());
-        event.reply("Jam created.").queue();
+        event.reply("Jam created.").setEphemeral(true).queue();
     }
 
     private void startJam(SlashCommandInteractionEvent event) {

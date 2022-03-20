@@ -13,6 +13,7 @@ import de.chojo.sqlutil.base.QueryFactoryHolder;
 import de.chojo.sqlutil.exceptions.ExceptionTransformer;
 import de.chojo.sqlutil.wrapper.QueryBuilderConfig;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 import org.slf4j.Logger;
 
 import javax.sql.DataSource;
@@ -44,11 +45,17 @@ public class TeamData extends QueryFactoryHolder {
                         )
                         INSERT INTO team_member(team_id, user_id) VALUES((SELECT team_id FROM id), (SELECT leader_id FROM leader))
                         """)
-                .paramsBuilder(stmt -> stmt.setInt(jam.id()).setString(jamTeam.name()).setLong(jamTeam.leader()).setLong(jamTeam.roleId()).setLong(jamTeam.textChannelId()).setLong(jamTeam.voiceChannelId()))
-                .insert();
+                .paramsBuilder(stmt -> stmt.setInt(jam.id())
+                        .setString(jamTeam.name()).setLong(jamTeam.leader()).setLong(jamTeam.roleId()).setLong(jamTeam.textChannelId()).setLong(jamTeam.voiceChannelId()))
+                .insert()
+                .execute();
     }
 
     public CompletableFuture<Optional<JamTeam>> getTeamByMember(Jam jam, Member member) {
+        return getTeamByMember(jam, member.getUser());
+    }
+
+    public CompletableFuture<Optional<JamTeam>> getTeamByMember(Jam jam, User member) {
         return builder(Integer.class).query("""
                         SELECT
                             m.team_id
@@ -59,7 +66,7 @@ public class TeamData extends QueryFactoryHolder {
                             AND user_id = ?
                         """)
                 .paramsBuilder(p -> p.setInt(jam.id()).setLong(member.getIdLong()))
-                .readRow(r -> r.getInt("team__id"))
+                .readRow(r -> r.getInt("team_id"))
                 .first()
                 .thenCompose(optId -> {
                     if (optId.isEmpty()) return CompletableFuture.completedFuture(Optional.empty());
@@ -72,7 +79,7 @@ public class TeamData extends QueryFactoryHolder {
                 .paramsBuilder(stmt -> stmt.setInt(id))
                 .readRow(r -> new JamTeam(r.getInt("id"),
                         r.getString("name"),
-                        r.getLong("leader"),
+                        r.getLong("leader_id"),
                         r.getLong("role_id"),
                         r.getLong("text_channel_id"),
                         r.getLong("voice_channel_id")))

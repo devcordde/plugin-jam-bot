@@ -16,14 +16,15 @@ import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.jdautil.command.SimpleCommand;
 import de.chojo.jdautil.command.dispatching.CommandHub;
-import de.chojo.jdautil.localization.Localizer;
-import de.chojo.jdautil.localization.util.Language;
+import de.chojo.jdautil.localization.ILocalizer;
 import de.chojo.sqlutil.datasource.DataSourceCreator;
 import de.chojo.sqlutil.logging.LoggerAdapter;
 import de.chojo.sqlutil.updater.QueryReplacement;
 import de.chojo.sqlutil.updater.SqlType;
 import de.chojo.sqlutil.updater.SqlUpdater;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -35,7 +36,6 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -45,7 +45,7 @@ public class Bot {
     private static final Bot instance;
     private Configuration configuration;
     private DataSource dataSource;
-    private Localizer localizer;
+    private ILocalizer localizer;
     private ShardManager shardManager;
     private CommandHub<SimpleCommand> commandHub;
 
@@ -76,11 +76,13 @@ public class Bot {
     }
 
     private void buildLocale() {
-        localizer = Localizer.builder(Language.ENGLISH)
-                .addLanguage(Language.GERMAN)
-                //TODO: Implement language
-                .withLanguageProvider(guild -> Optional.ofNullable(Language.GERMAN.getCode()))
-                .build();
+        localizer = ILocalizer.DEFAULT;
+        //TODO: Add localization and init localizer again
+//        localizer = Localizer.builder(Language.ENGLISH)
+//                .addLanguage(Language.GERMAN)
+//                //TODO: Implement language
+//                .withLanguageProvider(guild -> Optional.ofNullable(Language.GERMAN.getCode()))
+//                .build();
     }
 
     private void buildCommands() {
@@ -110,6 +112,10 @@ public class Bot {
                         GatewayIntent.GUILD_MESSAGES)
                 .setMemberCachePolicy(MemberCachePolicy.DEFAULT)
                 .build();
+
+        RestAction.setDefaultFailure(throwable -> {
+            log.error("Unhandled exception occured: ", throwable);
+        });
     }
 
     private void initDb() throws IOException, SQLException {

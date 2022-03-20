@@ -49,7 +49,7 @@ public class JamData extends QueryFactoryHolder {
         return builder(JamSettings.class)
                 .query("""
                         INSERT INTO jam_settings(guild_id, jam_role, team_size, manager_role) VALUES (?,?,?,?)
-                        ON CONFLICT
+                        ON CONFLICT(guild_id)
                             DO UPDATE
                                 SET jam_role = excluded.jam_role, team_size = excluded.team_size, manager_role = excluded.manager_role;
                         """)
@@ -82,7 +82,12 @@ public class JamData extends QueryFactoryHolder {
                                     .setString(times.zone().getId())
                             ).append()
                             .query("INSERT INTO jam_meta(jam_id, topic) VALUES(?,?)")
-                            .paramsBuilder(stmt -> stmt.setInt(id.get()).setString(jam.topic()));
+                            .paramsBuilder(stmt -> stmt.setInt(id.get()).setString(jam.topic()))
+                            .append()
+                            .query("INSERT INTO jam_state(jam_id) VALUES(?)")
+                            .paramsBuilder(stmt -> stmt.setInt(id.get()))
+                            .insert()
+                            .execute();
                     return id;
                 });
     }
@@ -192,8 +197,8 @@ public class JamData extends QueryFactoryHolder {
                             .setTimes(new JamTimes(zone,
                                     TimeFrame.fromTimestamp(r.getTimestamp("registration_start"),
                                             r.getTimestamp("registration_end"), zone),
-                                    TimeFrame.fromTimestamp(r.getTimestamp("start_time"),
-                                            r.getTimestamp("end_time"), zone)
+                                    TimeFrame.fromTimestamp(r.getTimestamp("jam_start"),
+                                            r.getTimestamp("jam_end"), zone)
                             )).setState(new JamState(r.getBoolean("active"), r.getBoolean("voting"), r.getBoolean("ended")));
                 })
                 .first()
@@ -208,7 +213,7 @@ public class JamData extends QueryFactoryHolder {
                             .paramsBuilder(stmt -> stmt.setInt(jam.id()))
                             .readRow(r -> new JamTeam(r.getInt("id"),
                                     r.getString("name"),
-                                    r.getLong("leader"),
+                                    r.getLong("leader_id"),
                                     r.getLong("role_id"),
                                     r.getLong("text_channel_id"),
                                     r.getLong("voice_channel_id")))
