@@ -6,7 +6,14 @@
 
 package de.chojo.gamejam;
 
+import de.chojo.gamejam.commands.JamAdmin;
+import de.chojo.gamejam.commands.Register;
+import de.chojo.gamejam.commands.Settings;
+import de.chojo.gamejam.commands.Team;
+import de.chojo.gamejam.commands.Vote;
 import de.chojo.gamejam.configuration.Configuration;
+import de.chojo.gamejam.data.JamData;
+import de.chojo.gamejam.data.TeamData;
 import de.chojo.jdautil.command.SimpleCommand;
 import de.chojo.jdautil.command.dispatching.CommandHub;
 import de.chojo.jdautil.localization.Localizer;
@@ -29,6 +36,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -76,13 +84,21 @@ public class Bot {
     }
 
     private void buildCommands() {
+        var jamData = new JamData(dataSource);
+        var teamData = new TeamData(dataSource);
         commandHub = CommandHub.builder(shardManager)
                 //TODO: Implement manager role retrieval
                 .withManagerRole(guild -> Collections.emptyList())
                 .withLocalizer(localizer)
                 .useGuildCommands()
                 //TODO: Add Commands
-                .withCommands()
+                .withCommands(new JamAdmin(jamData),
+                        new Register(jamData),
+                        new Settings(jamData),
+                        new Team(teamData, jamData),
+                        new Vote())
+                .withPagination(builder -> builder.cache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
+                .withButtonService(builder -> builder.setCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .build();
     }
 

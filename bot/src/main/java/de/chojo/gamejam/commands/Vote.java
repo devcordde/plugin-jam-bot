@@ -16,7 +16,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 public class Vote extends SimpleCommand {
 
 
-    protected Vote(CommandMeta meta) {
+    public Vote() {
         super(CommandMeta.builder("vote", "Vote for teams")
                 .addSubCommand("vote", "vote for teams",
                         argsBuilder()

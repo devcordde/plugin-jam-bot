@@ -6,6 +6,7 @@
 
 package de.chojo.gamejam.commands;
 
+import de.chojo.gamejam.data.JamData;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
 import de.chojo.jdautil.command.SimpleCommand;
@@ -14,7 +15,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 public class JamAdmin extends SimpleCommand {
 
-    protected JamAdmin() {
+    private final JamData jamData;
+    public JamAdmin(JamData jamData) {
         super(CommandMeta.builder("jamadmin", "Manage jams")
                 .withPermission()
                 .addSubCommand("create", "Create a new game jam",
@@ -32,6 +34,7 @@ public class JamAdmin extends SimpleCommand {
                 .addSubCommand("open_votes", "Open votes for the current active jam")
                 .addSubCommand("close_votes", "close votes for the current active jam")
                 .build());
+        this.jamData = jamData;
     }
 
     @Override
