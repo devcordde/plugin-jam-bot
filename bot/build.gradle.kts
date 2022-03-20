@@ -17,7 +17,7 @@ dependencies {
         exclude(module = "opus-java")
     }
 
-    implementation("de.chojo", "cjda-util", "2.2.0c+alpha.9-SNAPSHOT")
+    implementation("de.chojo", "cjda-util", "2.2.0g+alpha.9-SNAPSHOT")
 
 
     // database
