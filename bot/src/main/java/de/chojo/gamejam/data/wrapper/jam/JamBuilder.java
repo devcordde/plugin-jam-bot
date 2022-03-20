@@ -12,19 +12,23 @@ import java.util.List;
 
 public class JamBuilder {
     private final int id;
-    private final boolean active;
     private JamTimes times;
     private String topic;
     private List<Long> registrations;
     private List<JamTeam> teams;
+    private JamState state;
 
-    public JamBuilder(int id, boolean active) {
+    public JamBuilder(int id) {
         this.id = id;
-        this.active = active;
     }
 
     public JamBuilder setTimes(JamTimes times) {
         this.times = times;
+        return this;
+    }
+
+    public JamBuilder setState(JamState state){
+        this.state = state;
         return this;
     }
 
@@ -44,7 +48,7 @@ public class JamBuilder {
     }
 
     public Jam build() {
-        return new Jam(id, active, times, topic, registrations, teams);
+        return new Jam(id, times, state, topic, registrations, teams);
     }
 
     public int id() {

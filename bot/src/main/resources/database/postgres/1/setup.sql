@@ -1,8 +1,10 @@
+CREATE SEQUENCE gamejam.jam_times_id_seq
+    AS INTEGER;
+
 CREATE TABLE gamejam.jam
 (
     id       SERIAL,
-    guild_id BIGINT                NOT NULL,
-    active   BOOLEAN DEFAULT FALSE NOT NULL,
+    guild_id BIGINT NOT NULL,
     CONSTRAINT jam_pk
         PRIMARY KEY (id)
 );
@@ -25,6 +27,8 @@ CREATE TABLE gamejam.jam_time
             ON DELETE CASCADE
 );
 
+ALTER SEQUENCE gamejam.jam_times_id_seq OWNED BY gamejam.jam_time.jam_id;
+
 CREATE TABLE gamejam.jam_meta
 (
     jam_id INTEGER NOT NULL,
@@ -36,7 +40,7 @@ CREATE TABLE gamejam.jam_meta
             ON DELETE CASCADE
 );
 
-CREATE TABLE gamejam.jamTeam
+CREATE TABLE gamejam.team
 (
     id     SERIAL,
     jam_id INTEGER NOT NULL,
@@ -70,7 +74,7 @@ CREATE TABLE gamejam.team_meta
     CONSTRAINT team_meta_pk
         PRIMARY KEY (team_id),
     CONSTRAINT team_meta_team_id_fk
-        FOREIGN KEY (team_id) REFERENCES gamejam.jamTeam
+        FOREIGN KEY (team_id) REFERENCES gamejam.team
             ON DELETE CASCADE
 );
 
@@ -84,7 +88,7 @@ CREATE TABLE gamejam.vote
         FOREIGN KEY (jam_id) REFERENCES gamejam.jam
             ON DELETE CASCADE,
     CONSTRAINT vote_team_id_fk
-        FOREIGN KEY (team_id) REFERENCES gamejam.jamTeam
+        FOREIGN KEY (team_id) REFERENCES gamejam.team
             ON DELETE CASCADE
 );
 
@@ -111,4 +115,17 @@ CREATE TABLE gamejam.jam_settings
     manager_role BIGINT,
     CONSTRAINT jam_settings_pk
         PRIMARY KEY (guild_id)
+);
+
+CREATE TABLE gamejam.jam_state
+(
+    jam_id INTEGER               NOT NULL,
+    active BOOLEAN DEFAULT FALSE NOT NULL,
+    voting BOOLEAN DEFAULT FALSE NOT NULL,
+    ended  BOOLEAN DEFAULT FALSE NOT NULL,
+    CONSTRAINT jam_state_pk
+        PRIMARY KEY (jam_id),
+    CONSTRAINT jam_state_jam_id_fk
+        FOREIGN KEY (jam_id) REFERENCES gamejam.jam
+            ON DELETE CASCADE
 );

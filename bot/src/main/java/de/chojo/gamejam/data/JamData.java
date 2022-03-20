@@ -9,6 +9,7 @@ package de.chojo.gamejam.data;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.gamejam.data.wrapper.jam.JamBuilder;
 import de.chojo.gamejam.data.wrapper.jam.JamSettings;
+import de.chojo.gamejam.data.wrapper.jam.JamState;
 import de.chojo.gamejam.data.wrapper.jam.JamTimes;
 import de.chojo.gamejam.data.wrapper.jam.TimeFrame;
 import de.chojo.gamejam.data.wrapper.team.JamTeam;
@@ -98,14 +99,7 @@ public class JamData extends QueryFactoryHolder {
         return builder(JamBuilder.class)
                 .query("""
                         SELECT
-                            id,
-                            guild_id,
-                            active,
-                            registration_start,
-                            registration_end,
-                            jam_start,
-                            jam_end,
-                            zone_id
+                            id
                         FROM jam_time t
                         LEFT JOIN jam j ON j.id = t.jam_id
                         WHERE registration_start < NOW() AT TIME ZONE 'utc'
@@ -113,7 +107,7 @@ public class JamData extends QueryFactoryHolder {
                             AND guild_id = ?;
                         """)
                 .paramsBuilder(stmt -> stmt.setLong(guild.getIdLong()))
-                .readRow(r -> new JamBuilder(r.getInt("id"), r.getBoolean("active")))
+                .readRow(r -> new JamBuilder(r.getInt("id")))
                 .first();
     }
 
@@ -121,14 +115,7 @@ public class JamData extends QueryFactoryHolder {
         return builder(Integer.class)
                 .query("""
                         SELECT
-                            id,
-                            guild_id,
-                            active,
-                            registration_start,
-                            registration_end,
-                            jam_start,
-                            jam_end,
-                            zone_id
+                            id
                         FROM jam_time t
                         LEFT JOIN jam j ON j.id = t.jam_id
                         WHERE t.jam_end > NOW() AT TIME ZONE 'utc'
@@ -145,35 +132,69 @@ public class JamData extends QueryFactoryHolder {
                 });
     }
 
+    public CompletableFuture<Optional<Jam>> getActiveJam(Guild guild) {
+        return builder(Integer.class)
+                .query("""
+                        SELECT
+                            id
+                        FROM jam_state s
+                        LEFT JOIN jam j ON j.id = s.jam_id
+                        WHERE s.active
+                            AND guild_id = ?
+                        LIMIT 1;
+                        """)
+                .paramsBuilder(stmt -> stmt.setLong(guild.getIdLong()))
+                .readRow(r -> r.getInt("id"))
+                .first()
+                .thenCompose(id -> {
+                    if (id.isEmpty()) return CompletableFuture.completedFuture(Optional.empty());
+                    return getJamById(id.get());
+                });
+    }
+
+    public void updateJamState(Jam jam) {
+        var state = jam.state();
+        builder().query("""
+                        UPDATE jam_state
+                        SET active = ?, voting = ?, ended = ?
+                        WHERE jam_id = ?
+                        """).paramsBuilder(p -> p.setBoolean(state.isActive()).setBoolean(state.isVoting()).setBoolean(state.hasEnded()).setInt(jam.id()))
+                .update()
+                .execute();
+    }
+
     public CompletableFuture<Optional<Jam>> getJamById(int id) {
         return builder(JamBuilder.class)
                 .query("""      
                         SELECT
                             j.id,
                             guild_id,
-                            active,
                             registration_start,
                             registration_end,
                             jam_start,
                             jam_end,
                             zone_id,
-                            topic
+                            topic,
+                            active,
+                            voting,
+                            ended
                         FROM jam j
                         LEFT JOIN jam_time t ON j.id = t.jam_id
                         LEFT JOIN jam_meta m ON j.id = m.jam_id
+                        LEFT JOIN jam_state s ON j.id = s.jam_id
                         WHERE m.jam_id = ?
                         """)
                 .paramsBuilder(stmt -> stmt.setInt(id))
                 .readRow(r -> {
                     var zone = ZoneId.of(r.getString("zone_id"));
-                    return new JamBuilder(r.getInt("id"), r.getBoolean("active"))
+                    return new JamBuilder(r.getInt("id"))
                             .setTopic(r.getString("topic"))
                             .setTimes(new JamTimes(zone,
                                     TimeFrame.fromTimestamp(r.getTimestamp("registration_start"),
                                             r.getTimestamp("registration_end"), zone),
                                     TimeFrame.fromTimestamp(r.getTimestamp("start_time"),
                                             r.getTimestamp("end_time"), zone)
-                            ));
+                            )).setState(new JamState(r.getBoolean("active"), r.getBoolean("voting"), r.getBoolean("ended")));
                 })
                 .first()
                 .thenApply(optJam -> {

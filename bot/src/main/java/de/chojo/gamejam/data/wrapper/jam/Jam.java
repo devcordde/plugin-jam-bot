@@ -12,24 +12,21 @@ import java.util.List;
 
 public class Jam {
     private final int id;
-    private final boolean active;
     private final JamTimes times;
+    private final JamState state;
     private final String topic;
     private final List<Long> registrations;
     private final List<JamTeam> teams;
 
-    public Jam(int id, boolean active, JamTimes times, String topic, List<Long> registrations, List<JamTeam> teams) {
+    public Jam(int id, JamTimes times, JamState state, String topic, List<Long> registrations, List<JamTeam> teams) {
         this.id = id;
-        this.active = active;
         this.times = times;
+        this.state = state;
         this.topic = topic;
         this.registrations = registrations;
         this.teams = teams;
     }
 
-    public boolean isActive() {
-        return active;
-    }
 
     public int id() {
         return id;
@@ -49,5 +46,9 @@ public class Jam {
 
     public List<JamTeam> teams() {
         return teams;
+    }
+
+    public JamState state() {
+        return state;
     }
 }
