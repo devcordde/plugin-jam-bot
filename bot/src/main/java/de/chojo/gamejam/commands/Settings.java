@@ -18,7 +18,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 public class Settings extends SimpleCommand {
     private final JamData jamData;
 
-    protected Settings(JamData jamData) {
+    public Settings(JamData jamData) {
         super(CommandMeta.builder("settings", "manage bot settings")
                 .withPermission()
                 .addSubCommand("role", "Set the role which will be assigned to registered members.",
