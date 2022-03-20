@@ -1,6 +1,5 @@
 package de.chojo.gamejam.commands.settings;
 
-import de.chojo.gamejam.commands.SettingsSubcommand;
 import de.chojo.gamejam.data.wrapper.jam.JamSettings;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.util.MentionUtil;

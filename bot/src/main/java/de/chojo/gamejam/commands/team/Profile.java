@@ -1,6 +1,5 @@
 package de.chojo.gamejam.commands.team;
 
-import de.chojo.gamejam.commands.TeamSubCommand;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.gamejam.data.wrapper.team.JamTeam;

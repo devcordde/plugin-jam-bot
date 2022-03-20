@@ -11,30 +11,18 @@ import de.chojo.gamejam.commands.team.Disband;
 import de.chojo.gamejam.commands.team.Invite;
 import de.chojo.gamejam.commands.team.Leave;
 import de.chojo.gamejam.commands.team.Profile;
+import de.chojo.gamejam.commands.team.TeamSubCommand;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
-import de.chojo.gamejam.data.wrapper.jam.Jam;
-import de.chojo.gamejam.data.wrapper.team.JamTeam;
 import de.chojo.gamejam.util.Future;
-import de.chojo.jdautil.buttons.ButtonEntry;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
 import de.chojo.jdautil.command.SimpleCommand;
-import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
-import de.chojo.jdautil.util.MentionUtil;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import org.slf4j.Logger;
 
-import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 

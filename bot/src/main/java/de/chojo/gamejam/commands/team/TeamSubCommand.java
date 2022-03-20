@@ -1,4 +1,4 @@
-package de.chojo.gamejam.commands;
+package de.chojo.gamejam.commands.team;
 
 import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.jdautil.wrapper.SlashCommandContext;

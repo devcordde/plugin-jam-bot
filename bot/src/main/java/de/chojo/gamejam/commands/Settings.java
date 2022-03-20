@@ -9,6 +9,7 @@ package de.chojo.gamejam.commands;
 import de.chojo.gamejam.commands.settings.Info;
 import de.chojo.gamejam.commands.settings.OrgaRole;
 import de.chojo.gamejam.commands.settings.Role;
+import de.chojo.gamejam.commands.settings.SettingsSubcommand;
 import de.chojo.gamejam.commands.settings.TeamSize;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.util.Future;
