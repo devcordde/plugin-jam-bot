@@ -72,7 +72,7 @@ public class Team extends SimpleCommand {
                         return;
                     }
                     if ("create".equals(event.getSubcommandName())) {
-                        create(event, optJam.get());
+                        create(optJam.get(), event, context);
                         return;
                     }
 
@@ -88,6 +88,7 @@ public class Team extends SimpleCommand {
 
                     if ("disband".equals(event.getSubcommandName())) {
                         disband(optJam.get(), event, context);
+                        return;
                     }
 
                     if ("profile".equals(event.getSubcommandName())) {
@@ -158,9 +159,7 @@ public class Team extends SimpleCommand {
                     });
         }
         event.reply("Team disbanded").setEphemeral(true).queue();
-        event.getGuild().getTextChannelById(jamTeam.get().textChannelId()).delete().queue();
-        event.getGuild().getVoiceChannelById(jamTeam.get().voiceChannelId()).delete().queue();
-        event.getGuild().getRoleById(jamTeam.get().roleId()).delete().queue();
+        jamTeam.get().delete(event.getGuild());
         teamData.disbandTeam(jamTeam.get());
     }
 
@@ -257,7 +256,7 @@ public class Team extends SimpleCommand {
         }).whenComplete(Future.error());
     }
 
-    private void create(SlashCommandInteractionEvent event, Jam jam) {
+    private void create(Jam jam, SlashCommandInteractionEvent event, SlashCommandContext context) {
         var team = teamData.getTeamByMember(jam, event.getMember()).join();
         if (team.isPresent()) {
             event.reply("You are already part of a team. You need to leave first to create your own team.").setEphemeral(true).queue();

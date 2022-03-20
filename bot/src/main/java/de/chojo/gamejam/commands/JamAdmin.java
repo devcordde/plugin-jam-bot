@@ -14,6 +14,7 @@ import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
 import de.chojo.jdautil.command.SimpleCommand;
+import de.chojo.jdautil.util.Guilds;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -148,17 +149,10 @@ public class JamAdmin extends SimpleCommand {
                 event.reply("There is no active jam.").queue();
                 return;
             }
-            jam.get().state().ended(true);
-            jam.get().state().active(false);
-            jam.get().state().voting(false);
+            jam.get().finish(event.getGuild());
             jamData.updateJamState(jam.get());
             event.reply("Jam ended.").queue();
 
-            for (var team : jam.get().teams()) {
-                event.getGuild().getTextChannelById(team.textChannelId()).delete().queue();
-                event.getGuild().getVoiceChannelById(team.voiceChannelId()).delete().queue();
-                event.getGuild().getRoleById(team.roleId()).delete().queue();
-            }
         }).whenComplete(Future.error());
     }
 

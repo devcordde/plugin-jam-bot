@@ -7,6 +7,7 @@
 package de.chojo.gamejam.data.wrapper.jam;
 
 import de.chojo.gamejam.data.wrapper.team.JamTeam;
+import net.dv8tion.jda.api.entities.Guild;
 
 import java.util.List;
 
@@ -50,5 +51,15 @@ public class Jam {
 
     public JamState state() {
         return state;
+    }
+
+    public void finish(Guild guild){
+        state.active(false);
+        state.voting(false);
+        state.ended(true);
+
+        for (var team : teams()) {
+            team.delete(guild);
+        }
     }
 }

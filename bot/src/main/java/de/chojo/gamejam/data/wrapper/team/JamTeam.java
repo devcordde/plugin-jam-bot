@@ -6,6 +6,7 @@
 
 package de.chojo.gamejam.data.wrapper.team;
 
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -59,5 +60,11 @@ public class JamTeam {
 
     public long voiceChannelId() {
         return voiceChannelId;
+    }
+
+    public void delete(Guild guild) {
+        guild.getTextChannelById(textChannelId()).delete().queue();
+        guild.getVoiceChannelById(voiceChannelId()).delete().queue();
+        guild.getRoleById(roleId()).delete().queue();
     }
 }
