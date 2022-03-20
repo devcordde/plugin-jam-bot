@@ -7,15 +7,15 @@
 package de.chojo.gamejam.data.wrapper.team;
 
 public class TeamMember {
-    private final Team team;
+    private final JamTeam team;
     private final long userId;
 
-    public TeamMember(Team team, long userId) {
+    public TeamMember(JamTeam team, long userId) {
         this.team = team;
         this.userId = userId;
     }
 
-    public Team team() {
+    public JamTeam team() {
         return team;
     }
 

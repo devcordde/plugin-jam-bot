@@ -11,7 +11,7 @@ import de.chojo.gamejam.data.wrapper.jam.JamBuilder;
 import de.chojo.gamejam.data.wrapper.jam.JamSettings;
 import de.chojo.gamejam.data.wrapper.jam.JamTimes;
 import de.chojo.gamejam.data.wrapper.jam.TimeFrame;
-import de.chojo.gamejam.data.wrapper.team.Team;
+import de.chojo.gamejam.data.wrapper.team.JamTeam;
 import de.chojo.sqlutil.base.QueryFactoryHolder;
 import de.chojo.sqlutil.exceptions.ExceptionTransformer;
 import de.chojo.sqlutil.wrapper.QueryBuilderConfig;
@@ -71,7 +71,7 @@ public class JamData extends QueryFactoryHolder {
                                     registration_start, registration_end,
                                     jam_start, jam_end,
                                     zone_id)
-                                     VALUES (?,?,?,?,?,?,?)
+                                     VALUES (?,?,?,?,?,?)
                                     """)
                             .paramsBuilder(stmt -> stmt.setInt(id.get())
                                     .setTimestamp(times.registration().startTimestamp())
@@ -183,9 +183,9 @@ public class JamData extends QueryFactoryHolder {
                             .paramsBuilder(stmt -> stmt.setInt(jam.id()))
                             .readRow(r -> r.getLong("user_id"))
                             .allSync();
-                    var teams = builder(Team.class).query("SELECT id, jam_id, name, leader_id, role_id, text_channel_id, voice_channel_id FROM team t LEFT JOIN team_meta m ON t.id = m.team_id WHERE jam_id = ?")
+                    var teams = builder(JamTeam.class).query("SELECT id, jam_id, name, leader_id, role_id, text_channel_id, voice_channel_id FROM team t LEFT JOIN team_meta m ON t.id = m.team_id WHERE jam_id = ?")
                             .paramsBuilder(stmt -> stmt.setInt(jam.id()))
-                            .readRow(r -> new Team(r.getInt("id"),
+                            .readRow(r -> new JamTeam(r.getInt("id"),
                                     r.getString("name"),
                                     r.getLong("leader"),
                                     r.getLong("role_id"),

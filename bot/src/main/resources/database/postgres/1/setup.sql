@@ -36,7 +36,7 @@ CREATE TABLE gamejam.jam_meta
             ON DELETE CASCADE
 );
 
-CREATE TABLE gamejam.team
+CREATE TABLE gamejam.jamTeam
 (
     id     SERIAL,
     jam_id INTEGER NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE gamejam.team_meta
     CONSTRAINT team_meta_pk
         PRIMARY KEY (team_id),
     CONSTRAINT team_meta_team_id_fk
-        FOREIGN KEY (team_id) REFERENCES gamejam.team
+        FOREIGN KEY (team_id) REFERENCES gamejam.jamTeam
             ON DELETE CASCADE
 );
 
@@ -84,7 +84,7 @@ CREATE TABLE gamejam.vote
         FOREIGN KEY (jam_id) REFERENCES gamejam.jam
             ON DELETE CASCADE,
     CONSTRAINT vote_team_id_fk
-        FOREIGN KEY (team_id) REFERENCES gamejam.team
+        FOREIGN KEY (team_id) REFERENCES gamejam.jamTeam
             ON DELETE CASCADE
 );
 

@@ -6,7 +6,12 @@
 
 package de.chojo.gamejam.data.wrapper.team;
 
-public class Team {
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.VoiceChannel;
+
+public class JamTeam {
     private final int id;
     private final String name;
     private final long leader;
@@ -14,13 +19,22 @@ public class Team {
     private final long textChannelId;
     private final long voiceChannelId;
 
-    public Team(int id, String name, long leader, long roleId, long textChannelId, long voiceChannelId) {
+    public JamTeam(int id, String name, long leader, long roleId, long textChannelId, long voiceChannelId) {
         this.id = id;
         this.name = name;
         this.leader = leader;
         this.roleId = roleId;
         this.textChannelId = textChannelId;
         this.voiceChannelId = voiceChannelId;
+    }
+
+    public static JamTeam create(String name, Member leader, Role role, TextChannel textChannel, VoiceChannel voiceChannel) {
+        return new JamTeam(-1,
+                name,
+                leader.getIdLong(),
+                role.getIdLong(),
+                textChannel.getIdLong(),
+                voiceChannel.getIdLong());
     }
 
     public int id() {

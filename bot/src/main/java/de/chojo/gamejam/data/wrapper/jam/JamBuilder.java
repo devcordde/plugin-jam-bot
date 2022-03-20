@@ -6,7 +6,7 @@
 
 package de.chojo.gamejam.data.wrapper.jam;
 
-import de.chojo.gamejam.data.wrapper.team.Team;
+import de.chojo.gamejam.data.wrapper.team.JamTeam;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public class JamBuilder {
     private JamTimes times;
     private String topic;
     private List<Long> registrations;
-    private List<Team> teams;
+    private List<JamTeam> teams;
 
     public JamBuilder(int id, boolean active) {
         this.id = id;
@@ -38,7 +38,7 @@ public class JamBuilder {
         return this;
     }
 
-    public JamBuilder setTeams(List<Team> teams) {
+    public JamBuilder setTeams(List<JamTeam> teams) {
         this.teams = teams;
         return this;
     }

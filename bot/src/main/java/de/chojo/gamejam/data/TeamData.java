@@ -7,7 +7,7 @@
 package de.chojo.gamejam.data;
 
 import de.chojo.gamejam.data.wrapper.jam.Jam;
-import de.chojo.gamejam.data.wrapper.team.Team;
+import de.chojo.gamejam.data.wrapper.team.JamTeam;
 import de.chojo.gamejam.data.wrapper.team.TeamMember;
 import de.chojo.sqlutil.base.QueryFactoryHolder;
 import de.chojo.sqlutil.exceptions.ExceptionTransformer;
@@ -32,7 +32,7 @@ public class TeamData extends QueryFactoryHolder {
                 .build());
     }
 
-    public void createTeam(Jam jam, Team team) {
+    public void createTeam(Jam jam, JamTeam jamTeam) {
         builder()
                 .query("""
                         WITH id AS (
@@ -44,11 +44,11 @@ public class TeamData extends QueryFactoryHolder {
                         )
                         INSERT INTO team_member(team_id, user_id) VALUES((SELECT team_id FROM id), (SELECT leader_id FROM leader))
                         """)
-                .paramsBuilder(stmt -> stmt.setInt(jam.id()).setString(team.name()).setLong(team.leader()).setLong(team.roleId()).setLong(team.textChannelId()).setLong(team.voiceChannelId()))
+                .paramsBuilder(stmt -> stmt.setInt(jam.id()).setString(jamTeam.name()).setLong(jamTeam.leader()).setLong(jamTeam.roleId()).setLong(jamTeam.textChannelId()).setLong(jamTeam.voiceChannelId()))
                 .insert();
     }
 
-    public CompletableFuture<Optional<Team>> getTeamByMember(Jam jam, Member member) {
+    public CompletableFuture<Optional<JamTeam>> getTeamByMember(Jam jam, Member member) {
         return builder(Integer.class).query("""
                         SELECT
                             m.team_id
@@ -67,10 +67,10 @@ public class TeamData extends QueryFactoryHolder {
                 });
     }
 
-    public CompletableFuture<Optional<Team>> getTeamById(int id) {
-        return builder(Team.class).query("SELECT id, jam_id, name, leader_id, role_id, text_channel_id, voice_channel_id FROM team t LEFT JOIN team_meta m ON t.id = m.team_id WHERE id = ?")
+    public CompletableFuture<Optional<JamTeam>> getTeamById(int id) {
+        return builder(JamTeam.class).query("SELECT id, jam_id, name, leader_id, role_id, text_channel_id, voice_channel_id FROM team t LEFT JOIN team_meta m ON t.id = m.team_id WHERE id = ?")
                 .paramsBuilder(stmt -> stmt.setInt(id))
-                .readRow(r -> new Team(r.getInt("id"),
+                .readRow(r -> new JamTeam(r.getInt("id"),
                         r.getString("name"),
                         r.getLong("leader"),
                         r.getLong("role_id"),
@@ -79,38 +79,54 @@ public class TeamData extends QueryFactoryHolder {
                 .first();
     }
 
-    public CompletableFuture<Boolean> joinTeam(Team team, Member member) {
+    public CompletableFuture<Boolean> joinTeam(JamTeam jamTeam, Member member) {
         return builder()
                 .query("INSERT INTO team_member(team_id, user_id) VALUES(?,?)")
-                .paramsBuilder(p -> p.setInt(team.id()).setLong(member.getIdLong()))
+                .paramsBuilder(p -> p.setInt(jamTeam.id()).setLong(member.getIdLong()))
                 .insert()
                 .execute()
                 .thenApply(count -> count > 0);
     }
 
-    public CompletableFuture<Boolean> leaveTeam(Team team, Member member) {
+    public CompletableFuture<Boolean> leaveTeam(JamTeam jamTeam, Member member) {
         return builder()
                 .query("DELETE FROM team_member WHERE team_id = ? AND user_id = ?")
-                .paramsBuilder(p -> p.setInt(team.id()).setLong(member.getIdLong()))
+                .paramsBuilder(p -> p.setInt(jamTeam.id()).setLong(member.getIdLong()))
                 .insert()
                 .execute()
                 .thenApply(count -> count > 0);
     }
 
-    public CompletableFuture<Boolean> disbandTeam(Team team) {
+    public CompletableFuture<Boolean> disbandTeam(JamTeam jamTeam) {
         return builder()
                 .query("DELETE FROM team WHERE id = ?")
-                .paramsBuilder(p -> p.setInt(team.id()))
+                .paramsBuilder(p -> p.setInt(jamTeam.id()))
                 .insert()
                 .execute()
                 .thenApply(count -> count > 0);
     }
 
-    public CompletableFuture<List<TeamMember>> getMember(Team team) {
+    public CompletableFuture<List<TeamMember>> getMember(JamTeam jamTeam) {
         return builder(TeamMember.class)
                 .query("SELECT user_id FROM team_member WHERE team_id = ?")
-                .paramsBuilder(p -> p.setInt(team.id()))
-                .readRow(r -> new TeamMember(team, r.getLong("user_id")))
+                .paramsBuilder(p -> p.setInt(jamTeam.id()))
+                .readRow(r -> new TeamMember(jamTeam, r.getLong("user_id")))
                 .all();
+    }
+
+    public CompletableFuture<Optional<JamTeam>> getTeamByName(Jam jam, String name) {
+        return builder(Integer.class)
+                .query("""
+                        SELECT id FROM team t LEFT JOIN team_meta m ON t.id = m.team_id
+                        WHERE jam_id = ?
+                            AND LOWER(m.name) = LOWER(?)
+                        """)
+                .paramsBuilder(p -> p.setInt(jam.id()).setString(name))
+                .readRow(r -> r.getInt("id"))
+                .first()
+                .thenCompose(id -> {
+                    if (id.isEmpty()) return CompletableFuture.completedFuture(Optional.empty());
+                    return getTeamById(id.get());
+                });
     }
 }
