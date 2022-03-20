@@ -30,10 +30,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class JamData extends QueryFactoryHolder {
     private static final Logger log = getLogger(JamData.class);
 
-    public JamData(DataSource dataSource) {
-        super(dataSource, QueryBuilderConfig.builder()
-                .withExceptionHandler(err -> log.error(ExceptionTransformer.prettyException(err), err))
-                .build());
+    public JamData(DataSource dataSource, QueryBuilderConfig config) {
+        super(dataSource, config);
     }
 
     public CompletableFuture<JamSettings> getSettings(Guild guild) {

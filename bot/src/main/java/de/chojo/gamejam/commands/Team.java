@@ -10,6 +10,7 @@ import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.gamejam.data.wrapper.team.JamTeam;
+import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.buttons.ButtonEntry;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
@@ -92,7 +93,7 @@ public class Team extends SimpleCommand {
                     if ("profile".equals(event.getSubcommandName())) {
                         profile(optJam.get(), event, context);
                     }
-                });
+                }).whenComplete(Future.error());
     }
 
     private void profile(Jam jam, SlashCommandInteractionEvent event, SlashCommandContext context) {
@@ -253,7 +254,7 @@ public class Team extends SimpleCommand {
             guild.addRoleToMember(member, guild.getRoleById(team.roleId())).queue();
             interaction.getHook().editOriginal("Du bist dem Team beigetreten.").queue();
             guild.getTextChannelById(team.textChannelId()).sendMessage(user.getName() + " joined the team.").queue();
-        });
+        }).whenComplete(Future.error());
     }
 
     private void create(SlashCommandInteractionEvent event, Jam jam) {

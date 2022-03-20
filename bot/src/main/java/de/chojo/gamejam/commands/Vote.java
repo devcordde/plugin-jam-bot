@@ -29,7 +29,7 @@ public class Vote extends SimpleCommand {
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, SlashCommandContext context) {
-
+        //TODO: Define
     }
 
     @Override

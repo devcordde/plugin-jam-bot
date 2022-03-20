@@ -14,15 +14,17 @@ import de.chojo.gamejam.commands.Vote;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.util.LogNotify;
 import de.chojo.jdautil.command.SimpleCommand;
 import de.chojo.jdautil.command.dispatching.CommandHub;
 import de.chojo.jdautil.localization.ILocalizer;
 import de.chojo.sqlutil.datasource.DataSourceCreator;
+import de.chojo.sqlutil.exceptions.ExceptionTransformer;
 import de.chojo.sqlutil.logging.LoggerAdapter;
 import de.chojo.sqlutil.updater.QueryReplacement;
 import de.chojo.sqlutil.updater.SqlType;
 import de.chojo.sqlutil.updater.SqlUpdater;
-import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import de.chojo.sqlutil.wrapper.QueryBuilderConfig;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
@@ -36,11 +38,17 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class Bot {
+    private static final Logger log = getLogger(Bot.class);
+    private static final Thread.UncaughtExceptionHandler EXCEPTION_HANDLER =
+            (t, e) -> log.error(LogNotify.NOTIFY_ADMIN, "An uncaught exception occured in " + t.getName() + "-" + t.getId() + ".", e);
 
     private static final Bot instance;
     private Configuration configuration;
@@ -48,8 +56,29 @@ public class Bot {
     private ILocalizer localizer;
     private ShardManager shardManager;
     private CommandHub<SimpleCommand> commandHub;
+    private JamData jamData;
+    private TeamData teamData;
+    private QueryBuilderConfig config;
 
-    private static final Logger log = getLogger(Bot.class);
+    private ExecutorService createExecutor(String name) {
+        return Executors.newCachedThreadPool(createThreadFactory(name));
+    }
+
+    private ExecutorService createExecutor(int threads, String name) {
+        return Executors.newFixedThreadPool(threads, createThreadFactory(name));
+    }
+
+    private static ThreadFactory createThreadFactory(String string) {
+        return createThreadFactory(new ThreadGroup(string));
+    }
+
+    private static ThreadFactory createThreadFactory(ThreadGroup group) {
+        return r -> {
+            var thread = new Thread(group, r, group.getName());
+            thread.setUncaughtExceptionHandler(EXCEPTION_HANDLER);
+            return thread;
+        };
+    }
 
     static {
         instance = new Bot();
@@ -86,8 +115,6 @@ public class Bot {
     }
 
     private void buildCommands() {
-        var jamData = new JamData(dataSource);
-        var teamData = new TeamData(dataSource);
         commandHub = CommandHub.builder(shardManager)
                 //TODO: Implement manager role retrieval
                 .withManagerRole(guild -> Collections.emptyList())
@@ -112,10 +139,7 @@ public class Bot {
                         GatewayIntent.GUILD_MESSAGES)
                 .setMemberCachePolicy(MemberCachePolicy.DEFAULT)
                 .build();
-
-        RestAction.setDefaultFailure(throwable -> {
-            log.error("Unhandled exception occured: ", throwable);
-        });
+        RestAction.setDefaultFailure(throwable -> log.error("Unhandled exception occured: ", throwable));
     }
 
     private void initDb() throws IOException, SQLException {
@@ -133,5 +157,12 @@ public class Bot {
                 .withLogger(LoggerAdapter.wrap(log))
                 .setReplacements(new QueryReplacement("gamejam", configuration.database().schema()))
                 .execute();
+
+        config = QueryBuilderConfig.builder()
+                .withExceptionHandler(err -> log.error(ExceptionTransformer.prettyException(err), err))
+                .withExecutor(createExecutor("DataWorker"))
+                .build();
+        jamData = new JamData(dataSource, config);
+        teamData = new TeamData(dataSource, config);
     }
 }

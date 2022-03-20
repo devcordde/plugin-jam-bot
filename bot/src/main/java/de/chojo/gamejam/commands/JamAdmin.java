@@ -10,6 +10,7 @@ import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.wrapper.jam.JamBuilder;
 import de.chojo.gamejam.data.wrapper.jam.JamTimes;
 import de.chojo.gamejam.data.wrapper.jam.TimeFrame;
+import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
 import de.chojo.jdautil.command.SimpleCommand;
@@ -121,7 +122,7 @@ public class JamAdmin extends SimpleCommand {
             nextJam.get().state().active(true);
             jamData.updateJamState(jam.get());
             event.reply("Jam state changed to active").queue();
-        });
+        }).whenComplete(Future.error());
     }
 
     private void changeVotes(SlashCommandInteractionEvent event, boolean voting, String content) {
@@ -133,7 +134,7 @@ public class JamAdmin extends SimpleCommand {
             jam.get().state().voting(voting);
             jamData.updateJamState(jam.get());
             event.reply(content).queue();
-        });
+        }).whenComplete(Future.error());
     }
 
     private void endJam(SlashCommandInteractionEvent event) {
@@ -158,7 +159,7 @@ public class JamAdmin extends SimpleCommand {
                 event.getGuild().getVoiceChannelById(team.voiceChannelId()).delete().queue();
                 event.getGuild().getRoleById(team.roleId()).delete().queue();
             }
-        });
+        }).whenComplete(Future.error());
     }
 
     private ZonedDateTime parseTime(String time, ZoneId zoneId) throws DateTimeException {

@@ -7,6 +7,7 @@
 package de.chojo.gamejam.commands;
 
 import de.chojo.gamejam.data.JamData;
+import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
 import de.chojo.jdautil.command.SimpleCommand;
@@ -63,6 +64,6 @@ public class Settings extends SimpleCommand {
                                 .build();
                         event.replyEmbeds(embed).setEphemeral(true).queue();
                     }
-                });
+                }).whenComplete(Future.error());
     }
 }

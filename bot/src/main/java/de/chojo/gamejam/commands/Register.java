@@ -7,6 +7,7 @@
 package de.chojo.gamejam.commands;
 
 import de.chojo.gamejam.data.JamData;
+import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleCommand;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
@@ -62,7 +63,7 @@ public class Register extends SimpleCommand {
                 event.reply("You have registered yourself for the next game jam. It will start at " + TimeFormat.DATE_TIME_LONG.format(times.jam().start()))
                         .setEphemeral(true)
                         .queue();
-            });
-        });
+            }).whenComplete(Future.error());
+        }).whenComplete(Future.error());
     }
 }

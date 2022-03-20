@@ -10,7 +10,6 @@ import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.gamejam.data.wrapper.team.JamTeam;
 import de.chojo.gamejam.data.wrapper.team.TeamMember;
 import de.chojo.sqlutil.base.QueryFactoryHolder;
-import de.chojo.sqlutil.exceptions.ExceptionTransformer;
 import de.chojo.sqlutil.wrapper.QueryBuilderConfig;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -27,10 +26,8 @@ public class TeamData extends QueryFactoryHolder {
 
     private static final Logger log = getLogger(TeamData.class);
 
-    public TeamData(DataSource dataSource) {
-        super(dataSource, QueryBuilderConfig.builder()
-                .withExceptionHandler(err -> log.error(ExceptionTransformer.prettyException(err), err))
-                .build());
+    public TeamData(DataSource dataSource, QueryBuilderConfig config) {
+        super(dataSource, config);
     }
 
     public void createTeam(Jam jam, JamTeam jamTeam) {
