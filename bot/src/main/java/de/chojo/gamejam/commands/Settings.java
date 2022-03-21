@@ -49,7 +49,7 @@ public class Settings extends SimpleCommand {
                 .add("team_size", new TeamSize(jamData))
                 .add("orga_role", new OrgaRole(guildData))
                 .add("locale", new Locale(guildData, localizer))
-                .add("info", new Info())
+                .add("info", new Info(guildData))
                 .build();
     }
 
