@@ -1,5 +1,6 @@
 package de.chojo.gamejam.commands.team;
 
+import de.chojo.gamejam.commands.SubCommand;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
@@ -13,7 +14,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
-public record Invite(TeamData teamData, JamData jamData) implements TeamSubCommand {
+public record Invite(TeamData teamData, JamData jamData) implements SubCommand<Jam> {
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
         var team = teamData.getTeamByMember(jam, event.getMember()).join();

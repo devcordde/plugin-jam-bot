@@ -11,9 +11,9 @@ import de.chojo.gamejam.commands.team.Disband;
 import de.chojo.gamejam.commands.team.Invite;
 import de.chojo.gamejam.commands.team.Leave;
 import de.chojo.gamejam.commands.team.Profile;
-import de.chojo.gamejam.commands.team.TeamSubCommand;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
@@ -24,12 +24,10 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 public class Team extends SimpleCommand {
     private final JamData jamData;
 
-    private final Map<String, TeamSubCommand> subcommands = new HashMap<>();
+    private final Map<String, SubCommand<Jam>> subcommands = new HashMap<>();
 
     public Team(TeamData teamData, JamData jamData) {
         super(CommandMeta.builder("team", "Manage your team")

@@ -6,7 +6,7 @@ import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public record ChangeVotes(JamData jamData, boolean voting, String content) implements SubCommand {
+public record ChangeVotes(JamData jamData, boolean voting, String content) implements SubCommand.Nonce {
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context) {

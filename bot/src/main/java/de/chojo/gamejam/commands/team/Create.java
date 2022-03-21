@@ -1,6 +1,7 @@
 package de.chojo.gamejam.commands.team;
 
 
+import de.chojo.gamejam.commands.SubCommand;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.gamejam.data.wrapper.team.JamTeam;
@@ -11,7 +12,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import java.util.Collections;
 import java.util.EnumSet;
 
-public record Create(TeamData teamData) implements TeamSubCommand {
+public record Create(TeamData teamData) implements SubCommand<Jam> {
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {

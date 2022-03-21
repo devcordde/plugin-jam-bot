@@ -9,9 +9,9 @@ package de.chojo.gamejam.commands;
 import de.chojo.gamejam.commands.settings.Info;
 import de.chojo.gamejam.commands.settings.OrgaRole;
 import de.chojo.gamejam.commands.settings.Role;
-import de.chojo.gamejam.commands.settings.SettingsSubcommand;
 import de.chojo.gamejam.commands.settings.TeamSize;
 import de.chojo.gamejam.data.JamData;
+import de.chojo.gamejam.data.wrapper.jam.JamSettings;
 import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
@@ -25,7 +25,7 @@ import java.util.Map;
 public class Settings extends SimpleCommand {
     private final JamData jamData;
 
-    private final Map<String, SettingsSubcommand> settingsSubcommandMap = new HashMap<>();
+    private final Map<String, SubCommand<JamSettings>> settingsSubcommandMap = new HashMap<>();
 
     public Settings(JamData jamData) {
         super(CommandMeta.builder("settings", "manage bot settings")

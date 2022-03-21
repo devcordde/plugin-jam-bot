@@ -1,11 +1,12 @@
 package de.chojo.gamejam.commands.team;
 
+import de.chojo.gamejam.commands.SubCommand;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public record Disband(TeamData teamData) implements TeamSubCommand {
+public record Disband(TeamData teamData) implements SubCommand<Jam> {
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
         if (event.getOption("confirm").getAsBoolean()) {
