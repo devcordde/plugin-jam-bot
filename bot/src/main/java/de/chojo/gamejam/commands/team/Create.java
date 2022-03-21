@@ -17,8 +17,14 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Objects;
 
-public record Create(TeamData teamData) implements SubCommand<Jam> {
+public final class Create implements SubCommand<Jam> {
+    private final TeamData teamData;
+
+    public Create(TeamData teamData) {
+        this.teamData = teamData;
+    }
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
@@ -75,4 +81,28 @@ public record Create(TeamData teamData) implements SubCommand<Jam> {
         event.getGuild().addRoleToMember(event.getMember(), role).queue();
         event.getHook().editOriginal("You team was created.").queue();
     }
+
+    public TeamData teamData() {
+        return teamData;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (Create) obj;
+        return Objects.equals(this.teamData, that.teamData);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(teamData);
+    }
+
+    @Override
+    public String toString() {
+        return "Create[" +
+                "teamData=" + teamData + ']';
+    }
+
 }

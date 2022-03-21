@@ -12,7 +12,18 @@ import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public record ChangeVotes(JamData jamData, boolean voting, String content) implements SubCommand.Nonce {
+import java.util.Objects;
+
+public final class ChangeVotes implements SubCommand.Nonce {
+    private final JamData jamData;
+    private final boolean voting;
+    private final String content;
+
+    public ChangeVotes(JamData jamData, boolean voting, String content) {
+        this.jamData = jamData;
+        this.voting = voting;
+        this.content = content;
+    }
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context) {
@@ -26,4 +37,40 @@ public record ChangeVotes(JamData jamData, boolean voting, String content) imple
             event.reply(content).queue();
         }).whenComplete(Future.error());
     }
+
+    public JamData jamData() {
+        return jamData;
+    }
+
+    public boolean voting() {
+        return voting;
+    }
+
+    public String content() {
+        return content;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (ChangeVotes) obj;
+        return Objects.equals(this.jamData, that.jamData) &&
+                this.voting == that.voting &&
+                Objects.equals(this.content, that.content);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(jamData, voting, content);
+    }
+
+    @Override
+    public String toString() {
+        return "ChangeVotes[" +
+                "jamData=" + jamData + ", " +
+                "voting=" + voting + ", " +
+                "content=" + content + ']';
+    }
+
 }

@@ -15,9 +15,16 @@ import de.chojo.jdautil.util.MentionUtil;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-public record Profile(TeamData teamData) implements SubCommand<Jam> {
+public final class Profile implements SubCommand<Jam> {
+    private final TeamData teamData;
+
+    public Profile(TeamData teamData) {
+        this.teamData = teamData;
+    }
+
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
         if (event.getOption("user") != null) {
@@ -59,4 +66,28 @@ public record Profile(TeamData teamData) implements SubCommand<Jam> {
 
         event.replyEmbeds(embed).setEphemeral(true).queue();
     }
+
+    public TeamData teamData() {
+        return teamData;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (Profile) obj;
+        return Objects.equals(this.teamData, that.teamData);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(teamData);
+    }
+
+    @Override
+    public String toString() {
+        return "Profile[" +
+                "teamData=" + teamData + ']';
+    }
+
 }

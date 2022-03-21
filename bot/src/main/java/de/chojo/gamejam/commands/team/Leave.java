@@ -12,7 +12,15 @@ import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public record Leave(TeamData teamData) implements SubCommand<Jam> {
+import java.util.Objects;
+
+public final class Leave implements SubCommand<Jam> {
+    private final TeamData teamData;
+
+    public Leave(TeamData teamData) {
+        this.teamData = teamData;
+    }
+
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
         var team = teamData.getTeamByMember(jam, event.getMember()).join();
@@ -25,4 +33,28 @@ public record Leave(TeamData teamData) implements SubCommand<Jam> {
         event.getGuild().removeRoleFromMember(event.getMember(), event.getGuild().getRoleById(team.get().roleId())).queue();
         event.getGuild().getTextChannelById(team.get().textChannelId()).sendMessage(event.getUser().getName() + " left the team.").queue();
     }
+
+    public TeamData teamData() {
+        return teamData;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (Leave) obj;
+        return Objects.equals(this.teamData, that.teamData);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(teamData);
+    }
+
+    @Override
+    public String toString() {
+        return "Leave[" +
+                "teamData=" + teamData + ']';
+    }
+
 }

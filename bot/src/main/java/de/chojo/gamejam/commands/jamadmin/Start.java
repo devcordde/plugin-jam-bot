@@ -12,7 +12,14 @@ import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public record Start(JamData jamData) implements SubCommand.Nonce {
+import java.util.Objects;
+
+public final class Start implements SubCommand.Nonce {
+    private final JamData jamData;
+
+    public Start(JamData jamData) {
+        this.jamData = jamData;
+    }
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context) {
@@ -31,4 +38,28 @@ public record Start(JamData jamData) implements SubCommand.Nonce {
             event.reply("Jam state changed to active").queue();
         }).whenComplete(Future.error());
     }
+
+    public JamData jamData() {
+        return jamData;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (Start) obj;
+        return Objects.equals(this.jamData, that.jamData);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(jamData);
+    }
+
+    @Override
+    public String toString() {
+        return "Start[" +
+                "jamData=" + jamData + ']';
+    }
+
 }

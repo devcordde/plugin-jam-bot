@@ -12,11 +12,43 @@ import de.chojo.gamejam.data.wrapper.jam.JamSettings;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public record TeamSize(JamData jamData) implements SubCommand<JamSettings> {
+import java.util.Objects;
+
+public final class TeamSize implements SubCommand<JamSettings> {
+    private final JamData jamData;
+
+    public TeamSize(JamData jamData) {
+        this.jamData = jamData;
+    }
+
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, JamSettings settings) {
         settings.teamSize(event.getOption("size").getAsInt());
         jamData.updateJamSettings(event.getGuild(), settings)
                 .thenRun(() -> event.reply("Updated settings").setEphemeral(true).queue());
     }
+
+    public JamData jamData() {
+        return jamData;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (TeamSize) obj;
+        return Objects.equals(this.jamData, that.jamData);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(jamData);
+    }
+
+    @Override
+    public String toString() {
+        return "TeamSize[" +
+                "jamData=" + jamData + ']';
+    }
+
 }

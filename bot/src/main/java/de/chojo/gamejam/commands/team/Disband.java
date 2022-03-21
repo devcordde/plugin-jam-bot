@@ -12,7 +12,15 @@ import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public record Disband(TeamData teamData) implements SubCommand<Jam> {
+import java.util.Objects;
+
+public final class Disband implements SubCommand<Jam> {
+    private final TeamData teamData;
+
+    public Disband(TeamData teamData) {
+        this.teamData = teamData;
+    }
+
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
         if (event.getOption("confirm").getAsBoolean()) {
@@ -38,4 +46,28 @@ public record Disband(TeamData teamData) implements SubCommand<Jam> {
         jamTeam.get().delete(event.getGuild());
         teamData.disbandTeam(jamTeam.get());
     }
+
+    public TeamData teamData() {
+        return teamData;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (Disband) obj;
+        return Objects.equals(this.teamData, that.teamData);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(teamData);
+    }
+
+    @Override
+    public String toString() {
+        return "Disband[" +
+                "teamData=" + teamData + ']';
+    }
+
 }
