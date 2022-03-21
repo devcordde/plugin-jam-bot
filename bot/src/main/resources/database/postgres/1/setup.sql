@@ -54,7 +54,10 @@ CREATE TABLE gamejam.team
 CREATE TABLE gamejam.team_member
 (
     team_id INTEGER NOT NULL,
-    user_id BIGINT
+    user_id BIGINT,
+    CONSTRAINT team_member_team_id_fk
+        FOREIGN KEY (team_id) REFERENCES gamejam.team
+            ON DELETE CASCADE
 );
 
 CREATE UNIQUE INDEX team_member_team_id_user_id_uindex
@@ -109,10 +112,9 @@ CREATE UNIQUE INDEX jam_registrations_jam_id_user_id_uindex
 
 CREATE TABLE gamejam.jam_settings
 (
-    guild_id     BIGINT            NOT NULL,
-    jam_role     BIGINT  DEFAULT 0 NOT NULL,
-    team_size    INTEGER DEFAULT 4 NOT NULL,
-    manager_role BIGINT,
+    guild_id  BIGINT            NOT NULL,
+    jam_role  BIGINT  DEFAULT 0 NOT NULL,
+    team_size INTEGER DEFAULT 4 NOT NULL,
     CONSTRAINT jam_settings_pk
         PRIMARY KEY (guild_id)
 );
@@ -128,4 +130,17 @@ CREATE TABLE gamejam.jam_state
     CONSTRAINT jam_state_jam_id_fk
         FOREIGN KEY (jam_id) REFERENCES gamejam.jam
             ON DELETE CASCADE
+);
+
+CREATE TABLE gamejam.version
+(
+    major INTEGER,
+    patch INTEGER
+);
+
+CREATE TABLE gamejam.settings
+(
+    guild_id     BIGINT,
+    manager_role BIGINT,
+    locale       INTEGER
 );
