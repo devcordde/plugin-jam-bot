@@ -12,9 +12,10 @@ import java.util.function.BiConsumer;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class Future {
+public final class Future {
     private static final Logger log = getLogger(Future.class);
 
+    private Future(){}
     public static Object log(Runnable run){
         run.run();
         return null;

@@ -23,7 +23,7 @@ import java.time.format.DateTimeFormatter;
 
 public class Create implements SubCommand.Nonce {
 
-    private final DateTimeFormatter dateParser = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
+    private static final DateTimeFormatter dateParser = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
 
     private final JamData jamData;
 
