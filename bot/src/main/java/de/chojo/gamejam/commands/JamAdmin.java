@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 public class JamAdmin extends SimpleCommand {
 
-    private final Map<String, SubCommand> subCommandMap = new HashMap<>();
+    private final Map<String, SubCommand.Nonce> subCommandMap = new HashMap<>();
 
     public JamAdmin(JamData jamData) {
         super(CommandMeta.builder("jamadmin", "Manage jams")
