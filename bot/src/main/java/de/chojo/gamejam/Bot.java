@@ -12,6 +12,7 @@ import de.chojo.gamejam.commands.Settings;
 import de.chojo.gamejam.commands.Team;
 import de.chojo.gamejam.commands.Vote;
 import de.chojo.gamejam.configuration.Configuration;
+import de.chojo.gamejam.data.GuildData;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.util.LogNotify;
@@ -59,6 +60,7 @@ public class Bot {
     private JamData jamData;
     private TeamData teamData;
     private QueryBuilderConfig config;
+    private GuildData guildData;
 
     private ExecutorService createExecutor(String name) {
         return Executors.newCachedThreadPool(createThreadFactory(name));
@@ -123,7 +125,7 @@ public class Bot {
                 //TODO: Add Commands
                 .withCommands(new JamAdmin(jamData),
                         new Register(jamData),
-                        new Settings(jamData),
+                        new Settings(jamData, guildData, localizer),
                         new Team(teamData, jamData),
                         new Vote())
                 .withPagination(builder -> builder.cache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
@@ -164,5 +166,6 @@ public class Bot {
                 .build();
         jamData = new JamData(dataSource, config);
         teamData = new TeamData(dataSource, config);
+        guildData = new GuildData(dataSource, config);
     }
 }

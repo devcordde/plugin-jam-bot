@@ -55,7 +55,7 @@ public class Register extends SimpleCommand {
             }
 
             jamData.register(jam, event.getMember());
-            jamData.getSettings(event.getGuild()).thenAccept(settings -> {
+            jamData.getJamSettings(event.getGuild()).thenAccept(settings -> {
                 var role = event.getGuild().getRoleById(settings.jamRole());
                 if (role != null) {
                     event.getGuild().addRoleToMember(event.getMember(), role).queue();

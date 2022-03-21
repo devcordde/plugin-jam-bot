@@ -17,7 +17,7 @@ public record Role(JamData jamData) implements SubCommand<JamSettings> {
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, JamSettings settings) {
         settings.jamRole(event.getOption("role").getAsRole().getIdLong());
-        jamData.updateSettings(event.getGuild(), settings)
+        jamData.updateJamSettings(event.getGuild(), settings)
                 .thenRun(() -> event.reply("Updated settings").setEphemeral(true).queue());
     }
 }

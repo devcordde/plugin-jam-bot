@@ -35,7 +35,7 @@ public record Invite(TeamData teamData, JamData jamData) implements SubCommand<J
         }
 
         var member = teamData.getMember(team.get()).join();
-        var settings = jamData.getSettings(event.getGuild()).join();
+        var settings = jamData.getJamSettings(event.getGuild()).join();
 
         if (member.size() >= settings.teamSize()) {
             event.reply("Your team has reached the max size.").setEphemeral(true).queue();
@@ -77,7 +77,7 @@ public record Invite(TeamData teamData, JamData jamData) implements SubCommand<J
             var guild = manager.getGuildById(guildId);
             var user = manager.retrieveUserById(userId).complete();
             var member = guild.retrieveMember(user).complete();
-            var settings = jamData.getSettings(guild).join();
+            var settings = jamData.getJamSettings(guild).join();
 
             if (members.size() >= settings.teamSize()) {
                 interaction.getHook().editOriginal("The team has reached the max size.").queue();

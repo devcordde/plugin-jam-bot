@@ -11,16 +11,11 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
-public class TimeFrame {
-    private final ZonedDateTime start;
-    private final ZonedDateTime end;
-
-    public TimeFrame(ZonedDateTime start, ZonedDateTime end) {
+public record TimeFrame(ZonedDateTime start, ZonedDateTime end) {
+    public TimeFrame {
         if (start.isAfter(end)) {
             throw new IllegalStateException("Start time is after end time.");
         }
-        this.start = start;
-        this.end = end;
     }
 
     public static TimeFrame fromEpoch(long start, long end, ZoneId zone) {
@@ -33,16 +28,8 @@ public class TimeFrame {
                 ZonedDateTime.ofInstant(Instant.ofEpochMilli(end.getTime()), zoneId));
     }
 
-    public ZonedDateTime start() {
-        return start;
-    }
-
     public long epochStart() {
         return start.toEpochSecond();
-    }
-
-    public ZonedDateTime end() {
-        return end;
     }
 
     public long epochEnd() {

@@ -7,27 +7,30 @@
 package de.chojo.gamejam.commands;
 
 import de.chojo.gamejam.commands.settings.Info;
+import de.chojo.gamejam.commands.settings.Locale;
 import de.chojo.gamejam.commands.settings.OrgaRole;
 import de.chojo.gamejam.commands.settings.Role;
 import de.chojo.gamejam.commands.settings.TeamSize;
+import de.chojo.gamejam.data.GuildData;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.wrapper.jam.JamSettings;
 import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
 import de.chojo.jdautil.command.SimpleCommand;
+import de.chojo.jdautil.localization.ILocalizer;
+import de.chojo.jdautil.util.MapBuilder;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class Settings extends SimpleCommand {
     private final JamData jamData;
 
-    private final Map<String, SubCommand<JamSettings>> settingsSubcommandMap = new HashMap<>();
+    private final Map<String, SubCommand<JamSettings>> settingsSubcommandMap;
 
-    public Settings(JamData jamData) {
+    public Settings(JamData jamData, GuildData guildData, ILocalizer localizer) {
         super(CommandMeta.builder("settings", "manage bot settings")
                 .withPermission()
                 .addSubCommand("role", "Set the role which will be assigned to registered members.",
@@ -36,18 +39,23 @@ public class Settings extends SimpleCommand {
                         argsBuilder().add(SimpleArgument.integer("size", "The max team size").asRequired()).build())
                 .addSubCommand("orga_role", "Define the organisation team role.",
                         argsBuilder().add(SimpleArgument.integer("role", "The role which can manage the bot").asRequired()).build())
+                .addSubCommand("locale", "Change the bot language.",
+                        argsBuilder().add(SimpleArgument.integer("locale", "The required language").asRequired()).build())
                 .addSubCommand("info", "Show the current settings")
                 .build());
         this.jamData = jamData;
-        this.settingsSubcommandMap.put("role", new Role(jamData));
-        this.settingsSubcommandMap.put("team_size", new TeamSize(jamData));
-        this.settingsSubcommandMap.put("orga_role", new OrgaRole(jamData));
-        this.settingsSubcommandMap.put("info", new Info());
+        settingsSubcommandMap = new MapBuilder<String, SubCommand<JamSettings>>()
+                .add("role", new Role(jamData))
+                .add("team_size", new TeamSize(jamData))
+                .add("orga_role", new OrgaRole(guildData))
+                .add("locale", new Locale(guildData, localizer))
+                .add("info", new Info())
+                .build();
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, SlashCommandContext context) {
-        jamData.getSettings(event.getGuild())
+        jamData.getJamSettings(event.getGuild())
                 .thenAccept(settings -> {
                     var subcommand = settingsSubcommandMap.get(event.getSubcommandName());
                     if (subcommand != null) {

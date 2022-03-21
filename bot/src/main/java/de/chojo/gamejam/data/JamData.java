@@ -14,7 +14,6 @@ import de.chojo.gamejam.data.wrapper.jam.JamTimes;
 import de.chojo.gamejam.data.wrapper.jam.TimeFrame;
 import de.chojo.gamejam.data.wrapper.team.JamTeam;
 import de.chojo.sqlutil.base.QueryFactoryHolder;
-import de.chojo.sqlutil.exceptions.ExceptionTransformer;
 import de.chojo.sqlutil.wrapper.QueryBuilderConfig;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -34,7 +33,7 @@ public class JamData extends QueryFactoryHolder {
         super(dataSource, config);
     }
 
-    public CompletableFuture<JamSettings> getSettings(Guild guild) {
+    public CompletableFuture<JamSettings> getJamSettings(Guild guild) {
         return builder(JamSettings.class)
                 .query("SELECT jam_role, team_size FROM jam_settings WHERE guild_id = ?")
                 .paramsBuilder(p -> p.setLong(guild.getIdLong()))
@@ -43,15 +42,15 @@ public class JamData extends QueryFactoryHolder {
                 .thenApply(r -> r.orElse(new JamSettings()));
     }
 
-    public CompletableFuture<Boolean> updateSettings(Guild guild, JamSettings settings) {
+    public CompletableFuture<Boolean> updateJamSettings(Guild guild, JamSettings settings) {
         return builder(JamSettings.class)
                 .query("""
-                        INSERT INTO jam_settings(guild_id, jam_role, team_size, manager_role) VALUES (?,?,?,?)
+                        INSERT INTO jam_settings(guild_id, jam_role, team_size) VALUES (?,?,?,?)
                         ON CONFLICT(guild_id)
                             DO UPDATE
-                                SET jam_role = excluded.jam_role, team_size = excluded.team_size, manager_role = excluded.manager_role;
+                                SET jam_role = excluded.jam_role, team_size = excluded.team_size;
                         """)
-                .paramsBuilder(p -> p.setLong(guild.getIdLong()).setLong(settings.jamRole()).setInt(settings.teamSize()).setLong(settings.orgaRole()))
+                .paramsBuilder(p -> p.setLong(guild.getIdLong()).setLong(settings.jamRole()).setInt(settings.teamSize()))
                 .update()
                 .execute()
                 .thenApply(r -> r > 0);
