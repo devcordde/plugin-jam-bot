@@ -118,11 +118,9 @@ public class Bot {
 
     private void buildCommands() {
         commandHub = CommandHub.builder(shardManager)
-                //TODO: Implement manager role retrieval
-                .withManagerRole(guild -> Collections.emptyList())
+                .withManagerRole(guild -> Collections.singletonList(guildData.getSettings(guild).join().orgaRole()))
                 .withLocalizer(localizer)
                 .useGuildCommands()
-                //TODO: Add Commands
                 .withCommands(new JamAdmin(jamData),
                         new Register(jamData),
                         new Settings(jamData, guildData, localizer),
