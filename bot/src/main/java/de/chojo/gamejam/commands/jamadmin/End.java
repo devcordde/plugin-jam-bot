@@ -12,8 +12,6 @@ import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-import java.util.Objects;
-
 public final class End implements SubCommand.Nonce {
     private final JamData jamData;
 
@@ -39,28 +37,4 @@ public final class End implements SubCommand.Nonce {
 
         }).whenComplete(Future.error());
     }
-
-    public JamData jamData() {
-        return jamData;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (End) obj;
-        return Objects.equals(this.jamData, that.jamData);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(jamData);
-    }
-
-    @Override
-    public String toString() {
-        return "End[" +
-                "jamData=" + jamData + ']';
-    }
-
 }

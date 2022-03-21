@@ -14,8 +14,6 @@ import de.chojo.jdautil.util.MentionUtil;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-import java.util.Objects;
-
 public final class Info implements SubCommand<JamSettings> {
     private final GuildData guildData;
 
@@ -34,28 +32,4 @@ public final class Info implements SubCommand<JamSettings> {
                 .build();
         event.replyEmbeds(embed).setEphemeral(true).queue();
     }
-
-    public GuildData guildData() {
-        return guildData;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (Info) obj;
-        return Objects.equals(this.guildData, that.guildData);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(guildData);
-    }
-
-    @Override
-    public String toString() {
-        return "Info[" +
-                "guildData=" + guildData + ']';
-    }
-
 }

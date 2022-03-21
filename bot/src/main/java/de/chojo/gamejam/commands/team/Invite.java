@@ -20,8 +20,6 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
-import java.util.Objects;
-
 public final class Invite implements SubCommand<Jam> {
     private final TeamData teamData;
     private final JamData jamData;
@@ -112,34 +110,4 @@ public final class Invite implements SubCommand<Jam> {
             guild.getTextChannelById(team.textChannelId()).sendMessage(user.getName() + " joined the team.").queue();
         }).whenComplete(Future.error());
     }
-
-    public TeamData teamData() {
-        return teamData;
-    }
-
-    public JamData jamData() {
-        return jamData;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (Invite) obj;
-        return Objects.equals(this.teamData, that.teamData) &&
-                Objects.equals(this.jamData, that.jamData);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(teamData, jamData);
-    }
-
-    @Override
-    public String toString() {
-        return "Invite[" +
-                "teamData=" + teamData + ", " +
-                "jamData=" + jamData + ']';
-    }
-
 }

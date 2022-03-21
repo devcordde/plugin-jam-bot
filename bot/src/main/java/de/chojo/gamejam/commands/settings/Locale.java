@@ -13,8 +13,6 @@ import de.chojo.jdautil.localization.ILocalizer;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-import java.util.Objects;
-
 public final class Locale implements SubCommand<JamSettings> {
     private final GuildData guildData;
     private final ILocalizer localizer;
@@ -37,34 +35,4 @@ public final class Locale implements SubCommand<JamSettings> {
         guildData.updateSettings(guildSettings)
                 .thenRun(() -> event.reply("Updated settings").setEphemeral(true).queue());
     }
-
-    public GuildData guildData() {
-        return guildData;
-    }
-
-    public ILocalizer localizer() {
-        return localizer;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (Locale) obj;
-        return Objects.equals(this.guildData, that.guildData) &&
-                Objects.equals(this.localizer, that.localizer);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(guildData, localizer);
-    }
-
-    @Override
-    public String toString() {
-        return "Locale[" +
-                "guildData=" + guildData + ", " +
-                "localizer=" + localizer + ']';
-    }
-
 }
