@@ -23,7 +23,7 @@ import java.time.format.DateTimeFormatter;
 
 public class Create implements SubCommand.Nonce {
 
-    private static final DateTimeFormatter dateParser = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
+    private static final DateTimeFormatter DATE_PARSER = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
 
     private final JamData jamData;
 
@@ -62,7 +62,7 @@ public class Create implements SubCommand.Nonce {
 
 
     private ZonedDateTime parseTime(String time, ZoneId zoneId) throws DateTimeException {
-        var parsed = LocalDateTime.from(dateParser.parse(time));
+        var parsed = LocalDateTime.from(DATE_PARSER.parse(time));
         return ZonedDateTime.ofInstant(parsed, zoneId.getRules().getOffset(parsed), zoneId);
     }
 }
