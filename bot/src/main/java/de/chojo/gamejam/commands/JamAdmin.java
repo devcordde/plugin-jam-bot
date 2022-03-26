@@ -35,17 +35,17 @@ public class JamAdmin extends SimpleCommand {
                 .addSubCommand("create", "command.jamAdmin.create.description",
                         argsBuilder()
                                 .add(SimpleArgument.string("topic", "command.jamAdmin.create.arg.topic").asRequired().withAutoComplete())
-                                .add(SimpleArgument.string("topic-tagline", "command.jamAdmin.create.arg.topic-tagline").asRequired())
+                                .add(SimpleArgument.string("topic-tagline", "command.jamAdmin.create.arg.topicTagline").asRequired())
                                 .add(SimpleArgument.string("timezone", "command.jamAdmin.create.arg.timezone").asRequired())
-                                .add(SimpleArgument.string("register-start", formatArg("command.jamAdmin.create.arg.register-start")).asRequired())
-                                .add(SimpleArgument.string("register-end", formatArg("command.jamAdmin.create.arg.register-end")).asRequired())
-                                .add(SimpleArgument.string("jam-start", formatArg("command.jamAdmin.create.arg.jam-start")).asRequired())
-                                .add(SimpleArgument.string("jam-end", formatArg("command.jamAdmin.create.arg.jam-end")).asRequired())
+                                .add(SimpleArgument.string("register-start", formatArg("command.jamAdmin.create.arg.registerStart")).asRequired())
+                                .add(SimpleArgument.string("register-end", formatArg("command.jamAdmin.create.arg.registerEnd")).asRequired())
+                                .add(SimpleArgument.string("jam-start", formatArg("command.jamAdmin.create.arg.jamStart")).asRequired())
+                                .add(SimpleArgument.string("jam-end", formatArg("command.jamAdmin.create.arg.jamEnd")).asRequired())
                                 .build())
-                .addSubCommand("start-jam", "command.jamAdmin.start-jam.description")
-                .addSubCommand("end-jam", "command.jamAdmin.end-jam.description",
+                .addSubCommand("start-jam", "command.jamAdmin.startJam.description")
+                .addSubCommand("end-jam", "command.jamAdmin.endJam.description",
                         argsBuilder().add(SimpleArgument.bool("confirm", "Set to true to confirm").asRequired()).build())
-                .addSubCommand("open-votes", "command.jamAdmin.open-votes.description")
+                .addSubCommand("open-votes", "command.jamAdmin.openVotes.description")
                 .addSubCommand("close-votes", "command.jamAdmin.close-votes.description")
                 .build());
         subCommandMap = new MapBuilder<String, SubCommand.Nonce>()

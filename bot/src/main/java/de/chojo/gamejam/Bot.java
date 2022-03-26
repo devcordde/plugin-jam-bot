@@ -110,10 +110,9 @@ public class Bot {
     }
 
     private void buildLocale() {
-        localizer = ILocalizer.DEFAULT;
         localizer = Localizer.builder(Language.ENGLISH)
                 .addLanguage(Language.GERMAN)
-                .withLanguageProvider(guild -> Optional.ofNullable(Language.ENGLISH.getCode()))
+                .withLanguageProvider(guild -> Optional.ofNullable(guildData.getSettings(guild).join().locale()))
                 .build();
     }
 

@@ -45,7 +45,7 @@ public class JamData extends QueryFactoryHolder {
     public CompletableFuture<Boolean> updateJamSettings(Guild guild, JamSettings settings) {
         return builder(JamSettings.class)
                 .query("""
-                        INSERT INTO jam_settings(guild_id, jam_role, team_size) VALUES (?,?,?,?)
+                        INSERT INTO jam_settings(guild_id, jam_role, team_size) VALUES (?,?,?)
                         ON CONFLICT(guild_id)
                             DO UPDATE
                                 SET jam_role = excluded.jam_role, team_size = excluded.team_size;

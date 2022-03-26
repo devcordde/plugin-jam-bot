@@ -9,6 +9,7 @@ package de.chojo.gamejam.data;
 import de.chojo.gamejam.data.wrapper.guild.Settings;
 import de.chojo.sqlutil.base.QueryFactoryHolder;
 import de.chojo.sqlutil.wrapper.QueryBuilderConfig;
+import jdk.jshell.spi.ExecutionControl;
 import net.dv8tion.jda.api.entities.Guild;
 
 import javax.sql.DataSource;
@@ -36,7 +37,7 @@ public class GuildData extends QueryFactoryHolder {
                             DO UPDATE
                                 SET manager_role = excluded.manager_role, locale = excluded.locale
                         """)
-                .paramsBuilder(p -> p.setLong(settings.guildId()))
+                .paramsBuilder(p -> p.setLong(settings.guildId()).setLong(settings.orgaRole()).setString(settings.locale()))
                 .update()
                 .execute()
                 .thenApply(count -> count > 0);

@@ -40,9 +40,9 @@ public class Settings extends SimpleCommand {
                 .addSubCommand("team_size", "command.settings.teamSize.description",
                         argsBuilder().add(SimpleArgument.integer("size", "command.settings.teamSize.arg.size").asRequired()).build())
                 .addSubCommand("orga_role", "command.settings.orgaRole.description",
-                        argsBuilder().add(SimpleArgument.integer("role", "command.settings.orgaRole.arg.role").asRequired()).build())
+                        argsBuilder().add(SimpleArgument.role("role", "command.settings.orgaRole.arg.role").asRequired()).build())
                 .addSubCommand("locale", "command.settings.locale.description",
-                        argsBuilder().add(SimpleArgument.integer("locale", "command.settings.locale.arg.locale").asRequired()).build())
+                        argsBuilder().add(SimpleArgument.string("locale", "command.settings.locale.arg.locale").asRequired()).build())
                 .addSubCommand("info", "command.settings.info.description")
                 .build());
         this.jamData = jamData;
