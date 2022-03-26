@@ -40,37 +40,11 @@ public record TimeFrame(ZonedDateTime start, ZonedDateTime end) {
         return time.isAfter(start) && time.isBefore(end) || time.isEqual(start) || time.isEqual(end);
     }
 
-    @Override
-    public String toString() {
-        return "TimeFrame{" +
-               "start=" + start +
-               ", end=" + end +
-               '}';
-    }
-
     public Timestamp startTimestamp() {
         return Timestamp.from(Instant.ofEpochSecond(epochStart()));
     }
 
     public Timestamp endTimestamp() {
         return Timestamp.from(Instant.ofEpochSecond(epochEnd()));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TimeFrame)) return false;
-
-        TimeFrame timeFrame = (TimeFrame) o;
-
-        if (!start.equals(timeFrame.start)) return false;
-        return end.equals(timeFrame.end);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = start.hashCode();
-        result = 31 * result + end.hashCode();
-        return result;
     }
 }
