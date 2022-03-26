@@ -52,5 +52,10 @@ tasks{
         dependsOn(shadowJar)
     }
 
-
+    shadowJar{
+        mergeServiceFiles()
+        manifest {
+            attributes(mapOf("Main-Class" to "de.chojo.gamejam.Bot"))
+        }
+    }
 }
