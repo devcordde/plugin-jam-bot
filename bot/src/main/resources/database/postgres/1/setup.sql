@@ -1,7 +1,4 @@
-CREATE SEQUENCE gamejam.jam_times_id_seq
-    AS INTEGER;
-
-CREATE TABLE gamejam.jam
+CREATE TABLE IF NOT EXISTS gamejam.jam
 (
     id       SERIAL,
     guild_id BIGINT NOT NULL,
@@ -9,10 +6,10 @@ CREATE TABLE gamejam.jam
         PRIMARY KEY (id)
 );
 
-CREATE INDEX jam_guild_id_index
+CREATE INDEX IF NOT EXISTS jam_guild_id_index
     ON gamejam.jam (guild_id);
 
-CREATE TABLE gamejam.jam_time
+CREATE TABLE IF NOT EXISTS gamejam.jam_time
 (
     jam_id             INTEGER   NOT NULL,
     registration_start TIMESTAMP NOT NULL,
@@ -27,9 +24,7 @@ CREATE TABLE gamejam.jam_time
             ON DELETE CASCADE
 );
 
-ALTER SEQUENCE gamejam.jam_times_id_seq OWNED BY gamejam.jam_time.jam_id;
-
-CREATE TABLE gamejam.jam_meta
+CREATE TABLE IF NOT EXISTS gamejam.jam_meta
 (
     jam_id INTEGER NOT NULL,
     topic  TEXT    NOT NULL,
@@ -40,7 +35,7 @@ CREATE TABLE gamejam.jam_meta
             ON DELETE CASCADE
 );
 
-CREATE TABLE gamejam.team
+CREATE TABLE IF NOT EXISTS gamejam.team
 (
     id     SERIAL,
     jam_id INTEGER NOT NULL,
@@ -51,7 +46,7 @@ CREATE TABLE gamejam.team
             ON DELETE CASCADE
 );
 
-CREATE TABLE gamejam.team_member
+CREATE TABLE IF NOT EXISTS gamejam.team_member
 (
     team_id INTEGER NOT NULL,
     user_id BIGINT,
@@ -60,13 +55,13 @@ CREATE TABLE gamejam.team_member
             ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX team_member_team_id_user_id_uindex
+CREATE UNIQUE INDEX IF NOT EXISTS team_member_team_id_user_id_uindex
     ON gamejam.team_member (team_id, user_id);
 
-CREATE INDEX team_member_team_id_index
+CREATE INDEX IF NOT EXISTS team_member_team_id_index
     ON gamejam.team_member (team_id);
 
-CREATE TABLE gamejam.team_meta
+CREATE TABLE IF NOT EXISTS gamejam.team_meta
 (
     team_id          INTEGER NOT NULL,
     name             TEXT    NOT NULL,
@@ -81,24 +76,17 @@ CREATE TABLE gamejam.team_meta
             ON DELETE CASCADE
 );
 
-CREATE TABLE gamejam.vote
+CREATE TABLE IF NOT EXISTS gamejam.vote
 (
-    jam_id   INTEGER           NOT NULL,
     team_id  BIGINT            NOT NULL,
     voter_id BIGINT            NOT NULL,
     points   INTEGER DEFAULT 0 NOT NULL,
-    CONSTRAINT vote_jam_id_fk
-        FOREIGN KEY (jam_id) REFERENCES gamejam.jam
-            ON DELETE CASCADE,
     CONSTRAINT vote_team_id_fk
         FOREIGN KEY (team_id) REFERENCES gamejam.team
             ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX vote_jam_id_team_id_voter_id_uindex
-    ON gamejam.vote (jam_id, team_id, voter_id);
-
-CREATE TABLE gamejam.jam_registrations
+CREATE TABLE IF NOT EXISTS gamejam.jam_registrations
 (
     jam_id  INTEGER NOT NULL,
     user_id BIGINT  NOT NULL,
@@ -107,10 +95,10 @@ CREATE TABLE gamejam.jam_registrations
             ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX jam_registrations_jam_id_user_id_uindex
+CREATE UNIQUE INDEX IF NOT EXISTS jam_registrations_jam_id_user_id_uindex
     ON gamejam.jam_registrations (jam_id, user_id);
 
-CREATE TABLE gamejam.jam_settings
+CREATE TABLE IF NOT EXISTS gamejam.jam_settings
 (
     guild_id  BIGINT            NOT NULL,
     jam_role  BIGINT  DEFAULT 0 NOT NULL,
@@ -119,7 +107,7 @@ CREATE TABLE gamejam.jam_settings
         PRIMARY KEY (guild_id)
 );
 
-CREATE TABLE gamejam.jam_state
+CREATE TABLE IF NOT EXISTS gamejam.jam_state
 (
     jam_id INTEGER               NOT NULL,
     active BOOLEAN DEFAULT FALSE NOT NULL,
@@ -132,13 +120,13 @@ CREATE TABLE gamejam.jam_state
             ON DELETE CASCADE
 );
 
-CREATE TABLE gamejam.version
+CREATE TABLE IF NOT EXISTS gamejam.version
 (
     major INTEGER,
     patch INTEGER
 );
 
-CREATE TABLE gamejam.settings
+CREATE TABLE IF NOT EXISTS gamejam.settings
 (
     guild_id     BIGINT,
     manager_role BIGINT,

@@ -1,4 +1,5 @@
 plugins {
+    id("com.github.johnrengelman.shadow") version "7.1.2"
     java
 }
 
@@ -35,6 +36,21 @@ dependencies {
     testImplementation("org.junit.jupiter", "junit-jupiter")
 }
 
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
+tasks{
+    processResources {
+        from(sourceSets.main.get().resources.srcDirs) {
+            filesMatching("version") {
+                expand(
+                    "version" to project.version
+                )
+            }
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+    }
+
+    build {
+        dependsOn(shadowJar)
+    }
+
+
 }

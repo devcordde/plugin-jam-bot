@@ -24,4 +24,14 @@ allprojects {
             languageVersion.set(JavaLanguageVersion.of(17))
         }
     }
+
+    tasks{
+        compileJava{
+            options.encoding = "UTF-8"
+        }
+
+        javadoc {
+            options.encoding = "UTF08"
+        }
+    }
 }
