@@ -60,9 +60,9 @@ public class Bot {
     private ILocalizer localizer;
     private ShardManager shardManager;
     private CommandHub<SimpleCommand> commandHub;
+    private QueryBuilderConfig config;
     private JamData jamData;
     private TeamData teamData;
-    private QueryBuilderConfig config;
     private GuildData guildData;
 
     private ExecutorService createExecutor(String name) {
@@ -128,8 +128,8 @@ public class Bot {
                         settings,
                         new Team(teamData, jamData))
                         //new Vote())
-                .withPagination(builder -> builder.cache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
-                .withButtonService(builder -> builder.setCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
+                .withPagination(builder -> builder.withLocalizer(localizer).withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
+                .withButtonService(builder -> builder.withLocalizer(localizer).withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .build();
         settings.init(commandHub);
     }

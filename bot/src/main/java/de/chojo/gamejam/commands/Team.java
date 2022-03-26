@@ -10,6 +10,7 @@ import de.chojo.gamejam.commands.team.Create;
 import de.chojo.gamejam.commands.team.Disband;
 import de.chojo.gamejam.commands.team.Invite;
 import de.chojo.gamejam.commands.team.Leave;
+import de.chojo.gamejam.commands.team.List;
 import de.chojo.gamejam.commands.team.Profile;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
@@ -51,6 +52,7 @@ public class Team extends SimpleCommand {
                                 .add(SimpleArgument.user("user", "command.team.profile.arg.user"))
                                 .add(SimpleArgument.string("team", "command.team.profile.arg.team").withAutoComplete())
                                 .build())
+                .addSubCommand("list", "command.team.list.description")
                 .build());
         this.jamData = jamData;
         subcommands = new MapBuilder<String, SubCommand<Jam>>()
@@ -59,6 +61,7 @@ public class Team extends SimpleCommand {
                 .add("leave", new Leave(teamData))
                 .add("disband", new Disband(teamData))
                 .add("profile", new Profile(teamData))
+                .add("list", new List(teamData))
                 .build();
     }
 
