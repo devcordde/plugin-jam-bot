@@ -1,3 +1,6 @@
+CREATE SEQUENCE gamejam.jam_times_id_seq
+    AS INTEGER;
+
 CREATE TABLE IF NOT EXISTS gamejam.jam
 (
     id       SERIAL,
@@ -23,6 +26,8 @@ CREATE TABLE IF NOT EXISTS gamejam.jam_time
         FOREIGN KEY (jam_id) REFERENCES gamejam.jam
             ON DELETE CASCADE
 );
+
+ALTER SEQUENCE gamejam.jam_times_id_seq OWNED BY gamejam.jam_time.jam_id;
 
 CREATE TABLE IF NOT EXISTS gamejam.jam_meta
 (
@@ -128,7 +133,9 @@ CREATE TABLE IF NOT EXISTS gamejam.version
 
 CREATE TABLE IF NOT EXISTS gamejam.settings
 (
-    guild_id     BIGINT,
+    guild_id     BIGINT NOT NULL,
     manager_role BIGINT,
-    locale       INTEGER
+    locale       TEXT,
+    CONSTRAINT settings_pk
+        PRIMARY KEY (guild_id)
 );
