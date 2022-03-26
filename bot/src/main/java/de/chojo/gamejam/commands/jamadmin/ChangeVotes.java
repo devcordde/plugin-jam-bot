@@ -25,14 +25,12 @@ public final class ChangeVotes implements SubCommand.Nonce {
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context) {
-        jamData.getActiveJam(event.getGuild()).thenAccept(jam -> {
-            if (jam.isEmpty()) {
-                event.reply("There is no active jam.").queue();
-                return;
-            }
-            jam.get().state().voting(voting);
-            jamData.updateJamState(jam.get());
-            event.reply(content).queue();
+        jamData.getActiveJam(event.getGuild()).thenAccept(optJam -> {
+            optJam.ifPresentOrElse(jam -> {
+                jam.state().voting(voting);
+                jamData.updateJamState(jam);
+                event.reply(context.localize(content)).queue();
+            }, () -> event.reply(context.localize("error.noActiveJam")).queue());
         }).whenComplete(Future.error());
     }
 }

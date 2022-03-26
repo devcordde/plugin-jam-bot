@@ -27,20 +27,20 @@ public final class Create implements SubCommand<Jam> {
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
-        var team = teamData.getTeamByMember(jam, event.getMember()).join();
-        if (team.isPresent()) {
-            event.reply("You are already part of a team. You need to leave first to create your own team.").setEphemeral(true).queue();
+        if (!jam.registrations().contains(event.getMember().getIdLong())) {
+            event.reply(context.localize("command.team.create.unregistered")).setEphemeral(true).queue();
             return;
         }
-        if (!jam.registrations().contains(event.getMember().getIdLong())) {
-            event.reply("You need to register first to create a team").setEphemeral(true).queue();
+        var team = teamData.getTeamByMember(jam, event.getMember()).join();
+        if (team.isPresent()) {
+            event.reply(context.localize("command.team.create.alreadyMember")).setEphemeral(true).queue();
             return;
         }
         var teamName = event.getOption("name").getAsString();
         var optTeam = teamData.getTeamByName(jam, event.getOption("name").getAsString()).join();
 
         if (optTeam.isPresent()) {
-            event.reply("This team name is already taken.").setEphemeral(true).queue();
+            event.reply(context.localize("command.team.create.nameTaken")).setEphemeral(true).queue();
             return;
         }
 
@@ -78,6 +78,6 @@ public final class Create implements SubCommand<Jam> {
         teamData.createTeam(jam, newTeam);
 
         event.getGuild().addRoleToMember(event.getMember(), role).queue();
-        event.getHook().editOriginal("Your team was created.").queue();
+        event.getHook().editOriginal(context.localize("command.team.create.created")).queue();
     }
 }

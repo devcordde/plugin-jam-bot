@@ -11,6 +11,7 @@ import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.wrapper.jam.JamBuilder;
 import de.chojo.gamejam.data.wrapper.jam.JamTimes;
 import de.chojo.gamejam.data.wrapper.jam.TimeFrame;
+import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -22,8 +23,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Create implements SubCommand.Nonce {
-
-    private static final DateTimeFormatter DATE_PARSER = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
+    public static final String PATTERN = "yyyy.MM.dd HH:mm";
+    private static final DateTimeFormatter DATE_PARSER = DateTimeFormatter.ofPattern(PATTERN);
 
     private final JamData jamData;
 
@@ -38,7 +39,7 @@ public class Create implements SubCommand.Nonce {
         try {
             timezone = ZoneId.of(event.getOption("timezone").getAsString());
         } catch (DateTimeException e) {
-            event.reply("Invalid timezone.").queue();
+            event.reply(context.localize("error.invalidTimezone")).queue();
             return;
         }
 
@@ -52,12 +53,12 @@ public class Create implements SubCommand.Nonce {
             var times = new JamTimes(timezone, new TimeFrame(registerStart, registerEnd), new TimeFrame(jamStart, jamEnd));
             jamBuilder.setTimes(times);
         } catch (DateTimeException e) {
-            event.reply("Invalid time format. Format is YYYY.MM.DD hh:mm.").queue();
+            event.reply(context.localize("error.invalidTimeFormat", Replacement.create("FORMAT", PATTERN))).queue();
             return;
         }
 
         jamData.createJam(jamBuilder.build(), event.getGuild());
-        event.reply("Jam created.").setEphemeral(true).queue();
+        event.reply(context.localize("command.jamAdmin.create.created")).setEphemeral(true).queue();
     }
 
 

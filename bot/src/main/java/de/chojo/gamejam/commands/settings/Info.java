@@ -25,10 +25,10 @@ public final class Info implements SubCommand<JamSettings> {
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, JamSettings settings) {
         var guildSettings = guildData.getSettings(event.getGuild()).join();
         var embed = new LocalizedEmbedBuilder(context.localizer())
-                .setTitle("Settings")
-                .addField("Game Jam Role", MentionUtil.role(settings.jamRole()), true)
-                .addField("Max Team Size", String.valueOf(settings.teamSize()), true)
-                .addField("Orga Role", MentionUtil.role(guildSettings.orgaRole()), true)
+                .setTitle("command.settings.info.settings")
+                .addField("command.settings.info.jamRole", MentionUtil.role(settings.jamRole()), true)
+                .addField("command.settings.info.teamSize", String.valueOf(settings.teamSize()), true)
+                .addField("command.settings.info.orgaRole", MentionUtil.role(guildSettings.orgaRole()), true)
                 .build();
         event.replyEmbeds(embed).setEphemeral(true).queue();
     }

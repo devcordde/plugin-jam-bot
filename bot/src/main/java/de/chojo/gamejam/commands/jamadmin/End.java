@@ -22,7 +22,7 @@ public final class End implements SubCommand.Nonce {
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context) {
         if (!event.getOption("confirm").getAsBoolean()) {
-            event.reply("Please confirm").queue();
+            event.reply(context.localize("error.noConfirm")).setEphemeral(true).queue();
             return;
         }
 
@@ -30,8 +30,8 @@ public final class End implements SubCommand.Nonce {
             optJam.ifPresentOrElse(jam -> {
                 jam.finish(event.getGuild());
                 jamData.updateJamState(jam);
-                event.reply("Jam ended.").setEphemeral(true).queue();
-            }, () -> event.reply("There is no active jam.").setEphemeral(true).queue());
+                event.reply(context.localize("command.jamAdmin.end.ended")).setEphemeral(true).queue();
+            }, () -> event.reply(context.localize("error.noActiveJam")).setEphemeral(true).queue());
         }).whenComplete(Future.error());
     }
 }

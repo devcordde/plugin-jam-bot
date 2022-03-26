@@ -12,10 +12,10 @@ import de.chojo.gamejam.data.wrapper.jam.JamSettings;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public final class Role implements SubCommand<JamSettings> {
+public final class JamRole implements SubCommand<JamSettings> {
     private final JamData jamData;
 
-    public Role(JamData jamData) {
+    public JamRole(JamData jamData) {
         this.jamData = jamData;
     }
 
@@ -23,6 +23,6 @@ public final class Role implements SubCommand<JamSettings> {
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, JamSettings settings) {
         settings.jamRole(event.getOption("role").getAsRole().getIdLong());
         jamData.updateJamSettings(event.getGuild(), settings)
-                .thenRun(() -> event.reply("Updated settings").setEphemeral(true).queue());
+                .thenRun(() -> event.reply(context.localize("command.settings.jamRole.updated")).setEphemeral(true).queue());
     }
 }

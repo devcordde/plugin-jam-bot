@@ -19,6 +19,8 @@ import de.chojo.gamejam.util.LogNotify;
 import de.chojo.jdautil.command.SimpleCommand;
 import de.chojo.jdautil.command.dispatching.CommandHub;
 import de.chojo.jdautil.localization.ILocalizer;
+import de.chojo.jdautil.localization.Localizer;
+import de.chojo.jdautil.localization.util.Language;
 import de.chojo.sqlutil.datasource.DataSourceCreator;
 import de.chojo.sqlutil.exceptions.ExceptionTransformer;
 import de.chojo.sqlutil.logging.LoggerAdapter;
@@ -39,6 +41,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -108,27 +111,27 @@ public class Bot {
 
     private void buildLocale() {
         localizer = ILocalizer.DEFAULT;
-        //TODO: Add localization and init localizer again
-//        localizer = Localizer.builder(Language.ENGLISH)
-//                .addLanguage(Language.GERMAN)
-//                //TODO: Implement language
-//                .withLanguageProvider(guild -> Optional.ofNullable(Language.GERMAN.getCode()))
-//                .build();
+        localizer = Localizer.builder(Language.ENGLISH)
+                .addLanguage(Language.GERMAN)
+                .withLanguageProvider(guild -> Optional.ofNullable(Language.ENGLISH.getCode()))
+                .build();
     }
 
     private void buildCommands() {
+        var settings = new Settings(jamData, guildData);
         commandHub = CommandHub.builder(shardManager)
                 .withManagerRole(guild -> Collections.singletonList(guildData.getSettings(guild).join().orgaRole()))
                 .withLocalizer(localizer)
                 .useGuildCommands()
                 .withCommands(new JamAdmin(jamData),
                         new Register(jamData),
-                        new Settings(jamData, guildData, localizer),
-                        new Team(teamData, jamData),
-                        new Vote())
+                        settings,
+                        new Team(teamData, jamData))
+                        //new Vote())
                 .withPagination(builder -> builder.cache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withButtonService(builder -> builder.setCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .build();
+        settings.init(commandHub);
     }
 
     private void initBot() throws LoginException {

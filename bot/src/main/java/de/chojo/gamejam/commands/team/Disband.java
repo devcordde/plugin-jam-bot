@@ -22,22 +22,18 @@ public final class Disband implements SubCommand<Jam> {
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
         if (event.getOption("confirm").getAsBoolean()) {
-            event.reply("Please confirm.").setEphemeral(true).queue();
+            event.reply(context.localize("error.noConfirm")).setEphemeral(true).queue();
             return;
         }
 
         var jamTeam = teamData.getTeamByMember(jam, event.getMember()).join();
         if (jamTeam.isEmpty()) {
-            event.reply("You are not part of a team").setEphemeral(true).queue();
+            event.reply(context.localize("error.noTeam")).setEphemeral(true).queue();
             return;
         }
 
         var team = jamTeam.get();
 
-        if (team.leader() == event.getMember().getIdLong()) {
-            event.reply("The leader cant leave the team.").setEphemeral(true).queue();
-            return;
-        }
 
         var members = teamData.getMember(team).join();
         for (var teamMember : members) {
@@ -45,11 +41,11 @@ public final class Disband implements SubCommand<Jam> {
                     .flatMap(u -> event.getGuild().retrieveMember(u))
                     .queue(member -> {
                         event.getGuild().removeRoleFromMember(member, event.getGuild().getRoleById(team.roleId())).queue();
-                        member.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your team was disbanded")).queue();
+                        member.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage(context.localize("command.team.disband.disbanded"))).queue();
                     });
         }
 
         team.delete(event.getGuild());
-        teamData.disbandTeam(team).thenRun(() -> event.reply("Team disbanded").setEphemeral(true).queue());
+        teamData.disbandTeam(team).thenRun(() -> event.reply(context.localize("command.team.disband.disbanded")).setEphemeral(true).queue());
     }
 }

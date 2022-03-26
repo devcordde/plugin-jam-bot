@@ -9,6 +9,7 @@ package de.chojo.gamejam.commands.team;
 import de.chojo.gamejam.commands.SubCommand;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
+import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
@@ -23,10 +24,15 @@ public final class Leave implements SubCommand<Jam> {
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
         teamData.getTeamByMember(jam, event.getMember()).join()
                 .ifPresentOrElse(team -> {
-                    event.reply("You left the team").setEphemeral(true).queue();
+                    if (team.leader() == event.getMember().getIdLong()) {
+                        event.reply(context.localize("command.team.leave.leaderLeave")).setEphemeral(true).queue();
+                        return;
+                    }
+
+                    event.reply(context.localize("command.team.leave.left")).setEphemeral(true).queue();
                     teamData.leaveTeam(team, event.getMember());
                     event.getGuild().removeRoleFromMember(event.getMember(), event.getGuild().getRoleById(team.roleId())).queue();
-                    event.getGuild().getTextChannelById(team.textChannelId()).sendMessage(event.getUser().getName() + " left the team.").queue();
-                }, () -> event.reply("You are not part of a team").setEphemeral(true).queue());
+                    event.getGuild().getTextChannelById(team.textChannelId()).sendMessage(context.localize("command.team.leave.leftBroadcast", Replacement.createMention(event.getMember()))).queue();
+                }, () -> event.reply(context.localize("error.noTeam")).setEphemeral(true).queue());
     }
 }

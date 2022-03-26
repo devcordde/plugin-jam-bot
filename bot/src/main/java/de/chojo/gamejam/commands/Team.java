@@ -18,46 +18,48 @@ import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
 import de.chojo.jdautil.command.SimpleCommand;
+import de.chojo.jdautil.util.MapBuilder;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class Team extends SimpleCommand {
     private final JamData jamData;
 
-    private final Map<String, SubCommand<Jam>> subcommands = new HashMap<>();
+    private final Map<String, SubCommand<Jam>> subcommands;
 
     public Team(TeamData teamData, JamData jamData) {
-        super(CommandMeta.builder("team", "Manage your team")
-                .addSubCommand("create", "Create a team",
+        super(CommandMeta.builder("team", "command.team.description")
+                .addSubCommand("create", "command.team.create.description",
                         argsBuilder()
-                                .add(SimpleArgument.string("name", "Name of your team").asRequired())
+                                .add(SimpleArgument.string("name", "command.team.create.arg.name").asRequired())
                                 .build())
-                .addSubCommand("invite", "Invite someone",
+                .addSubCommand("invite", "command.team.invite.description",
                         argsBuilder()
-                                .add(SimpleArgument.user("user", "The user you want to invite").asRequired())
+                                .add(SimpleArgument.user("user", "command.team.invite.arg.user").asRequired())
                                 .build())
-                .addSubCommand("leave", "Leave your team")
-                .addSubCommand("disband", "Disband your team",
-                        argsBuilder().add(SimpleArgument.bool("confirm", "confirm with true").asRequired()).build())
+                .addSubCommand("leave", "command.team.leave.description")
+                .addSubCommand("disband", "command.team.disband.description",
+                        argsBuilder().add(SimpleArgument.bool("confirm", "command.team.disband.arg.confirm").asRequired()).build())
 //                .addSubCommand("new-leader", "Pass team leadership to someone else",
 //                        argsBuilder()
 //                                .add(SimpleArgument.user("new_leader", "The new leader").asRequired())
 //                                .build())
-                .addSubCommand("profile", "Shows the profile of a team or your own",
+                .addSubCommand("profile", "command.team.profile.description",
                         argsBuilder()
-                                .add(SimpleArgument.user("user", "Show the team of the user"))
-                                .add(SimpleArgument.string("team", "Show the team profile").withAutoComplete())
+                                .add(SimpleArgument.user("user", "command.team.profile.arg.user"))
+                                .add(SimpleArgument.string("team", "command.team.profile.arg.team").withAutoComplete())
                                 .build())
                 .build());
         this.jamData = jamData;
-        this.subcommands.put("create", new Create(teamData));
-        this.subcommands.put("invite", new Invite(teamData, jamData));
-        this.subcommands.put("leave", new Leave(teamData));
-        this.subcommands.put("disband", new Disband(teamData));
-        this.subcommands.put("profile", new Profile(teamData));
+        subcommands = new MapBuilder<String, SubCommand<Jam>>()
+                .add("create", new Create(teamData))
+                .add("invite", new Invite(teamData, jamData))
+                .add("leave", new Leave(teamData))
+                .add("disband", new Disband(teamData))
+                .add("profile", new Profile(teamData))
+                .build();
     }
 
     @Override
@@ -65,7 +67,7 @@ public class Team extends SimpleCommand {
         jamData.getNextOrCurrentJam(event.getGuild())
                 .thenAccept(optJam -> {
                     if (optJam.isEmpty()) {
-                        event.reply("No jam is in progress. Teams are not available.").setEphemeral(true).queue();
+                        event.reply(context.localize("command.team.noJamActive")).setEphemeral(true).queue();
                         return;
                     }
 

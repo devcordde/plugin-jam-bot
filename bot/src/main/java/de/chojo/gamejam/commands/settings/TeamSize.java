@@ -23,6 +23,6 @@ public final class TeamSize implements SubCommand<JamSettings> {
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, JamSettings settings) {
         settings.teamSize(event.getOption("size").getAsInt());
         jamData.updateJamSettings(event.getGuild(), settings)
-                .thenRun(() -> event.reply("Updated settings").setEphemeral(true).queue());
+                .thenRun(() -> event.reply(context.localize("command.settings.teamSize.updated")).setEphemeral(true).queue());
     }
 }

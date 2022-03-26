@@ -14,45 +14,47 @@ import de.chojo.gamejam.data.JamData;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
 import de.chojo.jdautil.command.SimpleCommand;
+import de.chojo.jdautil.util.MapBuilder;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 
 import java.time.ZoneId;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class JamAdmin extends SimpleCommand {
 
-    private final Map<String, SubCommand.Nonce> subCommandMap = new HashMap<>();
+    private final Map<String, SubCommand.Nonce> subCommandMap;
 
     public JamAdmin(JamData jamData) {
-        super(CommandMeta.builder("jamadmin", "Manage jams")
+        super(CommandMeta.builder("jamadmin", "command.jamAdmin.description")
                 .withPermission()
-                .addSubCommand("create", "Create a new game jam",
+                .addSubCommand("create", "command.jamAdmin.create.description",
                         argsBuilder()
-                                .add(SimpleArgument.string("topic", "The topic of the game jam").asRequired().withAutoComplete())
-                                .add(SimpleArgument.string("topic-tagline", "Topic tagline as an addition to the topic").asRequired())
-                                .add(SimpleArgument.string("timezone", "The timezone of the game jam. \"Europe/Berlin\" for example.").asRequired())
-                                .add(SimpleArgument.string("register-start", "Registrations opening. Format: YYYY.MM.DD hh:mm").asRequired())
-                                .add(SimpleArgument.string("register-end", "Registrations close. Format: YYYY.MM.DD hh:mm").asRequired())
-                                .add(SimpleArgument.string("jam-start", "Game Jam start. Format: YYYY.MM.DD hh:mm").asRequired())
-                                .add(SimpleArgument.string("jam-end", "Game Jam end. Format: YYYY.MM.DD hh:mm").asRequired())
+                                .add(SimpleArgument.string("topic", "command.jamAdmin.create.arg.topic").asRequired().withAutoComplete())
+                                .add(SimpleArgument.string("topic-tagline", "command.jamAdmin.create.arg.topic-tagline").asRequired())
+                                .add(SimpleArgument.string("timezone", "command.jamAdmin.create.arg.timezone").asRequired())
+                                .add(SimpleArgument.string("register-start", formatArg("command.jamAdmin.create.arg.register-start")).asRequired())
+                                .add(SimpleArgument.string("register-end", formatArg("command.jamAdmin.create.arg.register-end")).asRequired())
+                                .add(SimpleArgument.string("jam-start", formatArg("command.jamAdmin.create.arg.jam-start")).asRequired())
+                                .add(SimpleArgument.string("jam-end", formatArg("command.jamAdmin.create.arg.jam-end")).asRequired())
                                 .build())
-                .addSubCommand("start-jam", "start the next scheduled jam")
-                .addSubCommand("end-jam", "Ends the currently active jam. Deletes all roles and channel",
+                .addSubCommand("start-jam", "command.jamAdmin.start-jam.description")
+                .addSubCommand("end-jam", "command.jamAdmin.end-jam.description",
                         argsBuilder().add(SimpleArgument.bool("confirm", "Set to true to confirm").asRequired()).build())
-                .addSubCommand("open-votes", "Open votes for the current active jam")
-                .addSubCommand("close-votes", "close votes for the current active jam")
+                .addSubCommand("open-votes", "command.jamAdmin.open-votes.description")
+                .addSubCommand("close-votes", "command.jamAdmin.close-votes.description")
                 .build());
-        this.subCommandMap.put("create", new Create(jamData));
-        this.subCommandMap.put("start-jam", new Start(jamData));
-        this.subCommandMap.put("end-jam", new End(jamData));
-        this.subCommandMap.put("open-votes", new ChangeVotes(jamData, true, "Votes opened for current jam."));
-        this.subCommandMap.put("close-votes", new ChangeVotes(jamData, false, "Votes closed for current jam."));
+        subCommandMap = new MapBuilder<String, SubCommand.Nonce>()
+                .add("create", new Create(jamData))
+                .add("start-jam", new Start(jamData))
+                .add("end-jam", new End(jamData))
+                .add("open-votes", new ChangeVotes(jamData, true, "command.jamAdmin.vote.open"))
+                .add("close-votes", new ChangeVotes(jamData, false, "command.jamAdmin.vote.close"))
+                .build();
     }
 
     @Override
@@ -76,5 +78,9 @@ public class JamAdmin extends SimpleCommand {
                     .collect(Collectors.toList());
             event.replyChoices(choices).queue();
         }
+    }
+
+    private static String formatArg(String key) {
+        return String.format("$%s$ $%s$: %s", key, "command.jamAdmin.create.arg.format", Create.PATTERN);
     }
 }

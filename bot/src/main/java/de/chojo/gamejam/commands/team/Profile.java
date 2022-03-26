@@ -29,18 +29,18 @@ public final class Profile implements SubCommand<Jam> {
         if (event.getOption("user") != null) {
             teamData.getTeamByMember(jam, event.getOption("user").getAsMember()).join()
                     .ifPresentOrElse(team -> sendProfile(event, team, context),
-                            () -> event.reply("This user is not part of a team").setEphemeral(true).queue());
+                            () -> event.reply(context.localize("command.team.profile.noUserTeam")).setEphemeral(true).queue());
             return;
         }
         if (event.getOption("team") != null) {
             teamData.getTeamByName(jam, event.getOption("team").getAsString()).join()
                     .ifPresentOrElse(team -> sendProfile(event, team, context),
-                            () -> event.reply("This team does not exist").setEphemeral(true).queue());
+                            () -> event.reply(context.localize("command.team.profile.unkownTeam")).setEphemeral(true).queue());
             return;
         }
         teamData.getTeamByMember(jam, event.getMember()).join()
                 .ifPresentOrElse(team -> sendProfile(event, team, context),
-                        () -> event.reply("You are not part of a team").setEphemeral(true).queue());
+                        () -> event.reply(context.localize("error.noTeam")).setEphemeral(true).queue());
     }
 
     private void sendProfile(SlashCommandInteractionEvent event, JamTeam team, SlashCommandContext context) {
@@ -50,8 +50,8 @@ public final class Profile implements SubCommand<Jam> {
 
         var embed = new LocalizedEmbedBuilder(context.localizer())
                 .setTitle(team.name())
-                .addField("Member", member, true)
-                .addField("Leader", MentionUtil.user(team.leader()), true)
+                .addField("command.team.profile.member", member, true)
+                .addField("command.team.profile.leader", MentionUtil.user(team.leader()), true)
                 .build();
 
         event.replyEmbeds(embed).setEphemeral(true).queue();

@@ -23,15 +23,15 @@ public final class Start implements SubCommand.Nonce {
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context) {
         jamData.getActiveJam(event.getGuild()).thenAccept(jam -> {
             if (jam.isPresent()) {
-                event.reply("A jam is already active.").setEphemeral(true).queue();
+                event.reply(context.localize("error.alreadyActive")).setEphemeral(true).queue();
                 return;
             }
             jamData.getNextOrCurrentJam(event.getGuild()).join()
                     .ifPresentOrElse(next -> {
                 next.state().active(true);
                 jamData.updateJamState(next);
-                event.reply("Jam state changed to active").setEphemeral(true).queue();
-            },()-> event.reply("There is no upcoming jam.").setEphemeral(true).queue());
+                event.reply(context.localize("command.start.activated")).setEphemeral(true).queue();
+            },()-> event.reply(context.localize("error.noUpcomingJam")).setEphemeral(true).queue());
         }).whenComplete(Future.error());
     }
 }
