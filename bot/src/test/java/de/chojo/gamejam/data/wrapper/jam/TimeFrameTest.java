@@ -27,19 +27,6 @@ class TimeFrameTest {
     }
 
     @Test
-    void contains() {
-        DateTimeFormatter dateParser = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
-
-        var instant = LocalDateTime.from(dateParser.parse("2022.03.20 19:18"));
-        ZonedDateTime time = ZonedDateTime.ofInstant(LocalDateTime.from(dateParser.parse("2022.03.20 19:18")), berlin.getRules().getOffset(instant), berlin);
-        System.out.println(time);
-    }
-
-    private static ZonedDateTime time(int hour, ZoneId zoneId) {
-        return ZonedDateTime.of(2021, 1, 1, hour, 0, 0, 0, zoneId);
-    }
-
-    @Test
     void fromEpoch() {
         var berlinFrame = TimeFrame.fromEpoch(0, 1000, berlin);
         var newyorkFrame = TimeFrame.fromEpoch(0, 1000, newyork);
