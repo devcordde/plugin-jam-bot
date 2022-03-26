@@ -26,15 +26,12 @@ public final class End implements SubCommand.Nonce {
             return;
         }
 
-        jamData.getActiveJam(event.getGuild()).thenAccept(jam -> {
-            if (jam.isEmpty()) {
-                event.reply("There is no active jam.").queue();
-                return;
-            }
-            jam.get().finish(event.getGuild());
-            jamData.updateJamState(jam.get());
-            event.reply("Jam ended.").queue();
-
+        jamData.getActiveJam(event.getGuild()).thenAccept(optJam -> {
+            optJam.ifPresentOrElse(jam -> {
+                jam.finish(event.getGuild());
+                jamData.updateJamState(jam);
+                event.reply("Jam ended.").setEphemeral(true).queue();
+            }, () -> event.reply("There is no active jam.").setEphemeral(true).queue());
         }).whenComplete(Future.error());
     }
 }

@@ -26,13 +26,11 @@ public final class Locale implements SubCommand<JamSettings> {
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, JamSettings settings) {
         var locale = event.getOption("locale").getAsString();
         var guildSettings = guildData.getSettings(event.getGuild()).join();
-        var lang = localizer.languages().stream().filter(l -> l.isLanguage(locale)).findFirst();
-        if (lang.isEmpty()) {
-            event.reply("Invalid locale").setEphemeral(true).queue();
-            return;
-        }
-        guildSettings.locale(lang.get().getCode());
-        guildData.updateSettings(guildSettings)
-                .thenRun(() -> event.reply("Updated settings").setEphemeral(true).queue());
+        localizer.languages().stream().filter(l -> l.isLanguage(locale)).findFirst()
+                .ifPresentOrElse(language -> {
+            guildSettings.locale(language.getCode());
+            guildData.updateSettings(guildSettings)
+                    .thenRun(() -> event.reply("Updated settings").setEphemeral(true).queue());
+        }, () -> event.reply("Invalid locale").setEphemeral(true).queue());
     }
 }

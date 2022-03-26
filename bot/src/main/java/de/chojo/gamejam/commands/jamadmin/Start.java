@@ -26,14 +26,12 @@ public final class Start implements SubCommand.Nonce {
                 event.reply("A jam is already active.").setEphemeral(true).queue();
                 return;
             }
-            var nextJam = jamData.getNextOrCurrentJam(event.getGuild()).join();
-            if (nextJam.isEmpty()) {
-                event.reply("There is no upcoming jam.").queue();
-                return;
-            }
-            nextJam.get().state().active(true);
-            jamData.updateJamState(jam.get());
-            event.reply("Jam state changed to active").queue();
+            jamData.getNextOrCurrentJam(event.getGuild()).join()
+                    .ifPresentOrElse(next -> {
+                next.state().active(true);
+                jamData.updateJamState(next);
+                event.reply("Jam state changed to active").setEphemeral(true).queue();
+            },()-> event.reply("There is no upcoming jam.").setEphemeral(true).queue());
         }).whenComplete(Future.error());
     }
 }

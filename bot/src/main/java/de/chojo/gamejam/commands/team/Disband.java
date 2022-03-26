@@ -31,17 +31,25 @@ public final class Disband implements SubCommand<Jam> {
             event.reply("You are not part of a team").setEphemeral(true).queue();
             return;
         }
-        var members = teamData.getMember(jamTeam.get()).join();
+
+        var team = jamTeam.get();
+
+        if (team.leader() == event.getMember().getIdLong()) {
+            event.reply("The leader cant leave the team.").setEphemeral(true).queue();
+            return;
+        }
+
+        var members = teamData.getMember(team).join();
         for (var teamMember : members) {
             event.getJDA().getShardManager().retrieveUserById(teamMember.userId())
                     .flatMap(u -> event.getGuild().retrieveMember(u))
                     .queue(member -> {
-                        event.getGuild().removeRoleFromMember(member, event.getGuild().getRoleById(jamTeam.get().roleId())).queue();
+                        event.getGuild().removeRoleFromMember(member, event.getGuild().getRoleById(team.roleId())).queue();
                         member.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage("Your team was disbanded")).queue();
                     });
         }
-        event.reply("Team disbanded").setEphemeral(true).queue();
-        jamTeam.get().delete(event.getGuild());
-        teamData.disbandTeam(jamTeam.get());
+
+        team.delete(event.getGuild());
+        teamData.disbandTeam(team).thenRun(() -> event.reply("Team disbanded").setEphemeral(true).queue());
     }
 }

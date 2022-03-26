@@ -78,6 +78,6 @@ public final class Create implements SubCommand<Jam> {
         teamData.createTeam(jam, newTeam);
 
         event.getGuild().addRoleToMember(event.getMember(), role).queue();
-        event.getHook().editOriginal("You team was created.").queue();
+        event.getHook().editOriginal("Your team was created.").queue();
     }
 }

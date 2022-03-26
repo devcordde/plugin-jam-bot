@@ -27,29 +27,20 @@ public final class Profile implements SubCommand<Jam> {
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
         if (event.getOption("user") != null) {
-            var team = teamData.getTeamByMember(jam, event.getOption("user").getAsMember()).join();
-            if (team.isEmpty()) {
-                event.reply("This user is not part of a team").setEphemeral(true).queue();
-                return;
-            }
-            sendProfile(event, team.get(), context);
+            teamData.getTeamByMember(jam, event.getOption("user").getAsMember()).join()
+                    .ifPresentOrElse(team -> sendProfile(event, team, context),
+                            () -> event.reply("This user is not part of a team").setEphemeral(true).queue());
             return;
         }
         if (event.getOption("team") != null) {
-            var team = teamData.getTeamByName(jam, event.getOption("team").getAsString()).join();
-            if (team.isEmpty()) {
-                event.reply("This team does not exist").setEphemeral(true).queue();
-                return;
-            }
-            sendProfile(event, team.get(), context);
+            teamData.getTeamByName(jam, event.getOption("team").getAsString()).join()
+                    .ifPresentOrElse(team -> sendProfile(event, team, context),
+                            () -> event.reply("This team does not exist").setEphemeral(true).queue());
             return;
         }
-        var team = teamData.getTeamByMember(jam, event.getMember()).join();
-        if (team.isEmpty()) {
-            event.reply("You are not part of a team").setEphemeral(true).queue();
-            return;
-        }
-        sendProfile(event, team.get(), context);
+        teamData.getTeamByMember(jam, event.getMember()).join()
+                .ifPresentOrElse(team -> sendProfile(event, team, context),
+                        () -> event.reply("You are not part of a team").setEphemeral(true).queue());
     }
 
     private void sendProfile(SlashCommandInteractionEvent event, JamTeam team, SlashCommandContext context) {
