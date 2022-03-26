@@ -13,9 +13,10 @@ public interface SubCommand<T> {
     void execute(SlashCommandInteractionEvent event, SlashCommandContext context, T data);
 
     interface Nonce extends SubCommand<Void> {
-        default void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Void nonce){
+        default void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Void nonce) {
             execute(event, context);
         }
+
         void execute(SlashCommandInteractionEvent event, SlashCommandContext context);
     }
 }

@@ -11,6 +11,10 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
 public final class LogNotify {
+    private LogNotify() {
+        throw new UnsupportedOperationException("This is a utility class.");
+    }
+
     /**
      * Will be send to error-log channel.
      */
@@ -24,7 +28,6 @@ public final class LogNotify {
      */
     public static final Marker DISCORD = createMarker("DISCORD");
 
-    private LogNotify(){}
     private static Marker createMarker(@NotNull String name, @NotNull Marker... children) {
         var marker = MarkerFactory.getMarker(name);
         for (var child : children) {

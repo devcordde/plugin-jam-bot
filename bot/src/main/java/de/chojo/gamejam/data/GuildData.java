@@ -9,7 +9,6 @@ package de.chojo.gamejam.data;
 import de.chojo.gamejam.data.wrapper.guild.Settings;
 import de.chojo.sqlutil.base.QueryFactoryHolder;
 import de.chojo.sqlutil.wrapper.QueryBuilderConfig;
-import jdk.jshell.spi.ExecutionControl;
 import net.dv8tion.jda.api.entities.Guild;
 
 import javax.sql.DataSource;

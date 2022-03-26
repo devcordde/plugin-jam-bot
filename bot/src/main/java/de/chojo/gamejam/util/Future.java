@@ -16,6 +16,7 @@ public final class Future {
     private static final Logger log = getLogger(Future.class);
 
     private Future() {
+        throw new UnsupportedOperationException("This is a utility class.");
     }
 
     public static Object log(Runnable run) {

@@ -27,7 +27,7 @@ public class JamBuilder {
         return this;
     }
 
-    public JamBuilder setState(JamState state){
+    public JamBuilder setState(JamState state) {
         this.state = state;
         return this;
     }

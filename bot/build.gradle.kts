@@ -36,7 +36,7 @@ dependencies {
     testImplementation("org.junit.jupiter", "junit-jupiter")
 }
 
-tasks{
+tasks {
     processResources {
         from(sourceSets.main.get().resources.srcDirs) {
             filesMatching("version") {
@@ -52,7 +52,7 @@ tasks{
         dependsOn(shadowJar)
     }
 
-    shadowJar{
+    shadowJar {
         mergeServiceFiles()
         manifest {
             attributes(mapOf("Main-Class" to "de.chojo.gamejam.Bot"))

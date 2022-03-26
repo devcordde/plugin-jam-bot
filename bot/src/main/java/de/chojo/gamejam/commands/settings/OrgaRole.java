@@ -32,7 +32,7 @@ public final class OrgaRole implements SubCommand<JamSettings> {
                 });
     }
 
-    public void setCommandHub(CommandHub<?> commandHub){
+    public void setCommandHub(CommandHub<?> commandHub) {
         this.commandHub = commandHub;
     }
 }

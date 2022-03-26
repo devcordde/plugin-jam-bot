@@ -10,7 +10,6 @@ import de.chojo.gamejam.commands.JamAdmin;
 import de.chojo.gamejam.commands.Register;
 import de.chojo.gamejam.commands.Settings;
 import de.chojo.gamejam.commands.Team;
-import de.chojo.gamejam.commands.Vote;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.GuildData;
 import de.chojo.gamejam.data.JamData;
@@ -55,6 +54,11 @@ public class Bot {
             (t, e) -> log.error(LogNotify.NOTIFY_ADMIN, "An uncaught exception occured in " + t.getName() + "-" + t.getId() + ".", e);
 
     private static final Bot instance;
+
+    static {
+        instance = new Bot();
+    }
+
     private Configuration configuration;
     private DataSource dataSource;
     private ILocalizer localizer;
@@ -64,14 +68,6 @@ public class Bot {
     private JamData jamData;
     private TeamData teamData;
     private GuildData guildData;
-
-    private ExecutorService createExecutor(String name) {
-        return Executors.newCachedThreadPool(createThreadFactory(name));
-    }
-
-    private ExecutorService createExecutor(int threads, String name) {
-        return Executors.newFixedThreadPool(threads, createThreadFactory(name));
-    }
 
     private static ThreadFactory createThreadFactory(String string) {
         return createThreadFactory(new ThreadGroup(string));
@@ -85,16 +81,20 @@ public class Bot {
         };
     }
 
-    static {
-        instance = new Bot();
-    }
-
     public static void main(String[] args) {
         try {
             instance.start();
         } catch (Exception e) {
             log.error("Critical error occured during bot startup", e);
         }
+    }
+
+    private ExecutorService createExecutor(String name) {
+        return Executors.newCachedThreadPool(createThreadFactory(name));
+    }
+
+    private ExecutorService createExecutor(int threads, String name) {
+        return Executors.newFixedThreadPool(threads, createThreadFactory(name));
     }
 
     public void start() throws IOException, SQLException, LoginException {
@@ -126,7 +126,7 @@ public class Bot {
                         new Register(jamData),
                         settings,
                         new Team(teamData, jamData))
-                        //new Vote())
+                //new Vote())
                 .withPagination(builder -> builder.withLocalizer(localizer).withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withButtonService(builder -> builder.withLocalizer(localizer).withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .build();

@@ -57,6 +57,10 @@ public class JamAdmin extends SimpleCommand {
                 .build();
     }
 
+    private static String formatArg(String key) {
+        return String.format("$%s$ $%s$: %s", key, "command.jamAdmin.create.arg.format", Create.PATTERN);
+    }
+
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, SlashCommandContext context) {
         var label = event.getSubcommandName();
@@ -65,7 +69,6 @@ public class JamAdmin extends SimpleCommand {
             subCommand.execute(event, context);
         }
     }
-
 
     @Override
     public void onAutoComplete(CommandAutoCompleteInteractionEvent event, SlashCommandContext slashCommandContext) {
@@ -78,9 +81,5 @@ public class JamAdmin extends SimpleCommand {
                     .collect(Collectors.toList());
             event.replyChoices(choices).queue();
         }
-    }
-
-    private static String formatArg(String key) {
-        return String.format("$%s$ $%s$: %s", key, "command.jamAdmin.create.arg.format", Create.PATTERN);
     }
 }

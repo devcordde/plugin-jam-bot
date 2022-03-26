@@ -13,7 +13,6 @@ public class Settings {
 
     public Settings(long guildId) {
         this.guildId = guildId;
-
     }
 
     public Settings(long guildId, String locale, long orgaRole) {

@@ -59,9 +59,9 @@ public final class Invite implements SubCommand<Jam> {
             return;
         }
 
-        var join = teamData.getTeamByMember(jam, user).join();
+        var currTeam = teamData.getTeamByMember(jam, user).join();
 
-        if (join.isPresent()) {
+        if (currTeam.isPresent()) {
             event.reply(context.localize("command.team.invite.partOfTeam")).queue();
             return;
         }
