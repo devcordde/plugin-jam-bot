@@ -6,14 +6,22 @@ group = "de.chojo"
 version = "1.0"
 
 repositories {
-    mavenCentral()
+    maven("https://eldonexus.de/repository/maven-proxies/")
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
 }
 
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
+tasks {
+    processResources {
+        from(sourceSets.main.get().resources.srcDirs) {
+            filesMatching("plugin.yml") {
+                expand(
+                    "version" to project.version
+                )
+            }
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+    }
 }
