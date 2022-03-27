@@ -12,6 +12,8 @@ import de.chojo.gamejam.commands.team.Invite;
 import de.chojo.gamejam.commands.team.Leave;
 import de.chojo.gamejam.commands.team.List;
 import de.chojo.gamejam.commands.team.Profile;
+import de.chojo.gamejam.commands.team.Promote;
+import de.chojo.gamejam.commands.team.Rename;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
@@ -43,16 +45,19 @@ public class Team extends SimpleCommand {
                 .addSubCommand("leave", "command.team.leave.description")
                 .addSubCommand("disband", "command.team.disband.description",
                         argsBuilder().add(SimpleArgument.bool("confirm", "command.team.disband.arg.confirm").asRequired()).build())
-//                .addSubCommand("new-leader", "Pass team leadership to someone else",
-//                        argsBuilder()
-//                                .add(SimpleArgument.user("new_leader", "The new leader").asRequired())
-//                                .build())
+                .addSubCommand("promote", "command.team.promote.description",
+                        argsBuilder()
+                                .add(SimpleArgument.user("user", "command.team.promote.arg.user").asRequired())
+                                .build())
                 .addSubCommand("profile", "command.team.profile.description",
                         argsBuilder()
                                 .add(SimpleArgument.user("user", "command.team.profile.arg.user"))
                                 .add(SimpleArgument.string("team", "command.team.profile.arg.team").withAutoComplete())
                                 .build())
                 .addSubCommand("list", "command.team.list.description")
+                .addSubCommand("rename", "command.team.rename.description", argsBuilder()
+                        .add(SimpleArgument.string("name", "command.team.create.arg.name").asRequired())
+                        .build())
                 .build());
         this.jamData = jamData;
         subcommands = new MapBuilder<String, SubCommand<Jam>>()
@@ -62,6 +67,8 @@ public class Team extends SimpleCommand {
                 .add("disband", new Disband(teamData))
                 .add("profile", new Profile(teamData))
                 .add("list", new List(teamData))
+                .add("rename", new Rename(teamData))
+                .add("promote", new Promote(teamData))
                 .build();
     }
 

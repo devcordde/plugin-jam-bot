@@ -8,7 +8,7 @@ package de.chojo.gamejam.commands.jamadmin;
 
 import de.chojo.gamejam.commands.SubCommand;
 import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.wrapper.jam.JamBuilder;
+import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.gamejam.data.wrapper.jam.JamTimes;
 import de.chojo.gamejam.data.wrapper.jam.TimeFrame;
 import de.chojo.jdautil.localization.util.Replacement;
@@ -39,11 +39,11 @@ public class Create implements SubCommand.Nonce {
         try {
             timezone = ZoneId.of(event.getOption("timezone").getAsString());
         } catch (DateTimeException e) {
-            event.reply(context.localize("error.invalidTimezone")).queue();
+            event.reply(context.localize("error.invalidTimezone")).setEphemeral(true).queue();
             return;
         }
 
-        var jamBuilder = new JamBuilder(-1)
+        var jamBuilder = Jam.create()
                 .setTopic(topic);
         try {
             var registerStart = parseTime(event.getOption("register-start").getAsString(), timezone);
@@ -53,7 +53,8 @@ public class Create implements SubCommand.Nonce {
             var times = new JamTimes(timezone, new TimeFrame(registerStart, registerEnd), new TimeFrame(jamStart, jamEnd));
             jamBuilder.setTimes(times);
         } catch (DateTimeException e) {
-            event.reply(context.localize("error.invalidTimeFormat", Replacement.create("FORMAT", PATTERN))).queue();
+            event.reply(context.localize("error.invalidTimeFormat", Replacement.create("FORMAT", PATTERN)))
+                    .setEphemeral(true).queue();
             return;
         }
 

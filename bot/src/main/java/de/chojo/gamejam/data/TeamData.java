@@ -133,4 +133,12 @@ public class TeamData extends QueryFactoryHolder {
                     return getTeamById(id.get());
                 });
     }
+
+    public CompletableFuture<Boolean> updateTeam(JamTeam team){
+        return builder().query("UPDATE team_meta SET name = ?, leader_id = ? WHERE team_id = ?")
+                .paramsBuilder(p -> p.setString(team.name()).setLong(team.leader()).setInt(team.id()))
+                .update()
+                .execute()
+                .thenApply(row -> row > 0);
+    }
 }

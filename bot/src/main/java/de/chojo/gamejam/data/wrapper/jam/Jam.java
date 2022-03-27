@@ -16,6 +16,10 @@ public record Jam(int id, JamTimes times,
                   List<Long> registrations,
                   List<JamTeam> teams) {
 
+    public static JamBuilder create(){
+        return new JamBuilder(-1);
+    }
+
     public void finish(Guild guild) {
         state.active(false);
         state.voting(false);
