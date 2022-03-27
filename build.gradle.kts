@@ -9,6 +9,7 @@ version = "1.0"
 subprojects {
     apply {
         plugin<org.cadixdev.gradle.licenser.Licenser>()
+        plugin("java")
     }
 }
 
@@ -16,5 +17,21 @@ allprojects {
     license {
         header(rootProject.file("HEADER.txt"))
         include("**/*.java")
+    }
+
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
+
+    tasks {
+        compileJava {
+            options.encoding = "UTF-8"
+        }
+
+        javadoc {
+            options.encoding = "UTF08"
+        }
     }
 }
