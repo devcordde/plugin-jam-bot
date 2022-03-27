@@ -34,9 +34,9 @@ public class JamAdmin extends SimpleCommand {
                 .withPermission()
                 .addSubCommand("create", "command.jamAdmin.create.description",
                         argsBuilder()
-                                .add(SimpleArgument.string("topic", "command.jamAdmin.create.arg.topic").asRequired().withAutoComplete())
+                                .add(SimpleArgument.string("topic", "command.jamAdmin.create.arg.topic").asRequired())
                                 .add(SimpleArgument.string("topic-tagline", "command.jamAdmin.create.arg.topicTagline").asRequired())
-                                .add(SimpleArgument.string("timezone", "command.jamAdmin.create.arg.timezone").asRequired())
+                                .add(SimpleArgument.string("timezone", "command.jamAdmin.create.arg.timezone").asRequired().withAutoComplete())
                                 .add(SimpleArgument.string("register-start", formatArg("command.jamAdmin.create.arg.registerStart")).asRequired())
                                 .add(SimpleArgument.string("register-end", formatArg("command.jamAdmin.create.arg.registerEnd")).asRequired())
                                 .add(SimpleArgument.string("jam-start", formatArg("command.jamAdmin.create.arg.jamStart")).asRequired())
@@ -75,7 +75,7 @@ public class JamAdmin extends SimpleCommand {
         if ("timezone".equals(event.getFocusedOption().getName())) {
             var value = event.getFocusedOption().getValue().toLowerCase(Locale.ROOT);
             var choices = ZoneId.getAvailableZoneIds().stream()
-                    .filter(zone -> zone.toLowerCase(Locale.ROOT).startsWith(value))
+                    .filter(zone -> zone.toLowerCase(Locale.ROOT).contains(value))
                     .limit(25)
                     .map(zone -> new Command.Choice(zone, zone))
                     .collect(Collectors.toList());
