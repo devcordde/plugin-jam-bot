@@ -120,7 +120,8 @@ public class JamData extends QueryFactoryHolder {
                             id
                         FROM jam_time t
                         LEFT JOIN jam j ON j.id = t.jam_id
-                        WHERE t.jam_end > NOW() AT TIME ZONE 'utc'
+                        LEFT JOIN jam_state js ON j.id = js.jam_id
+                        WHERE js.active OR t.jam_end > NOW() AT TIME ZONE 'utc'
                             AND guild_id = ?
                         ORDER BY t.jam_end ASC
                         LIMIT 1;
