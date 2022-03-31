@@ -30,6 +30,6 @@ public class List implements SubCommand<Jam> {
             public CompletableFuture<MessageEmbed> buildPage() {
                 return CompletableFuture.supplyAsync(() -> currentElement().profileEmbed(teamData, context.localizer()));
             }
-        });
+        }, true);
     }
 }
