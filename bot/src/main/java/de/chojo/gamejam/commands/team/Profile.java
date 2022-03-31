@@ -31,7 +31,7 @@ public final class Profile implements SubCommand<Jam> {
         if (event.getOption("team") != null) {
             teamData.getTeamByName(jam, event.getOption("team").getAsString()).join()
                     .ifPresentOrElse(team -> sendProfile(event, team, context),
-                            () -> event.reply(context.localize("command.team.profile.unkownTeam")).setEphemeral(true).queue());
+                            () -> event.reply(context.localize("error.unkownTeam")).setEphemeral(true).queue());
             return;
         }
         teamData.getTeamByMember(jam, event.getMember()).join()
