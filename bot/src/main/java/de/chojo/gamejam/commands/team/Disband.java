@@ -21,7 +21,7 @@ public final class Disband implements SubCommand<Jam> {
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
-        if (event.getOption("confirm").getAsBoolean()) {
+        if (!event.getOption("confirm").getAsBoolean()) {
             event.reply(context.localize("error.noConfirm")).setEphemeral(true).queue();
             return;
         }

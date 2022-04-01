@@ -9,7 +9,9 @@ package de.chojo.gamejam.data.wrapper.team;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.jdautil.localization.ContextLocalizer;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
+import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.util.MentionUtil;
+import de.chojo.jdautil.wrapper.SlashCommandContext;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Category;
 import net.dv8tion.jda.api.entities.Guild;
@@ -18,6 +20,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -154,5 +157,14 @@ public final class JamTeam {
 
     public void leader(long leader) {
         this.leader = leader;
+    }
+
+    public void leave(SlashCommandInteractionEvent event, SlashCommandContext context, TeamData teamData) {
+        var guild = event.getGuild();
+        var member = event.getMember();
+        guild.removeRoleFromMember(member, guild.getRoleById(roleId())).queue();
+        guild.getTextChannelById(textChannelId()).sendMessage(context.localize("command.team.leave.leftBroadcast", Replacement.createMention(member))).queue();
+        event.reply(context.localize("command.team.leave.left")).setEphemeral(true).queue();
+        teamData.leaveTeam(this, event.getMember());
     }
 }

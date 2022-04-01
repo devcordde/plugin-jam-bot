@@ -28,11 +28,7 @@ public final class Leave implements SubCommand<Jam> {
                         event.reply(context.localize("command.team.leave.leaderLeave")).setEphemeral(true).queue();
                         return;
                     }
-
-                    event.reply(context.localize("command.team.leave.left")).setEphemeral(true).queue();
-                    teamData.leaveTeam(team, event.getMember());
-                    event.getGuild().removeRoleFromMember(event.getMember(), event.getGuild().getRoleById(team.roleId())).queue();
-                    event.getGuild().getTextChannelById(team.textChannelId()).sendMessage(context.localize("command.team.leave.leftBroadcast", Replacement.createMention(event.getMember()))).queue();
+                    team.leave(event, context, teamData);
                 }, () -> event.reply(context.localize("error.noTeam")).setEphemeral(true).queue());
     }
 }
