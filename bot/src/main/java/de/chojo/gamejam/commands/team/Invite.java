@@ -34,6 +34,11 @@ public final class Invite implements SubCommand<Jam> {
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
+        if(jam.state().isVoting()){
+            event.reply(context.localize("error.votingActive")).setEphemeral(true).queue();
+            return;
+        }
+
         var team = teamData.getTeamByMember(jam, event.getMember()).join();
         if (team.isEmpty()) {
             event.reply(context.localize("error.noTeam")).setEphemeral(true).queue();
