@@ -40,7 +40,6 @@ public final class Disband implements SubCommand<Jam> {
             event.getJDA().getShardManager().retrieveUserById(teamMember.userId())
                     .flatMap(u -> event.getGuild().retrieveMember(u))
                     .queue(member -> {
-                        event.getGuild().removeRoleFromMember(member, event.getGuild().getRoleById(team.roleId())).queue();
                         member.getUser().openPrivateChannel().flatMap(channel -> channel.sendMessage(context.localize("command.team.disband.disbanded"))).queue();
                     });
         }
