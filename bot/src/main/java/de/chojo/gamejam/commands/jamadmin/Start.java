@@ -32,6 +32,6 @@ public final class Start implements SubCommand.Nonce {
                         jamData.updateJamState(next);
                         event.reply(context.localize("command.start.activated")).setEphemeral(true).queue();
                     }, () -> event.reply(context.localize("error.noUpcomingJam")).setEphemeral(true).queue());
-        }).whenComplete(Future.error());
+        }).whenComplete(Future.handleComplete());
     }
 }

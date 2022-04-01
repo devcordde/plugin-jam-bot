@@ -157,7 +157,7 @@ public class TeamData extends QueryFactoryHolder {
                             AND voter_id = ?
                         """)
                 .paramsBuilder(p -> p.setInt(jam.id()).setLong(member.getIdLong()))
-                .readRow(r -> new VoteEntry(jam.team(r.getInt("id")), r.getLong("voter_id"), r.getInt("points")))
+                .readRow(r -> new VoteEntry(jam.team(r.getInt("team_id")), r.getLong("voter_id"), r.getInt("points")))
                 .all();
     }
 
@@ -165,15 +165,12 @@ public class TeamData extends QueryFactoryHolder {
         return builder(TeamVote.class)
                 .query("""
                         SELECT
-                            v.team_id,
-                            SUM(v.points) AS points
-                        FROM vote v LEFT JOIN team t ON t.id = v.team_id
-                        WHERE t.jam_id = ?
-                        GROUP BY team_id
-                        ORDER BY points DESC
+                            rank, team_id, points, jam_id
+                        FROM team_ranking r
+                        WHERE r.jam_id = ?
                         """)
                 .paramsBuilder(p -> p.setInt(jam.id()))
-                .readRow(r -> new TeamVote(jam.team(r.getInt("id")), r.getInt("points")))
+                .readRow(r -> new TeamVote(jam.team(r.getInt("team_id")), r.getInt("rank"), r.getInt("points")))
                 .all();
     }
 
@@ -181,12 +178,12 @@ public class TeamData extends QueryFactoryHolder {
         return builder(TeamVote.class)
                 .query("""
                         SELECT
-                            SUM(v.points) AS points
-                        FROM vote v LEFT JOIN team t ON t.id = v.team_id
-                        WHERE v.team_id = ?
+                            rank, team_id, points, jam_id
+                        FROM team_ranking
+                        WHERE team_id = ?
                         """)
                 .paramsBuilder(p -> p.setInt(team.id()))
-                .readRow(r -> new TeamVote(team, r.getInt("points")))
+                .readRow(r -> new TeamVote(team,r.getInt("rank"), r.getInt("points")))
                 .all();
     }
 

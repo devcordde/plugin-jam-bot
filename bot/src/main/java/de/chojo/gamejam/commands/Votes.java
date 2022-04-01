@@ -32,7 +32,7 @@ public class Votes extends SimpleCommand {
     private final Map<String, SubCommand<Jam>> subcommands;
 
     public Votes(JamData jamData, TeamData teamData) {
-        super(CommandMeta.builder("vote", "Vote for teams")
+        super(CommandMeta.builder("votes", "Vote for teams")
                 .addSubCommand("vote", "vote for teams",
                         argsBuilder()
                                 .add(SimpleArgument.string("team", "Name of the team").asRequired().withAutoComplete())
@@ -44,8 +44,8 @@ public class Votes extends SimpleCommand {
         this.jamData = jamData;
         subcommands = new MapBuilder<String, SubCommand<Jam>>()
                 .add("vote", new Vote(teamData))
-                .add("info", new Info())
-                .add("ranking", new Ranking())
+                .add("info", new Info(teamData))
+                .add("ranking", new Ranking(teamData))
                 .build();
 
     }
@@ -64,7 +64,7 @@ public class Votes extends SimpleCommand {
                     if (subCommand != null) {
                         subCommand.execute(event, context, optJam.get());
                     }
-                }).whenComplete(Future.error());
+                }).whenComplete(Future.handleComplete());
     }
 
     @Override
@@ -86,7 +86,7 @@ public class Votes extends SimpleCommand {
                     }));
         }
         if ("points".equals(option.getName())) {
-            event.replyChoices(IntStream.range(0, 6).mapToObj(String::valueOf).map(num -> new Command.Choice(num, num)).toList()).queue();
+            event.replyChoices(IntStream.range(0, 6).mapToObj(num -> new Command.Choice(String.valueOf(num), num)).toList()).queue();
         }
     }
 }

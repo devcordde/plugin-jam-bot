@@ -90,7 +90,7 @@ public class Team extends SimpleCommand {
                     if (subCommand != null) {
                         subCommand.execute(event, context, optJam.get());
                     }
-                }).whenComplete(Future.error());
+                }).whenComplete(Future.handleComplete());
     }
 
     @Override

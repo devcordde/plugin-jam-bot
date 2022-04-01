@@ -10,7 +10,11 @@ import de.chojo.gamejam.commands.JamAdmin;
 import de.chojo.gamejam.commands.Register;
 import de.chojo.gamejam.commands.Settings;
 import de.chojo.gamejam.commands.Team;
+<<<<<<< HEAD
 import de.chojo.gamejam.commands.Unregister;
+=======
+import de.chojo.gamejam.commands.Votes;
+>>>>>>> 80405c6 (Implement ranking and info command for voting)
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.GuildData;
 import de.chojo.gamejam.data.JamData;
@@ -127,8 +131,8 @@ public class Bot {
                         new Register(jamData),
                         settings,
                         new Team(teamData, jamData),
-                        new Unregister(jamData, teamData))
-                //new Vote())
+                        new Unregister(jamData, teamData),
+                        new Votes(jamData, teamData))
                 .withPagination(builder -> builder.withLocalizer(localizer).withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withButtonService(builder -> builder.withLocalizer(localizer).withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .build();

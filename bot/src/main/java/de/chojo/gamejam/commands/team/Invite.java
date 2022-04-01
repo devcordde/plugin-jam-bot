@@ -110,6 +110,6 @@ public final class Invite implements SubCommand<Jam> {
             guild.addRoleToMember(member, guild.getRoleById(team.roleId())).queue();
             interaction.getHook().editOriginal(localizer.localize("command.team.invite.joined")).queue();
             guild.getTextChannelById(team.textChannelId()).sendMessage(localizer.localize("command.team.invite.joinedBroadcast", Replacement.createMention(member))).queue();
-        }).whenComplete(Future.error());
+        }).whenComplete(Future.handleComplete());
     }
 }

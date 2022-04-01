@@ -1,3 +1,9 @@
+/*
+ *     SPDX-License-Identifier: AGPL-3.0-only
+ *
+ *     Copyright (C) 2022 DevCord Team and Contributor
+ */
+
 package de.chojo.gamejam.commands.vote;
 
 import de.chojo.gamejam.commands.SubCommand;
@@ -30,7 +36,7 @@ public class Vote implements SubCommand<Jam> {
         }
 
         var voteTeam = jam.teams().stream()
-                .filter(t -> t.name().equalsIgnoreCase(event.getOption("name").getAsString()))
+                .filter(t -> t.name().equalsIgnoreCase(event.getOption("team").getAsString()))
                 .findFirst();
 
         if (voteTeam.isEmpty()) {
@@ -45,7 +51,7 @@ public class Vote implements SubCommand<Jam> {
         }
 
         if (team.get().name().equalsIgnoreCase(event.getOption("team").getAsString())) {
-            event.getHook().editOriginal("command.votes.vote.ownTeam").queue();
+            event.getHook().editOriginal(context.localize("command.votes.vote.ownTeam")).queue();
             return;
         }
 
@@ -63,7 +69,7 @@ public class Vote implements SubCommand<Jam> {
 
         teamData.vote(event.getMember(), voteTeam.get(), points)
                 .thenRun(() -> event.getHook().editOriginal(context.localize("command.votes.vote.done",
-                                Replacement.create("REMAINING", jam.teams().size() - pointsGiven).addFormatting(Format.BOLD),
+                                Replacement.create("REMAINING", jam.teams().size() - teamData.votesByUser(event.getMember(), jam).join().stream().mapToInt(VoteEntry::points).sum()).addFormatting(Format.BOLD),
                                 Replacement.create("POINTS", points).addFormatting(Format.BOLD),
                                 Replacement.create("TEAM", voteTeam.get().name()).addFormatting(Format.BOLD)))
                         .queue()

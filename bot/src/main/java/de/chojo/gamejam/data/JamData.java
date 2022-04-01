@@ -158,10 +158,10 @@ public class JamData extends QueryFactoryHolder {
     public void updateJamState(Jam jam) {
         var state = jam.state();
         builder().query("""
-                        UPDATE jam_state
-                        SET active = ?, voting = ?, ended = ?
-                        WHERE jam_id = ?
-                        """).paramsBuilder(p -> p.setBoolean(state.isActive()).setBoolean(state.isVoting()).setBoolean(state.hasEnded()).setInt(jam.id()))
+                        INSERT INTO jam_state(jam_id, active, voting, ended) VALUES(?,?,?,?)
+                        ON CONFLICT(jam_id) DO UPDATE
+                        SET active = excluded.active, voting = excluded.voting, ended = excluded.ended
+                        """).paramsBuilder(p -> p.setInt(jam.id()).setBoolean(state.isActive()).setBoolean(state.isVoting()).setBoolean(state.hasEnded()))
                 .update()
                 .execute();
     }
