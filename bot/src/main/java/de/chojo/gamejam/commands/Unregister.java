@@ -57,8 +57,8 @@ public class Unregister extends SimpleCommand {
                     event.reply(context.localize("command.unregister.unregistered"))
                             .setEphemeral(true)
                             .queue();
-                }).whenComplete(Future.error());
+                }).whenComplete(Future.handleComplete());
             });
-        }).whenComplete(Future.error());
+        }).whenComplete(Future.handleComplete());
     }
 }

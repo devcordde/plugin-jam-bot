@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -47,7 +48,13 @@ public class LocalizationTest {
         for (var resourceBundle : resourceBundles.values()) {
             for (var key : keySet) {
                 var id = key + "@" + resourceBundle.getLocale();
-                var locale = resourceBundle.getString(key);
+                String locale;
+                try {
+                    locale = resourceBundle.getString(key);
+                } catch (MissingResourceException e) {
+                    Assertions.fail("Blank or unlocalized key at " + id, e);
+                    continue;
+                }
                 Assertions.assertFalse(locale.isBlank(), "Blank or unlocalized key at " + id);
                 var localeReplacements = getReplacements(locale);
                 var defReplacements = replacements.get(key);

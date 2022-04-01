@@ -10,11 +10,8 @@ import de.chojo.gamejam.commands.JamAdmin;
 import de.chojo.gamejam.commands.Register;
 import de.chojo.gamejam.commands.Settings;
 import de.chojo.gamejam.commands.Team;
-<<<<<<< HEAD
 import de.chojo.gamejam.commands.Unregister;
-=======
 import de.chojo.gamejam.commands.Votes;
->>>>>>> 80405c6 (Implement ranking and info command for voting)
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.GuildData;
 import de.chojo.gamejam.data.JamData;

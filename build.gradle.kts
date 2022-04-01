@@ -26,6 +26,13 @@ allprojects {
     }
 
     tasks {
+        test {
+            useJUnitPlatform()
+            testLogging {
+                events("passed", "skipped", "failed")
+            }
+        }
+
         compileJava {
             options.encoding = "UTF-8"
         }
