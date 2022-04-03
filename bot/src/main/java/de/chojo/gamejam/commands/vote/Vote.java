@@ -45,12 +45,12 @@ public class Vote implements SubCommand<Jam> {
         }
 
         var team = teamData.getTeamByMember(jam, event.getMember()).join();
-        if (team.isEmpty()) {
-            event.getHook().editOriginal(context.localize("command.votes.vote.noTeam")).queue();
-            return;
-        }
+//        if (team.isEmpty()) {
+//            event.getHook().editOriginal(context.localize("command.votes.vote.noTeam")).queue();
+//            return;
+//        }
 
-        if (team.get().name().equalsIgnoreCase(event.getOption("team").getAsString())) {
+        if (team.isPresent() && team.get().name().equalsIgnoreCase(event.getOption("team").getAsString())) {
             event.getHook().editOriginal(context.localize("command.votes.vote.ownTeam")).queue();
             return;
         }
