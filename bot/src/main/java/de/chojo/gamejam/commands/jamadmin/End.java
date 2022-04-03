@@ -32,6 +32,6 @@ public final class End implements SubCommand.Nonce {
                 jamData.updateJamState(jam);
                 event.reply(context.localize("command.jamAdmin.end.ended")).setEphemeral(true).queue();
             }, () -> event.reply(context.localize("error.noActiveJam")).setEphemeral(true).queue());
-        }).whenComplete(Future.error());
+        }).whenComplete(Future.handleComplete());
     }
 }

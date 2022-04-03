@@ -65,7 +65,7 @@ public class Settings extends SimpleCommand {
                     if (subcommand != null) {
                         subcommand.execute(event, context, settings);
                     }
-                }).whenComplete(Future.error());
+                }).whenComplete(Future.handleComplete());
     }
 
     public void init(CommandHub<?> commandHub) {

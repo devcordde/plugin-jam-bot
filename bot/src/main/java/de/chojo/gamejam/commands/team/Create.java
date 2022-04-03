@@ -37,6 +37,9 @@ public final class Create implements SubCommand<Jam> {
             return;
         }
         var teamName = event.getOption("name").getAsString();
+
+        // TODO: Enforce constrains of length and allowed chars
+
         var optTeam = teamData.getTeamByName(jam, event.getOption("name").getAsString()).join();
 
         if (optTeam.isPresent()) {

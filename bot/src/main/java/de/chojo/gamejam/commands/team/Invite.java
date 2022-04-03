@@ -12,6 +12,7 @@ import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.gamejam.data.wrapper.team.JamTeam;
 import de.chojo.gamejam.util.Future;
+import de.chojo.jdautil.buttons.ButtonAction;
 import de.chojo.jdautil.buttons.ButtonEntry;
 import de.chojo.jdautil.localization.ContextLocalizer;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
@@ -33,6 +34,11 @@ public final class Invite implements SubCommand<Jam> {
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
+        if(jam.state().isVoting()){
+            event.reply(context.localize("error.votingActive")).setEphemeral(true).queue();
+            return;
+        }
+
         var team = teamData.getTeamByMember(jam, event.getMember()).join();
         if (team.isEmpty()) {
             event.reply(context.localize("error.noTeam")).setEphemeral(true).queue();
@@ -66,15 +72,16 @@ public final class Invite implements SubCommand<Jam> {
             return;
         }
 
-
         user.openPrivateChannel().queue(channel -> {
             var embed = new LocalizedEmbedBuilder(context.localizer())
                     .setTitle("command.team.invite.invited", Replacement.create("GUILD", event.getGuild().getName()))
                     .setDescription("command.team.invite.message", Replacement.createMention(event.getUser()), Replacement.create("TEAM", team.get().name()))
                     .build();
             event.reply(context.localize("command.team.invite.send")).setEphemeral(true).queue();
-            context.registerButtons(embed, channel, user, ButtonEntry.of(Button.of(ButtonStyle.SUCCESS, "accept", "command.team.invite.accept"),
-                    button -> accept(button, event.getGuild().getIdLong(), team.get(), user.getIdLong(), context.localizer())));
+            context.registerButtons(ButtonAction.forChannel(embed, channel)
+                    .addButton(ButtonEntry.of(Button.of(ButtonStyle.SUCCESS, "accept", "command.team.invite.accept"),
+                            button -> accept(button, event.getGuild().getIdLong(), team.get(), user.getIdLong(), context.localizer())))
+                    .build());
         });
     }
 
@@ -108,6 +115,6 @@ public final class Invite implements SubCommand<Jam> {
             guild.addRoleToMember(member, guild.getRoleById(team.roleId())).queue();
             interaction.getHook().editOriginal(localizer.localize("command.team.invite.joined")).queue();
             guild.getTextChannelById(team.textChannelId()).sendMessage(localizer.localize("command.team.invite.joinedBroadcast", Replacement.createMention(member))).queue();
-        }).whenComplete(Future.error());
+        }).whenComplete(Future.handleComplete());
     }
 }

@@ -16,7 +16,7 @@ public record Jam(int id, JamTimes times,
                   List<Long> registrations,
                   List<JamTeam> teams) {
 
-    public static JamBuilder create(){
+    public static JamBuilder create() {
         return new JamBuilder(-1);
     }
 
@@ -28,5 +28,9 @@ public record Jam(int id, JamTimes times,
         for (var team : teams()) {
             team.delete(guild);
         }
+    }
+
+    public JamTeam team(int id) {
+        return teams.stream().filter(team -> team.id() == id).findFirst().orElse(null);
     }
 }

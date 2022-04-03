@@ -34,7 +34,7 @@ public class Settings {
     }
 
     public void orgaRole(long managerRole) {
-        this.orgaRole = managerRole;
+        orgaRole = managerRole;
     }
 
     public Long guildId() {

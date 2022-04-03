@@ -9,6 +9,8 @@ package de.chojo.gamejam.data;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.gamejam.data.wrapper.team.JamTeam;
 import de.chojo.gamejam.data.wrapper.team.TeamMember;
+import de.chojo.gamejam.data.wrapper.votes.TeamVote;
+import de.chojo.gamejam.data.wrapper.votes.VoteEntry;
 import de.chojo.sqlutil.base.QueryFactoryHolder;
 import de.chojo.sqlutil.wrapper.QueryBuilderConfig;
 import net.dv8tion.jda.api.entities.Member;
@@ -134,11 +136,67 @@ public class TeamData extends QueryFactoryHolder {
                 });
     }
 
-    public CompletableFuture<Boolean> updateTeam(JamTeam team){
+    public CompletableFuture<Boolean> updateTeam(JamTeam team) {
         return builder().query("UPDATE team_meta SET name = ?, leader_id = ? WHERE team_id = ?")
                 .paramsBuilder(p -> p.setString(team.name()).setLong(team.leader()).setInt(team.id()))
                 .update()
                 .execute()
                 .thenApply(row -> row > 0);
+    }
+
+    public CompletableFuture<List<VoteEntry>> votesByUser(Member member, Jam jam) {
+        return builder(VoteEntry.class)
+                .query("""
+                        SELECT
+                            v.team_id,
+                            v.voter_id,
+                            v.points
+                        FROM vote v
+                        LEFT JOIN team t ON t.id = v.team_id
+                        WHERE t.jam_id = ?
+                            AND voter_id = ?
+                        """)
+                .paramsBuilder(p -> p.setInt(jam.id()).setLong(member.getIdLong()))
+                .readRow(r -> new VoteEntry(jam.team(r.getInt("team_id")), r.getLong("voter_id"), r.getInt("points")))
+                .all();
+    }
+
+    public CompletableFuture<List<TeamVote>> votesByJam(Jam jam) {
+        return builder(TeamVote.class)
+                .query("""
+                        SELECT
+                            rank, team_id, points, jam_id
+                        FROM team_ranking r
+                        WHERE r.jam_id = ?
+                        """)
+                .paramsBuilder(p -> p.setInt(jam.id()))
+                .readRow(r -> new TeamVote(jam.team(r.getInt("team_id")), r.getInt("rank"), r.getInt("points")))
+                .all();
+    }
+
+    public CompletableFuture<List<TeamVote>> votesByTeam(JamTeam team) {
+        return builder(TeamVote.class)
+                .query("""
+                        SELECT
+                            rank, team_id, points, jam_id
+                        FROM team_ranking
+                        WHERE team_id = ?
+                        """)
+                .paramsBuilder(p -> p.setInt(team.id()))
+                .readRow(r -> new TeamVote(team,r.getInt("rank"), r.getInt("points")))
+                .all();
+    }
+
+    public CompletableFuture<Boolean> vote(Member member, JamTeam team, int points) {
+        return builder()
+                .query("""
+                        INSERT INTO vote(team_id, voter_id, points) VALUES (?,?,?)
+                        ON CONFLICT (team_id, voter_id)
+                            DO UPDATE SET points = excluded.points;
+                        """)
+                .paramsBuilder(p -> p.setInt(team.id()).setLong(member.getIdLong()).setInt(points))
+                .insert()
+                .execute()
+                .thenApply(r -> r > 0);
     }
 }

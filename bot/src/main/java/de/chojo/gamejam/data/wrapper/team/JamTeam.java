@@ -24,6 +24,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -108,6 +109,11 @@ public final class JamTeam {
 
     public String name() {
         return name;
+    }
+
+    public boolean matchName(String name) {
+        if (name.isBlank()) return true;
+        return name.toLowerCase(Locale.ROOT).contains(name.toLowerCase(Locale.ROOT));
     }
 
     public long leader() {

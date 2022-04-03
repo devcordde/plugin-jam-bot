@@ -64,7 +64,7 @@ public class Register extends SimpleCommand {
                 event.reply(context.localize("command.register.registered", Replacement.create("TIMESTAMP", TimeFormat.DATE_TIME_LONG.format(times.jam().start()))))
                         .setEphemeral(true)
                         .queue();
-            }).whenComplete(Future.error());
-        }).whenComplete(Future.error());
+            }).whenComplete(Future.handleComplete());
+        }).whenComplete(Future.handleComplete());
     }
 }

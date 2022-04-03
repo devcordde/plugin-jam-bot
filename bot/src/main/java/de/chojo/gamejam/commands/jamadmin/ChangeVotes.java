@@ -30,7 +30,7 @@ public final class ChangeVotes implements SubCommand.Nonce {
                 jam.state().voting(voting);
                 jamData.updateJamState(jam);
                 event.reply(context.localize(content)).queue();
-            }, () -> event.reply(context.localize("error.noActiveJam")).queue());
-        }).whenComplete(Future.error());
+            }, () -> event.reply(context.localize("error.noActiveJam")).setEphemeral(true).queue());
+        }).whenComplete(Future.handleComplete());
     }
 }

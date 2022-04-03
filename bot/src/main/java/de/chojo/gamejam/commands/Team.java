@@ -17,14 +17,18 @@ import de.chojo.gamejam.commands.team.Rename;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.data.wrapper.jam.Jam;
+import de.chojo.gamejam.data.wrapper.team.JamTeam;
 import de.chojo.gamejam.util.Future;
 import de.chojo.jdautil.command.CommandMeta;
 import de.chojo.jdautil.command.SimpleArgument;
 import de.chojo.jdautil.command.SimpleCommand;
 import de.chojo.jdautil.util.MapBuilder;
 import de.chojo.jdautil.wrapper.SlashCommandContext;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class Team extends SimpleCommand {
@@ -86,6 +90,25 @@ public class Team extends SimpleCommand {
                     if (subCommand != null) {
                         subCommand.execute(event, context, optJam.get());
                     }
-                }).whenComplete(Future.error());
+                }).whenComplete(Future.handleComplete());
+    }
+
+    @Override
+    public void onAutoComplete(CommandAutoCompleteInteractionEvent event, SlashCommandContext slashCommandContext) {
+        if ("team".equals(event.getFocusedOption().getName())) {
+            jamData.getNextOrCurrentJam(event.getGuild())
+                    .whenComplete(((jam, err) -> {
+                        if (err != null || jam.isEmpty()) {
+                            event.replyChoices(Collections.emptyList()).queue();
+                            return;
+                        }
+                        var teams = jam.get().teams().stream()
+                                .filter(team -> team.matchName(event.getFocusedOption().getValue()))
+                                .map(JamTeam::name)
+                                .map(team -> new Command.Choice(team, team))
+                                .toList();
+                        event.replyChoices(teams).queue();
+                    }));
+        }
     }
 }
