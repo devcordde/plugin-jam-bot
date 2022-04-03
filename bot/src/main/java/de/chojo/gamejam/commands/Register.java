@@ -35,7 +35,6 @@ public class Register extends SimpleCommand {
                         .queue();
                 return;
             }
-
             var jam = optJam.get();
             var times = jam.times();
 

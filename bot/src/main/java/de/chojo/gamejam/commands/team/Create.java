@@ -27,6 +27,11 @@ public final class Create implements SubCommand<Jam> {
 
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
+        if(jam.state().isVoting()){
+            event.reply(context.localize("error.votingActive")).setEphemeral(true).queue();
+            return;
+        }
+
         if (!jam.registrations().contains(event.getMember().getIdLong())) {
             event.reply(context.localize("command.team.create.unregistered")).setEphemeral(true).queue();
             return;
