@@ -23,7 +23,7 @@ public class Unregister extends SimpleCommand {
     private final TeamData teamData;
 
     public Unregister(JamData jamData, TeamData teamData) {
-        super(CommandMeta.builder("register", "command.unregister.description")
+        super(CommandMeta.builder("unregister", "command.unregister.description")
                 .build());
         this.jamData = jamData;
         this.teamData = teamData;

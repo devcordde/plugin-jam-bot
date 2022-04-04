@@ -27,7 +27,7 @@ public class Ranking implements SubCommand<Jam> {
     @Override
     public void execute(SlashCommandInteractionEvent event, SlashCommandContext context, Jam jam) {
         if (jam.state().isVoting()) {
-            event.reply("command.votes.ranking.voteActive").setEphemeral(true).queue();
+            event.reply(context.localize("command.votes.ranking.voteActive")).setEphemeral(true).queue();
             return;
         }
 
