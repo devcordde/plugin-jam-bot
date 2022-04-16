@@ -111,7 +111,7 @@ public class Bot {
 
         buildCommands();
 
-        Api.create(shardManager, teamData, jamData);
+        Api.create(configuration, shardManager, teamData, jamData);
     }
 
     private void buildLocale() {

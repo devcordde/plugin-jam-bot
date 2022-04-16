@@ -1,11 +1,15 @@
 package de.chojo.gamejam.api.v1;
 
+import de.chojo.gamejam.api.exception.Interrupt;
+import de.chojo.gamejam.api.exception.InterruptException;
 import de.chojo.gamejam.api.v1.wrapper.GuildProfile;
 import de.chojo.gamejam.api.v1.wrapper.TeamProfile;
 import de.chojo.gamejam.api.v1.wrapper.UserProfile;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
+import io.javalin.http.Context;
 import io.javalin.http.HttpCode;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.sharding.ShardManager;
@@ -35,14 +39,10 @@ public class Users {
                         try {
                             user = shardManager.retrieveUserById(userId).complete();
                         } catch (RuntimeException e) {
-                            ctx.status(HttpCode.NOT_FOUND).result("Not found");
-                            return;
+                            throw Interrupt.notFound("User");
                         }
 
-                        if (user == null) {
-                            ctx.status(HttpCode.NOT_FOUND).result("Not found");
-                            return;
-                        }
+                        if (user == null) throw Interrupt.notFound("User");
 
                         var guildProfiles = shardManager.getMutualGuilds(user).stream().map(GuildProfile::build).toList();
                         ctx.status(HttpCode.OK).json(guildProfiles);
@@ -50,69 +50,41 @@ public class Users {
                 });
                 path("{guild-id}", () -> {
                     get("team", ctx -> {
-                        var userId = ctx.pathParamAsClass("user-id", Long.class).get();
-                        var guildId = ctx.pathParamAsClass("guild-id", Long.class).get();
-                        var guild = shardManager.getGuildById(guildId);
+                        var guildPath = resolveGuildPath(ctx);
 
-                        if (guild == null) {
-                            ctx.status(HttpCode.NOT_FOUND).result("Guild not found");
-                            return;
-                        }
+                        var jam = jamData.getNextOrCurrentJam(guildPath.guild()).join();
+                        if (jam.isEmpty()) throw Interrupt.noJam();
 
-                        var jam = jamData.getNextOrCurrentJam(guild).join();
-                        if (jam.isEmpty()) {
-                            ctx.status(HttpCode.NOT_FOUND).result("Not current jam found");
-                            return;
-                        }
+                        var team = teamData.getTeamByMember(jam.get(), guildPath.member()).join();
 
-                        Member member;
-                        try {
-                            member = guild.retrieveMemberById(userId).complete();
-                        } catch (RuntimeException e) {
-                            ctx.status(HttpCode.NOT_FOUND).result("User not found");
-                            return;
-                        }
-
-                        if (member == null) {
-                            ctx.status(HttpCode.NOT_FOUND).result("User not found");
-                            return;
-                        }
-
-                        var team = teamData.getTeamByMember(jam.get(), member).join();
-                        if (team.isEmpty()) {
-                            ctx.status(HttpCode.NOT_FOUND).result("Team not found");
-                            return;
-                        }
+                        if (team.isEmpty()) throw Interrupt.notFound("Team");
                         ctx.status(HttpCode.OK).json(TeamProfile.build(team.get()));
                     });
 
                     get("profile", ctx -> {
-                        var userId = ctx.pathParamAsClass("user-id", Long.class).get();
-                        var guildId = ctx.pathParamAsClass("guild-id", Long.class).get();
-
-                        var guild = shardManager.getGuildById(guildId);
-
-                        if (guild == null) {
-                            ctx.status(HttpCode.NOT_FOUND).result("Guild not found");
-                            return;
-                        }
-
-                        Member member;
-                        try {
-                            member = guild.retrieveMemberById(userId).complete();
-                        } catch (RuntimeException e) {
-                            ctx.status(HttpCode.NOT_FOUND).result("User not found");
-                            return;
-                        }
-
-                        if (member == null) {
-                            ctx.status(HttpCode.NOT_FOUND).result("User not found");
-                            return;
-                        }
-                        ctx.status(HttpCode.OK).json(UserProfile.build(member));
+                        ctx.status(HttpCode.OK).json(UserProfile.build(resolveGuildPath(ctx).member()));
                     });
                 });
             });
         });
+    }
+
+    private GuildPath resolveGuildPath(Context ctx) throws InterruptException {
+        var guild = shardManager.getGuildById(ctx.pathParamAsClass("guild-id", Long.class).get());
+
+        if (guild == null) throw Interrupt.notFound("Guild");
+
+        Member member;
+        try {
+            member = guild.retrieveMemberById(ctx.pathParamAsClass("user-id", Long.class).get()).complete();
+        } catch (RuntimeException e) {
+            throw Interrupt.notFound("User");
+        }
+
+        if (member == null) throw Interrupt.notFound("User");
+        return new GuildPath(member, guild);
+    }
+
+    private record GuildPath(Member member, Guild guild) {
     }
 }
