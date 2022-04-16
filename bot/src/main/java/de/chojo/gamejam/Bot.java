@@ -6,6 +6,7 @@
 
 package de.chojo.gamejam;
 
+import de.chojo.gamejam.api.Api;
 import de.chojo.gamejam.commands.JamAdmin;
 import de.chojo.gamejam.commands.Register;
 import de.chojo.gamejam.commands.Settings;
@@ -109,6 +110,8 @@ public class Bot {
         buildLocale();
 
         buildCommands();
+
+        Api.create(shardManager, teamData, jamData);
     }
 
     private void buildLocale() {
