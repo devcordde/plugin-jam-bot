@@ -12,7 +12,9 @@ import io.javalin.http.HttpCode;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.sharding.ShardManager;
+import org.jetbrains.annotations.NotNull;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
@@ -33,16 +35,7 @@ public class Users {
             path("{user-id}", () -> {
                 path("guilds", () -> {
                     get(ctx -> {
-                        var userId = ctx.pathParamAsClass("user-id", Long.class).get();
-
-                        User user;
-                        try {
-                            user = shardManager.retrieveUserById(userId).complete();
-                        } catch (RuntimeException e) {
-                            throw Interrupt.notFound("User");
-                        }
-
-                        if (user == null) throw Interrupt.notFound("User");
+                        var user = getUser(ctx.pathParamAsClass("user-id", Long.class).get());
 
                         var guildProfiles = shardManager.getMutualGuilds(user).stream().map(GuildProfile::build).toList();
                         ctx.status(HttpCode.OK).json(guildProfiles);
@@ -53,11 +46,12 @@ public class Users {
                         var guildPath = resolveGuildPath(ctx);
 
                         var jam = jamData.getNextOrCurrentJam(guildPath.guild()).join();
-                        if (jam.isEmpty()) throw Interrupt.noJam();
+                        Interrupt.assertNoJam(jam.isEmpty());
 
                         var team = teamData.getTeamByMember(jam.get(), guildPath.member()).join();
 
-                        if (team.isEmpty()) throw Interrupt.notFound("Team");
+                        Interrupt.assertNotFound(team.isEmpty(), "Team");
+
                         ctx.status(HttpCode.OK).json(TeamProfile.build(team.get()));
                     });
 
@@ -71,18 +65,29 @@ public class Users {
 
     private GuildPath resolveGuildPath(Context ctx) throws InterruptException {
         var guild = shardManager.getGuildById(ctx.pathParamAsClass("guild-id", Long.class).get());
-
-        if (guild == null) throw Interrupt.notFound("Guild");
-
-        Member member;
-        try {
-            member = guild.retrieveMemberById(ctx.pathParamAsClass("user-id", Long.class).get()).complete();
-        } catch (RuntimeException e) {
-            throw Interrupt.notFound("User");
-        }
-
-        if (member == null) throw Interrupt.notFound("User");
+        Interrupt.assertNotFound(guild, "Guild");
+        var member = getMember(guild, ctx.pathParamAsClass("user-id", Long.class).get());
         return new GuildPath(member, guild);
+    }
+
+    @NotNull
+    private Member getMember(Guild guild, long userId) throws InterruptException {
+        return completeEntity(guild.retrieveMemberById(userId), "User");
+    }
+
+    private User getUser(long userId) throws InterruptException {
+        return completeEntity(shardManager.retrieveUserById(userId), "User");
+    }
+
+    @NotNull
+    private <T> T completeEntity(RestAction<T> action, String entity) throws InterruptException {
+        try {
+            var member = action.complete();
+            Interrupt.assertNotFound(member, entity);
+            return member;
+        } catch (RuntimeException ignored) {
+            throw Interrupt.notFound(entity);
+        }
     }
 
     private record GuildPath(Member member, Guild guild) {
