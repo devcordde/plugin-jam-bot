@@ -15,6 +15,10 @@ import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
 import io.javalin.http.Context;
 import io.javalin.http.HttpCode;
+import io.javalin.plugin.openapi.annotations.HttpMethod;
+import io.javalin.plugin.openapi.annotations.OpenApi;
+import io.javalin.plugin.openapi.annotations.OpenApiContent;
+import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -40,30 +44,12 @@ public class Users {
         path("users", () -> {
             path("{user-id}", () -> {
                 path("guilds", () -> {
-                    get(ctx -> {
-                        var user = getUser(ctx.pathParamAsClass("user-id", Long.class).get());
-
-                        var guildProfiles = shardManager.getMutualGuilds(user).stream().map(GuildProfile::build).toList();
-                        ctx.status(HttpCode.OK).json(guildProfiles);
-                    });
+                    get(this::getMututalGuilds);
                 });
                 path("{guild-id}", () -> {
-                    get("team", ctx -> {
-                        var guildPath = resolveGuildPath(ctx);
+                    get("team", this::getUserTeam);
 
-                        var jam = jamData.getNextOrCurrentJam(guildPath.guild()).join();
-                        Interrupt.assertNoJam(jam.isEmpty());
-
-                        var team = teamData.getTeamByMember(jam.get(), guildPath.member()).join();
-
-                        Interrupt.assertNotFound(team.isEmpty(), "Team");
-
-                        ctx.status(HttpCode.OK).json(TeamProfile.build(team.get()));
-                    });
-
-                    get("profile", ctx -> {
-                        ctx.status(HttpCode.OK).json(UserProfile.build(resolveGuildPath(ctx).member()));
-                    });
+                    get("profile", this::getUserProfile);
                 });
             });
         });
@@ -94,6 +80,45 @@ public class Users {
         } catch (RuntimeException ignored) {
             throw Interrupt.notFound(entity);
         }
+    }
+
+    @OpenApi(path = "/api/v1/users/{user-id}/guilds",
+            method = HttpMethod.GET,
+            responses = {
+                    @OpenApiResponse(status = "200", content = @OpenApiContent(from = GuildProfile[].class))
+            })
+    private void getMututalGuilds(Context ctx) throws InterruptException {
+        var user = getUser(ctx.pathParamAsClass("user-id", Long.class).get());
+
+        var guildProfiles = shardManager.getMutualGuilds(user).stream().map(GuildProfile::build).toList();
+        ctx.status(HttpCode.OK).json(guildProfiles);
+    }
+
+    @OpenApi(path = "/api/v1/users/{user-id}/{guild-id}/team",
+            method = HttpMethod.GET,
+            responses = {
+                    @OpenApiResponse(status = "200", content = @OpenApiContent(from = TeamProfile.class))
+            })
+    private void getUserTeam(Context ctx) throws InterruptException {
+        var guildPath = resolveGuildPath(ctx);
+
+        var jam = jamData.getNextOrCurrentJam(guildPath.guild()).join();
+        Interrupt.assertNoJam(jam.isEmpty());
+
+        var team = teamData.getTeamByMember(jam.get(), guildPath.member()).join();
+
+        Interrupt.assertNotFound(team.isEmpty(), "Team");
+
+        ctx.status(HttpCode.OK).json(TeamProfile.build(team.get()));
+    }
+
+    @OpenApi(path = "/api/v1/users/{user-id}/{guild-id}/profile",
+            method = HttpMethod.GET,
+            responses = {
+                    @OpenApiResponse(status = "200", content = @OpenApiContent(from = UserProfile.class))
+            })
+    private void getUserProfile(Context ctx) throws InterruptException {
+        ctx.status(HttpCode.OK).json(UserProfile.build(resolveGuildPath(ctx).member()));
     }
 
     private record GuildPath(Member member, Guild guild) {

@@ -7,12 +7,20 @@
 package de.chojo.gamejam.api;
 
 import de.chojo.gamejam.api.exception.InterruptException;
+import de.chojo.gamejam.api.v1.Teams;
 import de.chojo.gamejam.api.v1.Users;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
 import io.javalin.Javalin;
+import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.http.Context;
+import io.javalin.plugin.openapi.OpenApiOptions;
+import io.javalin.plugin.openapi.OpenApiPlugin;
+import io.javalin.plugin.openapi.ui.ReDocOptions;
+import io.javalin.plugin.openapi.ui.SwaggerOptions;
+import io.swagger.models.Info;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.slf4j.Logger;
 
@@ -45,7 +53,13 @@ public class Api {
 
     private void build() {
         app = Javalin.create(config -> {
+            config.registerPlugin(getConfiguredOpenApiPlugin());
             config.accessManager((handler, ctx, routeRoles) -> {
+                if(ctx.path().startsWith("/swagger") || ctx.path().startsWith("/redoc")){
+                    handler.handle(ctx);
+                    return;
+                }
+
                 var token = ctx.req.getHeader("authorization");
                 if (token == null) {
                     ctx.status(HttpServletResponse.SC_UNAUTHORIZED).result("Please provde a valid token in the authorization header.");
@@ -71,6 +85,8 @@ public class Api {
             path("api/v1", () -> {
                 var users = new Users(shardManager, teamData, jamData);
                 users.routes();
+                Teams teams = new Teams(shardManager, teamData, jamData);
+                teams.routes();
             });
         });
     }
@@ -81,5 +97,19 @@ public class Api {
                 .stream()
                 .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
                 .collect(Collectors.joining("\n  "));
+    }
+
+    private static OpenApiPlugin getConfiguredOpenApiPlugin() {
+        var info = new io.swagger.v3.oas.models.info.Info().version("1.0").description("User API");
+        OpenApiOptions options = new OpenApiOptions(info)
+                .activateAnnotationScanningFor("io.javalin.example.java")
+                .path("/swagger-docs") // endpoint for OpenAPI json
+                .swagger(new SwaggerOptions("/swagger-ui")) // endpoint for swagger-ui
+                .reDoc(new ReDocOptions("/redoc")) // endpoint for redoc
+                .defaultDocumentation(doc -> {
+                    doc.json("500", ErrorResponse.class);
+                    doc.json("503", ErrorResponse.class);
+                });
+        return new OpenApiPlugin(options);
     }
 }
