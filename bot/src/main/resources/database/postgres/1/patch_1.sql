@@ -1,4 +1,4 @@
-CREATE UNIQUE INDEX vote_team_id_voter_id_uindex
+CREATE UNIQUE INDEX IF NOT EXISTS vote_team_id_voter_id_uindex
     ON gamejam.vote (team_id, voter_id);
 
 CREATE OR REPLACE VIEW gamejam.team_ranking AS

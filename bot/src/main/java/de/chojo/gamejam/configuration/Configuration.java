@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.chojo.gamejam.configuration.elements.Api;
 import de.chojo.gamejam.configuration.elements.BaseSettings;
 import de.chojo.gamejam.configuration.elements.Database;
 import de.chojo.gamejam.configuration.exception.ConfigurationException;
@@ -94,4 +95,7 @@ public class Configuration {
         return configFile.baseSettings();
     }
 
+    public Api api() {
+        return configFile.api();
+    }
 }
