@@ -19,6 +19,7 @@ import io.javalin.plugin.openapi.annotations.HttpMethod;
 import io.javalin.plugin.openapi.annotations.OpenApi;
 import io.javalin.plugin.openapi.annotations.OpenApiContent;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
+import io.javalin.plugin.openapi.dsl.OpenApiBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -44,12 +45,24 @@ public class Users {
         path("users", () -> {
             path("{user-id}", () -> {
                 path("guilds", () -> {
-                    get(this::getMututalGuilds);
+                    get(OpenApiBuilder.documented(OpenApiBuilder.document()
+                            .operation(operation -> {
+                                operation.summary("Get the mututal guilds with the user");
+                            }).json("200", GuildProfile[].class),
+                            this::getMututalGuilds));
                 });
                 path("{guild-id}", () -> {
-                    get("team", this::getUserTeam);
+                    get("team", OpenApiBuilder.documented(OpenApiBuilder.document()
+                            .operation(operation -> {
+                                operation.summary("Get the team of a user on a guild");
+                            }).json("200", TeamProfile.class),
+                            this::getUserTeam));
 
-                    get("profile", this::getUserProfile);
+                    get("profile", OpenApiBuilder.documented(OpenApiBuilder.document()
+                            .operation(operation -> {
+                                operation.summary("Get the user profile of a user on a guild");
+                            }).json("200", UserProfile.class),
+                            this::getUserProfile));
                 });
             });
         });
@@ -82,11 +95,6 @@ public class Users {
         }
     }
 
-    @OpenApi(path = "/api/v1/users/{user-id}/guilds",
-            method = HttpMethod.GET,
-            responses = {
-                    @OpenApiResponse(status = "200", content = @OpenApiContent(from = GuildProfile[].class))
-            })
     private void getMututalGuilds(Context ctx) throws InterruptException {
         var user = getUser(ctx.pathParamAsClass("user-id", Long.class).get());
 

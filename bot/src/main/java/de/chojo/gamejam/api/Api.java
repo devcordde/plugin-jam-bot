@@ -15,6 +15,7 @@ import de.chojo.gamejam.data.TeamData;
 import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.http.Context;
+import io.javalin.http.HttpCode;
 import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.ui.ReDocOptions;
@@ -107,8 +108,8 @@ public class Api {
                 .swagger(new SwaggerOptions("/swagger-ui")) // endpoint for swagger-ui
                 .reDoc(new ReDocOptions("/redoc")) // endpoint for redoc
                 .defaultDocumentation(doc -> {
-                    doc.json("500", ErrorResponse.class);
-                    doc.json("503", ErrorResponse.class);
+                    doc.header("authorization", String.class)
+                    .result("401");
                 });
         return new OpenApiPlugin(options);
     }
