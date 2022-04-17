@@ -124,28 +124,28 @@ public class Teams {
                                 operation.summary("Changes the name of the team.");
                             }).json("202", TeamProfile.class)
                             .result("403")
-                            .result("409"),Teams::putName));
+                            .result("409"), Teams::putName));
 
-                    put("github", OpenApiBuilder.documented(OpenApiBuilder.document()
+                    put("projecturl", OpenApiBuilder.documented(OpenApiBuilder.document()
                             .header("leader-authorization", String.class)
                             .operation(operation -> {
                                 operation.summary("Changes the github link of the team.");
                             }).json("202", TeamProfile.class)
-                            .result("403"),Teams::putGithub));
+                            .result("403"), Teams::putGithub));
 
                     put("leader", OpenApiBuilder.documented(OpenApiBuilder.document()
                             .header("leader-authorization", String.class)
                             .operation(operation -> {
                                 operation.summary("Changes the leader of the team.");
                             }).json("202", TeamProfile.class)
-                            .result("403"),Teams::putLeader));
+                            .result("403"), Teams::putLeader));
 
                     put("description", OpenApiBuilder.documented(OpenApiBuilder.document()
-                                    .header("leader-authorization", String.class)
+                            .header("leader-authorization", String.class)
                             .operation(operation -> {
                                 operation.summary("Changes the description of the team.");
                             }).json("202", TeamProfile.class)
-                            .result("403"),Teams::putDescription));
+                            .result("403"), Teams::putDescription));
                 });
             });
         });
