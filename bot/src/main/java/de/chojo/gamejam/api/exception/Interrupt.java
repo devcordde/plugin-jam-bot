@@ -21,6 +21,10 @@ public final class Interrupt {
     public static InterruptException notFound(String entity) {
         return create(String.format("%s not found.", entity), HttpCode.NOT_FOUND);
     }
+    @Contract(" -> fail")
+    public static InterruptException forbidden() {
+        return create("Endpoint forbidden", HttpCode.FORBIDDEN);
+    }
 
     @Contract("null,_ -> fail")
     public static void assertNotFound(Object object, String entity) throws InterruptException {
@@ -30,6 +34,11 @@ public final class Interrupt {
     @Contract("true,_ -> fail")
     public static void assertNotFound(boolean failed, String entity) throws InterruptException {
         if (failed) throw notFound(entity);
+    }
+
+    @Contract("false -> fail")
+    public static void assertForbidden(boolean success) throws InterruptException {
+        if (!success) throw forbidden();
     }
 
     @Contract(" -> fail")

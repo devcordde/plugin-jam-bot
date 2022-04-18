@@ -19,6 +19,7 @@ dependencies {
     }
 
     implementation("de.chojo", "cjda-util", "2.2.1d+alpha.9-SNAPSHOT")
+    implementation("io.javalin", "javalin-bundle", "4.4.0")
 
 
     // database
