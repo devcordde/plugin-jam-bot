@@ -59,7 +59,10 @@ public class Configuration {
     }
 
     private void save() throws IOException {
-        objectMapper.writerWithDefaultPrettyPrinter().writeValues(getConfig().toFile()).write(configFile);
+        try (var sequenceWriter = objectMapper.writerWithDefaultPrettyPrinter()
+                .writeValues(getConfig().toFile())) {
+            sequenceWriter.write(configFile);
+        }
     }
 
     private void reloadFile() throws IOException {
@@ -71,8 +74,11 @@ public class Configuration {
         Files.createDirectories(getConfig().getParent());
         if (!getConfig().toFile().exists()) {
             if (getConfig().toFile().createNewFile()) {
-                objectMapper.writerWithDefaultPrettyPrinter().writeValues(getConfig().toFile()).write(new ConfigFile());
-                throw new ConfigurationException("Please configure the config.");
+                try(var sequenceWriter = objectMapper.writerWithDefaultPrettyPrinter()
+                        .writeValues(getConfig().toFile())) {
+                    sequenceWriter.write(new ConfigFile());
+                    throw new ConfigurationException("Please configure the config.");
+                }
             }
         }
     }
