@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bot
+spec:
+  template:
+    metadata:
+      labels:
+        app: bot
+    spec:
+      containers:
+        - name: bot
+          image: game-jam-bot
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8888
+              name: bot
+      restartPolicy: Always
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bot
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bot
+  labels:
+    app: bot
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: bot
+  selector:
+    app: bot
