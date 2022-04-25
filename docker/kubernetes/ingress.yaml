@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: game-jam-bot-ingres
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: game-jam-strip-prefix@kubernetescrd
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /game-jam
+            backend:
+              service:
+                name: bot-01
+                port:
+                  name: http
+            pathType: Prefix
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: game-jam-strip-prefix
+spec:
+  stripPrefix:
+    prefixes:
+      - "/game-jam"
