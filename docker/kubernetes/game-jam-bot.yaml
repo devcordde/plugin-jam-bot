@@ -15,7 +15,11 @@ spec:
           ports:
             - containerPort: 8888
               name: jam-bot
-      restartPolicy: Always
+      initContainers:
+        - name: init-myservice
+          image: busybox:1.28
+          command: [ 'sh', '-c', "until nslookup database.default.svc.cluster.local; do echo waiting for myservice; sleep 2; done" ]
+
   selector:
     matchLabels:
       app: bot
@@ -28,7 +32,7 @@ spec:
   ports:
     - name: http
       port: 80
-      targetPort: 8888
+      targetPort: jam-bot
       protocol: TCP
   selector:
     app: bot
