@@ -1,0 +1,28 @@
+version: v3
+
+services:
+  bot:
+    image: game-jam-bot
+    build:
+      dockerfile: docker/bot.DockerFile
+      context: ..
+    networks:
+      - plugin-jam
+    depends_on:
+      - database
+    ports:
+      - 8888:8888
+  database:
+    image: postgres:14.2
+    restart: always
+    user: postgres
+    environment:
+      POSTGRES_PASSWORD: "changeme"
+      POSTGRES_USER: "postgres"
+      POSTGRES_DB: "db"
+    networks:
+      - plugin-jam
+networks:
+  plugin-jam:
+    name: "plugin-jam"
+    external: false

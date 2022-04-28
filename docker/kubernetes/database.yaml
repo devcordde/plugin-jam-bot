@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+spec:
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: db
+            - name: POSTGRES_PASSWORD
+              value: changeme
+            - name: POSTGRES_USER
+              value: postgres
+          image: postgres:14.2
+          name: database
+          volumeMounts:
+            - mountPath: "var/lib/postgresql/data"
+              name: postgres-data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-data
+  selector:
+    matchLabels:
+      app: database
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+spec:
+  selector:
+    app: database
+  ports:
+    - name: postgres
+      protocol: TCP
+      port: 5432
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
