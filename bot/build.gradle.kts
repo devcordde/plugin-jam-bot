@@ -18,7 +18,7 @@ dependencies {
         exclude(module = "opus-java")
     }
 
-    implementation("de.chojo", "cjda-util", "2.2.1d+alpha.9-SNAPSHOT")
+    implementation("de.chojo", "cjda-util", "2.4.0+alpha.11")
     implementation("io.javalin", "javalin-bundle", "4.4.0")
 
 
