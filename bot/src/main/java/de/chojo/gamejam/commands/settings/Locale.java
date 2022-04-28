@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 public final class Locale implements SubCommand<JamSettings> {
     private final GuildData guildData;
-    private CommandHub<?> commandHub;
 
     public Locale(GuildData guildData) {
         this.guildData = guildData;
@@ -31,12 +30,8 @@ public final class Locale implements SubCommand<JamSettings> {
                     guildData.updateSettings(guildSettings)
                             .thenRun(() -> {
                                 event.reply(context.localize("command.settings.locale.updated")).setEphemeral(true).queue();
-                                commandHub.refreshGuildCommands(event.getGuild());
+                                context.commandHub().refreshGuildCommands(event.getGuild());
                             });
                 }, () -> event.reply(context.localize("command.settings.locale.invalid")).setEphemeral(true).queue());
-    }
-
-    public void setCommandHub(CommandHub<?> commandHub) {
-        this.commandHub = commandHub;
     }
 }

@@ -9,7 +9,6 @@ package de.chojo.gamejam.commands;
 import de.chojo.gamejam.commands.settings.Info;
 import de.chojo.gamejam.commands.settings.JamRole;
 import de.chojo.gamejam.commands.settings.Locale;
-import de.chojo.gamejam.commands.settings.OrgaRole;
 import de.chojo.gamejam.commands.settings.TeamSize;
 import de.chojo.gamejam.data.GuildData;
 import de.chojo.gamejam.data.JamData;
@@ -27,7 +26,6 @@ import java.util.Map;
 
 public class Settings extends SimpleCommand {
     private final JamData jamData;
-    private final OrgaRole orgaRole;
     private final Locale locale;
 
     private final Map<String, SubCommand<JamSettings>> subCommandMap;
@@ -46,12 +44,10 @@ public class Settings extends SimpleCommand {
                 .addSubCommand("info", "command.settings.info.description")
                 .build());
         this.jamData = jamData;
-        orgaRole = new OrgaRole(guildData);
         locale = new Locale(guildData);
         subCommandMap = new MapBuilder<String, SubCommand<JamSettings>>()
                 .add("jam_role", new JamRole(jamData))
                 .add("team_size", new TeamSize(jamData))
-                .add("orga_role", orgaRole)
                 .add("locale", locale)
                 .add("info", new Info(guildData))
                 .build();
@@ -66,10 +62,5 @@ public class Settings extends SimpleCommand {
                         subcommand.execute(event, context, settings);
                     }
                 }).whenComplete(Future.handleComplete());
-    }
-
-    public void init(CommandHub<?> commandHub) {
-        orgaRole.setCommandHub(commandHub);
-        locale.setCommandHub(commandHub);
     }
 }

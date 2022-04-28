@@ -42,7 +42,6 @@ import javax.security.auth.login.LoginException;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -122,21 +121,19 @@ public class Bot {
     }
 
     private void buildCommands() {
-        var settings = new Settings(jamData, guildData);
         commandHub = CommandHub.builder(shardManager)
-                .withManagerRole(guild -> Collections.singletonList(guildData.getSettings(guild).join().orgaRole()))
                 .withLocalizer(localizer)
                 .useGuildCommands()
                 .withCommands(new JamAdmin(jamData),
                         new Register(jamData),
-                        settings,
+                        new Settings(jamData, guildData),
                         new Team(teamData, jamData),
                         new Unregister(jamData, teamData),
                         new Votes(jamData, teamData))
+                .withPermissionCheck((event, meta) -> true)
                 .withPagination(builder -> builder.withLocalizer(localizer).withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withButtonService(builder -> builder.withLocalizer(localizer).withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .build();
-        settings.init(commandHub);
     }
 
     private void initBot() throws LoginException {
