@@ -18,6 +18,13 @@ spec:
               value: postgres
           image: postgres:14.2
           name: database
+          volumeMounts:
+            - mountPath: "var/lib/postgresql/data"
+              name: postgres-data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-data
   selector:
     matchLabels:
       app: database
@@ -33,3 +40,14 @@ spec:
     - name: postgres
       protocol: TCP
       port: 5432
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
