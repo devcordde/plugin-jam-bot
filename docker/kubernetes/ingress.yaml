@@ -4,7 +4,9 @@ metadata:
   name: game-jam-bot-ingres
   annotations:
     kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.middlewares: default-game-jam-strip-prefix@kubernetescrd
+# Stripping the prefix and providing it as `X-Forwarded-Prefix` isn't supported by Javalin and the Swagger module
+# Thus we deactivate the middleware for now
+#    traefik.ingress.kubernetes.io/router.middlewares: default-game-jam-strip-prefix@kubernetescrd
 spec:
   rules:
     - http:

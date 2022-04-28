@@ -13,15 +13,11 @@ import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
 import io.javalin.Javalin;
-import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.http.Context;
-import io.javalin.http.HttpCode;
 import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.ui.ReDocOptions;
 import io.javalin.plugin.openapi.ui.SwaggerOptions;
-import io.swagger.models.Info;
-import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.slf4j.Logger;
 
@@ -54,16 +50,17 @@ public class Api {
 
     private void build() {
         app = Javalin.create(config -> {
+            config.contextPath = configuration.api().contextPath();
             config.registerPlugin(getConfiguredOpenApiPlugin());
             config.accessManager((handler, ctx, routeRoles) -> {
-                if(ctx.path().startsWith("/swagger") || ctx.path().startsWith("/redoc")){
+                if(ctx.matchedPath().startsWith("/swagger") || ctx.matchedPath().startsWith("/redoc")){
                     handler.handle(ctx);
                     return;
                 }
 
                 var token = ctx.req.getHeader("authorization");
                 if (token == null) {
-                    ctx.status(HttpServletResponse.SC_UNAUTHORIZED).result("Please provde a valid token in the authorization header.");
+                    ctx.status(HttpServletResponse.SC_UNAUTHORIZED).result("Please provide a valid token in the authorization header.");
                 } else if (!token.equals(configuration.api().token())) {
                     ctx.status(HttpServletResponse.SC_UNAUTHORIZED).result("Unauthorized");
                 } else {
