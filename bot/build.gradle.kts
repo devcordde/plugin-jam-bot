@@ -14,12 +14,12 @@ repositories {
 
 dependencies {
     // discord
-    implementation("net.dv8tion", "JDA", "5.0.0-alpha.9") {
+    implementation("net.dv8tion", "JDA", "5.0.0-alpha.11") {
         exclude(module = "opus-java")
     }
 
     implementation("de.chojo", "cjda-util", "2.4.0+alpha.11")
-    implementation("io.javalin", "javalin-bundle", "4.4.0")
+    implementation("io.javalin", "javalin-bundle", "4.5.0")
 
 
     // database
