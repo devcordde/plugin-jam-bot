@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: game-jam-bot-ingres
+  namespace: plugin-jam-bot
   annotations:
     kubernetes.io/ingress.class: traefik
 # Stripping the prefix and providing it as `X-Forwarded-Prefix` isn't supported by Javalin and the Swagger module
@@ -23,6 +24,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
   name: game-jam-strip-prefix
+  namespace: plugin-jam-bot
 spec:
   stripPrefix:
     prefixes:

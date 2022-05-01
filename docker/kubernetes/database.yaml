@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: database
+  namespace: plugin-jam-bot
 spec:
   template:
     metadata:
@@ -33,6 +34,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: database
+  namespace: plugin-jam-bot
 spec:
   selector:
     app: database
