@@ -17,6 +17,7 @@ import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.GuildData;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.listener.ReadyStateChangeListener;
 import de.chojo.gamejam.util.LogNotify;
 import de.chojo.jdautil.command.SimpleCommand;
 import de.chojo.jdautil.command.dispatching.CommandHub;
@@ -30,6 +31,7 @@ import de.chojo.sqlutil.updater.QueryReplacement;
 import de.chojo.sqlutil.updater.SqlType;
 import de.chojo.sqlutil.updater.SqlUpdater;
 import de.chojo.sqlutil.wrapper.QueryBuilderConfig;
+import net.dv8tion.jda.api.hooks.AnnotatedEventManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
@@ -106,6 +108,8 @@ public class Bot {
 
         initBot();
 
+        shardManager.addEventListener(new ReadyStateChangeListener(shardManager));
+
         buildLocale();
 
         buildCommands();
@@ -142,7 +146,8 @@ public class Bot {
                         GatewayIntent.GUILD_MEMBERS,
                         GatewayIntent.DIRECT_MESSAGES,
                         GatewayIntent.GUILD_MESSAGES)
-                .setMemberCachePolicy(MemberCachePolicy.DEFAULT)
+                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .setEventManagerProvider(id -> new AnnotatedEventManager())
                 .build();
         RestAction.setDefaultFailure(throwable -> log.error("Unhandled exception occured: ", throwable));
     }
