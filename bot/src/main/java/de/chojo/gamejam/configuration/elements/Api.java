@@ -8,9 +8,15 @@ package de.chojo.gamejam.configuration.elements;
 
 @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 public class Api {
+
+    private String contextPath = "/";
     private String host = "localhost";
     private int port = 8888;
     private String token = "letmein";
+
+    public String contextPath() {
+        return contextPath;
+    }
 
     public String host() {
         return host;

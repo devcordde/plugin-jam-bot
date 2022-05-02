@@ -1,4 +1,4 @@
-FROM openjdk:18
+FROM docker.io/openjdk:18
 
 WORKDIR /app
 
