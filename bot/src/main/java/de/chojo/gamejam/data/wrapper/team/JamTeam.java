@@ -133,21 +133,16 @@ public final class JamTeam {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (JamTeam) obj;
-        return this.id == that.id &&
-               Objects.equals(this.name, that.name) &&
-               this.leader == that.leader &&
-               this.roleId == that.roleId &&
-               this.textChannelId == that.textChannelId &&
-               this.voiceChannelId == that.voiceChannelId;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof JamTeam jamTeam)) return false;
+
+        return id == jamTeam.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, leader, roleId, textChannelId, voiceChannelId);
+        return id;
     }
 
     @Override

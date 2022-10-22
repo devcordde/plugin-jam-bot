@@ -9,12 +9,14 @@ package de.chojo.gamejam.configuration;
 import de.chojo.gamejam.configuration.elements.Api;
 import de.chojo.gamejam.configuration.elements.BaseSettings;
 import de.chojo.gamejam.configuration.elements.Database;
+import de.chojo.gamejam.configuration.elements.ServerManagement;
 
 @SuppressWarnings("FieldMayBeFinal")
 public class ConfigFile {
     private BaseSettings baseSettings = new BaseSettings();
     private Database database = new Database();
     private Api api = new Api();
+    private ServerManagement serverManagement = new ServerManagement();
 
     public BaseSettings baseSettings() {
         return baseSettings;
@@ -26,5 +28,9 @@ public class ConfigFile {
 
     public Api api() {
         return api;
+    }
+
+    public ServerManagement serverManagement(){
+        return serverManagement;
     }
 }

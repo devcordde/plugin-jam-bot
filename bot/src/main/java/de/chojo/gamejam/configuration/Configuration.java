@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.chojo.gamejam.configuration.elements.Api;
 import de.chojo.gamejam.configuration.elements.BaseSettings;
 import de.chojo.gamejam.configuration.elements.Database;
+import de.chojo.gamejam.configuration.elements.ServerManagement;
 import de.chojo.gamejam.configuration.exception.ConfigurationException;
 import org.slf4j.Logger;
 
@@ -103,5 +104,9 @@ public class Configuration {
 
     public Api api() {
         return configFile.api();
+    }
+
+    public ServerManagement serverManagement() {
+        return configFile.serverManagement();
     }
 }
