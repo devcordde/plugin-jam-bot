@@ -154,7 +154,7 @@ public class Teams {
     private LeaderPath resolveTeamPath(Context ctx) throws InterruptException {
         var guild = shardManager.getGuildById(ctx.pathParamAsClass("guild-id", Long.class).get());
         Interrupt.assertNotFound(guild, "Guild");
-        var team = teamData.getTeamById(ctx.pathParamAsClass("team-id", Integer.class).get()).join();
+        var team = teamData.getTeamById(ctx.pathParamAsClass("team-id", Integer.class).get());
         Interrupt.assertNotFound(team.isEmpty(), "Team");
         return new LeaderPath(team.get(), guild);
     }
@@ -190,7 +190,7 @@ public class Teams {
     })
     private void getGuildTeams(Context ctx) throws InterruptException {
         var guild = resolveGuild(ctx);
-        var jam = jamData.getNextOrCurrentJam(guild).join();
+        var jam = jamData.getNextOrCurrentJam(guild);
         Interrupt.assertNoJam(jam.isEmpty());
         ctx.status(HttpCode.OK).json(jam.get().teams().stream().map(TeamProfile::build).toList());
     }
@@ -200,7 +200,7 @@ public class Teams {
     })
     private void getGuildTeamMembers(Context ctx) throws InterruptException {
         var teamPath = resolveTeamPath(ctx);
-        var teamMember = teamData.getMember(teamPath.team()).join();
+        var teamMember = teamData.getMember(teamPath.team());
         List<Member> members = new ArrayList<>();
         for (var member : teamMember) {
             members.add(getMember(teamPath.guild(), member.userId()));

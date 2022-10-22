@@ -110,10 +110,10 @@ public class Users {
     private void getUserTeam(Context ctx) throws InterruptException {
         var guildPath = resolveGuildPath(ctx);
 
-        var jam = jamData.getNextOrCurrentJam(guildPath.guild()).join();
+        var jam = jamData.getNextOrCurrentJam(guildPath.guild());
         Interrupt.assertNoJam(jam.isEmpty());
 
-        var team = teamData.getTeamByMember(jam.get(), guildPath.member()).join();
+        var team = teamData.getTeamByMember(jam.get(), guildPath.member());
 
         Interrupt.assertNotFound(team.isEmpty(), "Team");
 

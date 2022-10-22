@@ -7,25 +7,24 @@
 package de.chojo.gamejam.data.wrapper.team;
 
 import de.chojo.gamejam.data.TeamData;
-import de.chojo.jdautil.localization.ContextLocalizer;
+import de.chojo.jdautil.localization.LocalizationContext;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.util.MentionUtil;
-import de.chojo.jdautil.wrapper.SlashCommandContext;
+import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Category;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public final class JamTeam {
@@ -65,16 +64,20 @@ public final class JamTeam {
                 .complete();
 
         var text = guild.createTextChannel(name().replace(" ", "-"), category)
-                .addRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
-                .addMemberPermissionOverride(guild.getJDA().getSelfUser().getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), Collections.emptySet())
-                .addRolePermissionOverride(guild.getPublicRole().getIdLong(), Collections.emptySet(), EnumSet.of(Permission.VIEW_CHANNEL))
-                .complete();
+                        .addRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
+                        .addMemberPermissionOverride(guild.getJDA().getSelfUser()
+                                                          .getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), Collections.emptySet())
+                        .addRolePermissionOverride(guild.getPublicRole()
+                                                        .getIdLong(), Collections.emptySet(), EnumSet.of(Permission.VIEW_CHANNEL))
+                        .complete();
 
         var voice = guild.createVoiceChannel(name(), category)
-                .addRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
-                .addMemberPermissionOverride(guild.getJDA().getSelfUser().getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), Collections.emptySet())
-                .addRolePermissionOverride(guild.getPublicRole().getIdLong(), Collections.emptySet(), EnumSet.of(Permission.VIEW_CHANNEL))
-                .complete();
+                         .addRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
+                         .addMemberPermissionOverride(guild.getJDA().getSelfUser()
+                                                           .getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), Collections.emptySet())
+                         .addRolePermissionOverride(guild.getPublicRole()
+                                                         .getIdLong(), Collections.emptySet(), EnumSet.of(Permission.VIEW_CHANNEL))
+                         .complete();
     }
 
     public void rename(Guild guild, String name) {
@@ -90,10 +93,10 @@ public final class JamTeam {
         guild.getRoleById(roleId()).delete().queue();
     }
 
-    public MessageEmbed profileEmbed(TeamData teamData, ContextLocalizer localizer) {
-        var member = teamData.getMember(this).join().stream()
-                .map(u -> MentionUtil.user(u.userId()))
-                .collect(Collectors.joining(", "));
+    public MessageEmbed profileEmbed(TeamData teamData, LocalizationContext localizer) {
+        var member = teamData.getMember(this).stream()
+                             .map(u -> MentionUtil.user(u.userId()))
+                             .collect(Collectors.joining(", "));
 
         return new LocalizedEmbedBuilder(localizer)
                 .setTitle(name())
@@ -160,11 +163,13 @@ public final class JamTeam {
         this.leader = leader;
     }
 
-    public void leave(SlashCommandInteractionEvent event, SlashCommandContext context, TeamData teamData) {
+    public void leave(SlashCommandInteractionEvent event, EventContext context, TeamData teamData) {
         var guild = event.getGuild();
         var member = event.getMember();
         guild.removeRoleFromMember(member, guild.getRoleById(roleId())).queue();
-        guild.getTextChannelById(textChannelId()).sendMessage(context.localize("command.team.leave.leftBroadcast", Replacement.createMention(member))).queue();
+        guild.getTextChannelById(textChannelId())
+             .sendMessage(context.localize("command.team.leave.leftBroadcast", Replacement.createMention(member)))
+             .queue();
         event.reply(context.localize("command.team.leave.left")).setEphemeral(true).queue();
         teamData.leaveTeam(this, event.getMember());
     }

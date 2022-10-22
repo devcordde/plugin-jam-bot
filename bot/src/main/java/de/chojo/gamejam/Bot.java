@@ -7,35 +7,35 @@
 package de.chojo.gamejam;
 
 import de.chojo.gamejam.api.Api;
-import de.chojo.gamejam.commands.JamAdmin;
-import de.chojo.gamejam.commands.Register;
-import de.chojo.gamejam.commands.Settings;
-import de.chojo.gamejam.commands.Team;
-import de.chojo.gamejam.commands.Unregister;
-import de.chojo.gamejam.commands.Votes;
+import de.chojo.gamejam.commands.jamadmin.JamAdmin;
+import de.chojo.gamejam.commands.register.Register;
+import de.chojo.gamejam.commands.settings.Settings;
+import de.chojo.gamejam.commands.team.Team;
+import de.chojo.gamejam.commands.unregister.Unregister;
+import de.chojo.gamejam.commands.vote.Votes;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.GuildData;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.util.LogNotify;
-import de.chojo.jdautil.command.SimpleCommand;
-import de.chojo.jdautil.command.dispatching.CommandHub;
+import de.chojo.jdautil.interactions.dispatching.InteractionHub;
+import de.chojo.jdautil.interactions.message.Message;
+import de.chojo.jdautil.interactions.slash.Slash;
+import de.chojo.jdautil.interactions.user.User;
 import de.chojo.jdautil.localization.ILocalizer;
 import de.chojo.jdautil.localization.Localizer;
-import de.chojo.jdautil.localization.util.Language;
-import de.chojo.sqlutil.datasource.DataSourceCreator;
-import de.chojo.sqlutil.exceptions.ExceptionTransformer;
-import de.chojo.sqlutil.logging.LoggerAdapter;
-import de.chojo.sqlutil.updater.QueryReplacement;
-import de.chojo.sqlutil.updater.SqlType;
-import de.chojo.sqlutil.updater.SqlUpdater;
-import de.chojo.sqlutil.wrapper.QueryBuilderConfig;
+import de.chojo.sadu.databases.PostgreSql;
+import de.chojo.sadu.datasource.DataSourceCreator;
+import de.chojo.sadu.exceptions.ExceptionTransformer;
+import de.chojo.sadu.updater.QueryReplacement;
+import de.chojo.sadu.updater.SqlUpdater;
+import de.chojo.sadu.wrapper.QueryBuilderConfig;
+import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
 
 import javax.security.auth.login.LoginException;
@@ -65,7 +65,7 @@ public class Bot {
     private DataSource dataSource;
     private ILocalizer localizer;
     private ShardManager shardManager;
-    private CommandHub<SimpleCommand> commandHub;
+    private InteractionHub<Slash, Message, User> commandHub;
     private QueryBuilderConfig config;
     private JamData jamData;
     private TeamData teamData;
@@ -114,59 +114,63 @@ public class Bot {
     }
 
     private void buildLocale() {
-        localizer = Localizer.builder(Language.ENGLISH)
-                .addLanguage(Language.GERMAN)
-                .withLanguageProvider(guild -> Optional.ofNullable(guildData.getSettings(guild).join().locale()))
+        localizer = Localizer.builder(DiscordLocale.ENGLISH_US)
+                .addLanguage(DiscordLocale.GERMAN)
+                .withLanguageProvider(guild -> Optional.ofNullable(guildData.getSettings(guild).locale())
+                                                       .map(DiscordLocale::from))
                 .build();
     }
 
     private void buildCommands() {
-        commandHub = CommandHub.builder(shardManager)
+        commandHub = InteractionHub.builder(shardManager)
                 .withLocalizer(localizer)
-                .useGuildCommands()
                 .withCommands(new JamAdmin(jamData),
                         new Register(jamData),
                         new Settings(jamData, guildData),
                         new Team(teamData, jamData),
                         new Unregister(jamData, teamData),
                         new Votes(jamData, teamData))
-                .withPermissionCheck((event, meta) -> true)
-                .withPagination(builder -> builder.withLocalizer(localizer).withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
-                .withButtonService(builder -> builder.withLocalizer(localizer).withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
+                .withPagination(builder -> builder.withLocalizer(localizer)
+                                                  .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
+                .withMenuService(builder -> builder.withLocalizer(localizer)
+                                                   .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .build();
     }
 
-    private void initBot() throws LoginException {
+    private void initBot() {
         shardManager = DefaultShardManagerBuilder.createDefault(configuration.baseSettings().token())
-                .enableIntents(
-                        GatewayIntent.GUILD_MEMBERS,
-                        GatewayIntent.DIRECT_MESSAGES,
-                        GatewayIntent.GUILD_MESSAGES)
-                .setMemberCachePolicy(MemberCachePolicy.DEFAULT)
-                .build();
+                                                 .enableIntents(
+                                                         GatewayIntent.GUILD_MEMBERS,
+                                                         GatewayIntent.DIRECT_MESSAGES,
+                                                         GatewayIntent.GUILD_MESSAGES)
+                                                 .setMemberCachePolicy(MemberCachePolicy.DEFAULT)
+                                                 .setEventPool(Executors.newScheduledThreadPool(5, createThreadFactory("Event Worker")))
+                                                 .build();
         RestAction.setDefaultFailure(throwable -> log.error("Unhandled exception occured: ", throwable));
     }
 
     private void initDb() throws IOException, SQLException {
-        dataSource = DataSourceCreator.create(PGSimpleDataSource.class)
-                .withAddress(configuration.database().host())
-                .withPort(configuration.database().port())
-                .forDatabase(configuration.database().database())
-                .withUser(configuration.database().user())
-                .withPassword(configuration.database().password())
+        QueryBuilderConfig.setDefault(QueryBuilderConfig.builder()
+                .withExceptionHandler(err -> log.error(ExceptionTransformer.prettyException(err), err))
+                .withExecutor(createExecutor("DataWorker"))
+                .build());
+
+        dataSource = DataSourceCreator.create(PostgreSql.get())
+                .configure(config -> {
+                    config.host(configuration.database().host())
+                          .port(configuration.database().port())
+                          .database(configuration.database().database())
+                          .user(configuration.database().user())
+                          .password(configuration.database().password());
+                })
                 .create()
                 .forSchema(configuration.database().schema())
                 .build();
 
-        SqlUpdater.builder(dataSource, SqlType.POSTGRES)
-                .withLogger(LoggerAdapter.wrap(log))
+        SqlUpdater.builder(dataSource, PostgreSql.get())
                 .setReplacements(new QueryReplacement("gamejam", configuration.database().schema()))
                 .execute();
 
-        config = QueryBuilderConfig.builder()
-                .withExceptionHandler(err -> log.error(ExceptionTransformer.prettyException(err), err))
-                .withExecutor(createExecutor("DataWorker"))
-                .build();
         jamData = new JamData(dataSource, config);
         teamData = new TeamData(dataSource, config);
         guildData = new GuildData(dataSource, config);

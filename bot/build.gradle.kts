@@ -18,12 +18,14 @@ dependencies {
         exclude(module = "opus-java")
     }
 
-    implementation("de.chojo", "cjda-util", "2.4.0+alpha.11")
+    implementation("de.chojo", "cjda-util", "2.7.6+alpha.21")
     implementation("io.javalin", "javalin-bundle", "4.4.0")
 
-
     // database
-    implementation("de.chojo", "sql-util", "1.2.1")
+    implementation("de.chojo.sadu", "sadu-queries", "1.2.0")
+    implementation("de.chojo.sadu", "sadu-updater", "1.2.0")
+    implementation("de.chojo.sadu", "sadu-datasource", "1.2.0")
+    implementation("de.chojo.sadu", "sadu-postgresql", "1.2.0")
     implementation("org.postgresql", "postgresql", "42.3.3")
 
     // Logging
