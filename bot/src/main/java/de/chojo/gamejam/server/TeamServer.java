@@ -8,6 +8,8 @@ package de.chojo.gamejam.server;
 
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.wrapper.team.JamTeam;
+import de.chojo.jdautil.util.Futures;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,14 +18,18 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class TeamServer {
+    private static final Logger log = getLogger(TeamServer.class);
     private final ServerService serverService;
     private final JamTeam team;
     private final Configuration configuration;
     private final int port;
     private final int apiPort;
-    private final List<String> aikar = List.of(
+    private static final List<String> AIKAR = List.of(
             "-XX:+ParallelRefProcEnabled",
             "-XX:MaxGCPauseMillis=200",
             "-XX:+UnlockExperimentalVMOptions",
@@ -40,7 +46,8 @@ public class TeamServer {
             "-XX:SurvivorRatio=32",
             "-XX:+PerfDisableSharedMem",
             "-XX:MaxTenuringThreshold=1",
-            "-Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true"
+            "-Dusing.aikars.flags=https://mcflags.emc.gs",
+            "-Daikars.new.flags=true"
     );
     private Process start;
 
@@ -57,7 +64,8 @@ public class TeamServer {
         return serverDir().toFile().exists();
     }
 
-    public void setup() throws IOException {
+    public boolean setup() throws IOException {
+        if (!exists()) return false;
         var serverDir = serverDir();
         Files.createDirectories(serverDir);
 
@@ -68,26 +76,30 @@ public class TeamServer {
                 Files.copy(source, serverDir.resolve(path));
             }
         }
+        return true;
     }
 
-    public void purge() throws IOException {
+    public boolean purge() throws IOException {
+        if (!exists()) return false;
         try (var files = Files.walk(serverDir())) {
             files.sorted(Comparator.reverseOrder())
                  .map(Path::toFile)
                  .forEach(File::delete);
         }
+        return true;
     }
 
-    public void start() {
+    public boolean start() {
+        if (exists()) return false;
         var server = configuration.serverManagement();
         var command = new ArrayList<String>();
         command.add("screen");
         command.add("-dmS");
         command.add(screenName());
         command.add("java");
+        command.add("-Xmx%dM".formatted(server.memory()));
         command.add("-Xms%dM".formatted(server.memory()));
-        command.add("-Xms%dM".formatted(server.memory()));
-        command.addAll(aikar);
+        command.addAll(AIKAR);
         command.addAll(server.parameter());
         command.add("-Dpluginjam.port=" + server.velocityApi());
         command.add("-Dpluginjam.name=" + teamName());
@@ -108,10 +120,29 @@ public class TeamServer {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return true;
     }
 
-    public void stop() {
-        if (start != null) start.destroy();
+    public CompletableFuture<Void> stop(boolean restart) {
+        if (start != null) {
+            send("stop");
+            start = null;
+            try {
+                return new ProcessBuilder()
+                        .directory(serverDir().toFile())
+                        .command("while", "screen", "-ls", "|", "grep", "-q", screenName() + ";", "do", "sleep", "1;", "done;")
+                        .start()
+                        .onExit()
+                        .whenComplete(Futures.whenComplete(
+                                exit -> serverService.stopped(this, restart),
+                                err -> log.error("Could not stop server {}", this))
+                        )
+                        .thenAccept(null);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     public void send(String command) {
@@ -139,5 +170,26 @@ public class TeamServer {
 
     private String screenName() {
         return "team_%d_%d".formatted(team.id(), port);
+    }
+
+    public JamTeam team() {
+        return team;
+    }
+
+    public int port() {
+        return port;
+    }
+
+    public int apiPort() {
+        return apiPort;
+    }
+
+    @Override
+    public String toString() {
+        return "TeamServer{" +
+               "team=" + team +
+               ", port=" + port +
+               ", apiPort=" + apiPort +
+               '}';
     }
 }
