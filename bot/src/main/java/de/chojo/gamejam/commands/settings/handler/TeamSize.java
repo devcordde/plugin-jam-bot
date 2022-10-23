@@ -23,7 +23,7 @@ public final class TeamSize implements SlashHandler {
         var settings = jamData.getJamSettings(event.getGuild());
         settings.teamSize(event.getOption("size").getAsInt());
         jamData.updateJamSettings(event.getGuild(), settings);
-        event.reply(context.localize("command.settings.teamSize.updated")).setEphemeral(true).queue();
+        event.reply(context.localize("command.settings.teamsize.message.updated")).setEphemeral(true).queue();
 
     }
 }

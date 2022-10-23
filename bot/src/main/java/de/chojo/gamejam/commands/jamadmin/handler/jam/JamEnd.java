@@ -21,7 +21,7 @@ public final class JamEnd implements SlashHandler {
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         if (!event.getOption("confirm").getAsBoolean()) {
-            event.reply(context.localize("error.noConfirm")).setEphemeral(true).queue();
+            event.reply(context.localize("error.noconfirm")).setEphemeral(true).queue();
             return;
         }
 
@@ -29,7 +29,7 @@ public final class JamEnd implements SlashHandler {
                .ifPresentOrElse(jam -> {
                    jam.finish(event.getGuild());
                    jamData.updateJamState(jam);
-                   event.reply(context.localize("command.jamadmin.end.ended")).setEphemeral(true).queue();
-               }, () -> event.reply(context.localize("error.noActiveJam")).setEphemeral(true).queue());
+                   event.reply(context.localize("command.jamadmin.jam.end.message.ended")).setEphemeral(true).queue();
+               }, () -> event.reply(context.localize("error.noactivejam")).setEphemeral(true).queue());
     }
 }

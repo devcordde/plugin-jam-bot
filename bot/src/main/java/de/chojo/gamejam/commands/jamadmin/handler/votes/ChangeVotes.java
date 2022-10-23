@@ -31,6 +31,6 @@ public final class ChangeVotes implements SlashHandler {
                            jamData.updateJamState(jam);
                            event.reply(context.localize(content)).queue();
                        },
-                       () -> event.reply(context.localize("error.noActiveJam")).setEphemeral(true).queue());
+                       () -> event.reply(context.localize("error.noactivejam")).setEphemeral(true).queue());
     }
 }

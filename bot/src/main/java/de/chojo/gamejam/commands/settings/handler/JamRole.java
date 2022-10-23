@@ -6,7 +6,6 @@
 
 package de.chojo.gamejam.commands.settings.handler;
 
-import de.chojo.gamejam.data.GuildData;
 import de.chojo.gamejam.data.JamData;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
@@ -24,6 +23,6 @@ public final class JamRole implements SlashHandler {
         var settings = jamData.getJamSettings(event.getGuild());
         settings.jamRole(event.getOption("role").getAsRole().getIdLong());
         jamData.updateJamSettings(event.getGuild(), settings);
-        event.reply(context.localize("command.settings.jamRole.updated")).setEphemeral(true).queue();
+        event.reply(context.localize("command.settings.jamrole.message.updated")).setEphemeral(true).queue();
     }
 }

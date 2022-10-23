@@ -43,33 +43,33 @@ public class Create implements SlashHandler {
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        var topic = String.join("\n", event.getOption("topic")
-                                           .getAsString(), event.getOption("topic-tagline", "", OptionMapping::getAsString));
+        var topic = String.join("\n", event.getOption("topic").getAsString(),
+                event.getOption("tagline", "", OptionMapping::getAsString));
         ZoneId timezone;
         try {
             timezone = ZoneId.of(event.getOption("timezone").getAsString());
         } catch (DateTimeException e) {
-            event.reply(context.localize("error.invalidTimezone")).setEphemeral(true).queue();
+            event.reply(context.localize("error.invalidtimezone")).setEphemeral(true).queue();
             return;
         }
 
         var jamBuilder = Jam.create()
                 .setTopic(topic);
         try {
-            var registerStart = parseTime(event.getOption("register-start").getAsString(), timezone);
-            var registerEnd = parseTime(event.getOption("register-end").getAsString(), timezone);
-            var jamStart = parseTime(event.getOption("jam-start").getAsString(), timezone);
-            var jamEnd = parseTime(event.getOption("jam-end").getAsString(), timezone);
+            var registerStart = parseTime(event.getOption("registerstart").getAsString(), timezone);
+            var registerEnd = parseTime(event.getOption("registerend").getAsString(), timezone);
+            var jamStart = parseTime(event.getOption("jamstart").getAsString(), timezone);
+            var jamEnd = parseTime(event.getOption("jamend").getAsString(), timezone);
             var times = new JamTimes(timezone, new TimeFrame(registerStart, registerEnd), new TimeFrame(jamStart, jamEnd));
             jamBuilder.setTimes(times);
         } catch (DateTimeException e) {
-            event.reply(context.localize("error.invalidTimeFormat", Replacement.create("FORMAT", PATTERN)))
+            event.reply(context.localize("error.invalidrimeformat", Replacement.create("FORMAT", PATTERN)))
                  .setEphemeral(true).queue();
             return;
         }
 
         jamData.createJam(jamBuilder.build(), event.getGuild());
-        event.reply(context.localize("command.jamadmin.create.created")).setEphemeral(true).queue();
+        event.reply(context.localize("command.jamadmin.create.message.created")).setEphemeral(true).queue();
     }
 
     @Override

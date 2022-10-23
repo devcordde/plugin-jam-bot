@@ -28,7 +28,7 @@ public class Handler implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         Optional<Jam> optJam = jamData.getNextOrCurrentJam(event.getGuild());
         if (optJam.isEmpty()) {
-            event.reply(context.localize("error.noUpcomingJam"))
+            event.reply(context.localize("error.noupcomingjam"))
                  .setEphemeral(true)
                  .queue();
             return;
@@ -37,20 +37,20 @@ public class Handler implements SlashHandler {
         var jam = optJam.get();
 
         if (!jam.registrations().contains(event.getMember().getIdLong())) {
-            event.reply(context.localize("command.unregister.notRegistered")).setEphemeral(true).queue();
+            event.reply(context.localize("command.unregister.message.notregistered")).setEphemeral(true).queue();
             return;
         }
 
         teamData.getTeamByMember(jam, event.getMember())
                 .ifPresentOrElse(
-                        team -> event.reply(context.localize("command.unregister.inTeam")).queue(),
+                        team -> event.reply(context.localize("command.unregister.message.inteam")).queue(),
                         () -> {
                             var settings = jamData.getJamSettings(event.getGuild());
                             var role = event.getGuild().getRoleById(settings.jamRole());
                             if (role != null) {
                                 event.getGuild().removeRoleFromMember(event.getMember(), role).queue();
                             }
-                            event.reply(context.localize("command.unregister.unregistered"))
+                            event.reply(context.localize("command.unregister.message.unregistered"))
                                  .setEphemeral(true)
                                  .queue();
 

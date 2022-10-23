@@ -25,7 +25,7 @@ public class Promote implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var optJam = jamData.getNextOrCurrentJam(event.getGuild());
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.noJamActive")).setEphemeral(true).queue();
+            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
@@ -35,21 +35,21 @@ public class Promote implements SlashHandler {
                 .ifPresentOrElse(
                         team -> {
                             if (team.leader() != event.getUser().getIdLong()) {
-                                event.reply(context.localize("error.noLeader")).setEphemeral(true).queue();
+                                event.reply(context.localize("error.noleader")).setEphemeral(true).queue();
                                 return;
                             }
 
                             if (user.getRoles().stream().noneMatch(role -> role.getIdLong() == team.roleId())) {
-                                event.reply(context.localize("command.team.promote.notInTeam")).queue();
+                                event.reply(context.localize("command.team.promote.message.notinteam")).queue();
                                 return;
                             }
 
                             team.leader(user.getIdLong());
                             teamData.updateTeam(team);
 
-                            event.reply(context.localize("command.team.promote.done")).setEphemeral(true).queue();
+                            event.reply(context.localize("command.team.promote.message.done")).setEphemeral(true).queue();
 
                         },
-                        () -> event.reply(context.localize("error.noTeam")).setEphemeral(true).queue());
+                        () -> event.reply(context.localize("error.noteam")).setEphemeral(true).queue());
     }
 }

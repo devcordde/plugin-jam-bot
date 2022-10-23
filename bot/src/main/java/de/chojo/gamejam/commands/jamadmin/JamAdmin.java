@@ -16,8 +16,6 @@ import de.chojo.jdautil.interactions.slash.Group;
 import de.chojo.jdautil.interactions.slash.Slash;
 import de.chojo.jdautil.interactions.slash.SubCommand;
 import de.chojo.jdautil.interactions.slash.provider.SlashCommand;
-import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 public class JamAdmin extends SlashCommand {
 
@@ -27,34 +25,32 @@ public class JamAdmin extends SlashCommand {
                 .adminCommand()
                 .subCommand(SubCommand.of("create", "command.jamadmin.create.description")
                         .handler(new Create(jamData))
-                        .argument(Argument.text("topic", "command.jamadmin.create.topic.description").asRequired())
-                        .argument(Argument.text("tagline", "command.jamadmin.create.tagline.description").asRequired())
-                        .argument(Argument.text("timezone", "command.jamadmin.create.timezone.description").asRequired()
+                        .argument(Argument.text("topic", "command.jamadmin.create.topic.description")
+                                          .asRequired())
+                        .argument(Argument.text("tagline", "command.jamadmin.create.tagline.description")
+                                          .asRequired())
+                        .argument(Argument.text("timezone", "command.jamadmin.create.timezone.description")
+                                          .asRequired()
                                           .withAutoComplete())
-                        //TODO: Get rid of this mess
-                        .argument(Argument.text("registerstart", formatArg("command.jamadmin.create.arg.registerStart"))
+                        .argument(Argument.text("registerstart", "command.jamadmin.create.registerstart.description")
                                           .asRequired())
-                        .argument(Argument.text("registerend", formatArg("command.jamadmin.create.arg.registerEnd"))
+                        .argument(Argument.text("registerend", "command.jamadmin.create.registerend.description")
                                           .asRequired())
-                        .argument(Argument.text("jamstart", formatArg("command.jamadmin.create.arg.jamStart"))
+                        .argument(Argument.text("jamstart", "command.jamadmin.create.jamstart.description")
                                           .asRequired())
-                        .argument(Argument.text("jamend", formatArg("command.jamadmin.create.arg.jamEnd")).asRequired())
-                )
+                        .argument(Argument.text("jamend", "command.jamadmin.create.jamend.description")
+                                          .asRequired()))
                 .group(Group.of("jam", "command.jamadmin.jam.description")
-                        .subCommand(SubCommand.of("start", "command.jamadmin.jamstart.description")
+                        .subCommand(SubCommand.of("start", "command.jamadmin.jam.start.description")
                                 .handler(new JamStart(jamData)))
-                        .subCommand(SubCommand.of("end", "command.jamadmin.jamend.description")
+                        .subCommand(SubCommand.of("end", "command.jamadmin.jam.end.description")
                                 .handler(new JamEnd(jamData))
-                                .argument(Argument.bool("confirm", "command.jamadmin.end.confirm.description"))))
+                                .argument(Argument.bool("confirm", "command.jamadmin.jam.confirm.description"))))
                 .group(Group.of("votes", "command.jamadmin.votes.description")
-                        .subCommand(SubCommand.of("open", "command.jamadmin.openvotes.description")
-                                .handler(new ChangeVotes(jamData, true, "command.jamAdmin.vote.open")))
-                        .subCommand(SubCommand.of("close", "command.jamadmin.close-votes.description")
-                                .handler(new ChangeVotes(jamData, false, "command.jamAdmin.vote.close"))))
+                        .subCommand(SubCommand.of("open", "command.jamadmin.votes.open.description")
+                                .handler(new ChangeVotes(jamData, true, "command.jamadmin.votes.message.opened")))
+                        .subCommand(SubCommand.of("close", "command.jamadmin.votes.close.description")
+                                .handler(new ChangeVotes(jamData, false, "command.jamadmin.votes.message.closed"))))
                 .build());
-    }
-
-    private static String formatArg(String key) {
-        return String.format("$%s$ $%s$: %s", key, "command.jamadmin.create.arg.format", Create.PATTERN);
     }
 }

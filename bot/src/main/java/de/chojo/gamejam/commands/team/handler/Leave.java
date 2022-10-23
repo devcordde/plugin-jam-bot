@@ -25,23 +25,23 @@ public final class Leave implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var optJam = jamData.getNextOrCurrentJam(event.getGuild());
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.noJamActive")).setEphemeral(true).queue();
+            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
 
         if (jam.state().isVoting()) {
-            event.reply(context.localize("error.votingActive")).setEphemeral(true).queue();
+            event.reply(context.localize("error.votingactive")).setEphemeral(true).queue();
             return;
         }
 
         teamData.getTeamByMember(jam, event.getMember())
                 .ifPresentOrElse(team -> {
                     if (team.leader() == event.getMember().getIdLong()) {
-                        event.reply(context.localize("command.team.leave.leaderLeave")).setEphemeral(true).queue();
+                        event.reply(context.localize("command.team.leave.message.leaderleave")).setEphemeral(true).queue();
                         return;
                     }
                     team.leave(event, context, teamData);
-                }, () -> event.reply(context.localize("error.noTeam")).setEphemeral(true).queue());
+                }, () -> event.reply(context.localize("error.noteam")).setEphemeral(true).queue());
     }
 }

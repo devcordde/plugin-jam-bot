@@ -8,7 +8,6 @@ package de.chojo.gamejam.commands.vote.handler;
 
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
-import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.wrapper.EventContext;
@@ -29,7 +28,7 @@ public class Info implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var optJam = jamData.getNextOrCurrentJam(event.getGuild());
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.noJamActive")).setEphemeral(true).queue();
+            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
@@ -41,7 +40,7 @@ public class Info implements SlashHandler {
                                .collect(Collectors.joining("\n"));
 
         var build = new LocalizedEmbedBuilder(context.guildLocalizer())
-                .setTitle("command.votes.info.title")
+                .setTitle("command.votes.info.embed.title")
                 .setDescription(given)
                 .build();
         event.replyEmbeds(build).setEphemeral(true).queue();

@@ -8,7 +8,6 @@ package de.chojo.gamejam.commands.team.handler;
 
 import de.chojo.gamejam.data.JamData;
 import de.chojo.gamejam.data.TeamData;
-import de.chojo.gamejam.data.wrapper.jam.Jam;
 import de.chojo.gamejam.data.wrapper.team.JamTeam;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
@@ -17,7 +16,6 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.Command;
 
 import java.util.Collections;
-import java.util.Optional;
 
 public final class Profile implements SlashHandler {
     private final TeamData teamData;
@@ -32,7 +30,7 @@ public final class Profile implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var optJam = jamData.getNextOrCurrentJam(event.getGuild());
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.noJamActive")).setEphemeral(true).queue();
+            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
@@ -40,19 +38,19 @@ public final class Profile implements SlashHandler {
         if (event.getOption("user") != null) {
             teamData.getTeamByMember(jam, event.getOption("user").getAsMember())
                     .ifPresentOrElse(team -> sendProfile(event, team, context),
-                            () -> event.reply(context.localize("command.team.profile.noUserTeam")).setEphemeral(true)
+                            () -> event.reply(context.localize("command.team.profile.message.nouserteam")).setEphemeral(true)
                                        .queue());
             return;
         }
         if (event.getOption("team") != null) {
             teamData.getTeamByName(jam, event.getOption("team").getAsString())
                     .ifPresentOrElse(team -> sendProfile(event, team, context),
-                            () -> event.reply(context.localize("error.unkownTeam")).setEphemeral(true).queue());
+                            () -> event.reply(context.localize("error.unkownteam")).setEphemeral(true).queue());
             return;
         }
         teamData.getTeamByMember(jam, event.getMember())
                 .ifPresentOrElse(team -> sendProfile(event, team, context),
-                        () -> event.reply(context.localize("error.noTeam")).setEphemeral(true).queue());
+                        () -> event.reply(context.localize("error.noteam")).setEphemeral(true).queue());
     }
 
     private void sendProfile(SlashCommandInteractionEvent event, JamTeam team, EventContext context) {

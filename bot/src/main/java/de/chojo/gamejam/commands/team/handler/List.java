@@ -29,7 +29,7 @@ public class List implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var optJam = jamData.getNextOrCurrentJam(event.getGuild());
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.noJamActive")).setEphemeral(true).queue();
+            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();

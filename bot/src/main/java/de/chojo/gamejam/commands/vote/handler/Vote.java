@@ -36,19 +36,19 @@ public class Vote implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var optJam = jamData.getNextOrCurrentJam(event.getGuild());
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.noJamActive")).setEphemeral(true).queue();
+            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
 
         event.deferReply(true).queue();
         if (!jam.state().isVoting()) {
-            event.getHook().editOriginal(context.localize("command.votes.vote.notActive")).queue();
+            event.getHook().editOriginal(context.localize("command.votes.vote.message.notactive")).queue();
             return;
         }
 
         if (!jam.registrations().contains(event.getMember().getIdLong())) {
-            event.getHook().editOriginal(context.localize("error.notRegistered")).queue();
+            event.getHook().editOriginal(context.localize("error.notregistered")).queue();
             return;
         }
 
@@ -57,7 +57,7 @@ public class Vote implements SlashHandler {
                           .findFirst();
 
         if (voteTeam.isEmpty()) {
-            event.getHook().editOriginal(context.localize("error.unkownTeam")).queue();
+            event.getHook().editOriginal(context.localize("error.unkownteam")).queue();
             return;
         }
 
@@ -68,7 +68,7 @@ public class Vote implements SlashHandler {
 //        }
 
         if (team.isPresent() && team.get().name().equalsIgnoreCase(event.getOption("team").getAsString())) {
-            event.getHook().editOriginal(context.localize("command.votes.vote.ownTeam")).queue();
+            event.getHook().editOriginal(context.localize("command.votes.vote.message.ownteam")).queue();
             return;
         }
 
@@ -79,7 +79,7 @@ public class Vote implements SlashHandler {
         var points = Math.min(5, Math.max(0, event.getOption("points").getAsInt()));
 
         if (pointsGiven + points > jam.teams().size()) {
-            event.getHook().editOriginal(context.localize("command.votes.vote.maxPointsReached",
+            event.getHook().editOriginal(context.localize("command.votes.vote.message.maxpointsreached",
                          Replacement.create("REMAINING", jam.teams().size() - pointsGiven).addFormatting(Format.BOLD)))
                  .queue();
             return;
@@ -87,7 +87,7 @@ public class Vote implements SlashHandler {
 
         teamData.vote(event.getMember(), voteTeam.get(), points);
 
-        event.getHook().editOriginal(context.localize("command.votes.vote.done",
+        event.getHook().editOriginal(context.localize("command.votes.vote.message.done",
                      Replacement.create("REMAINING", jam.teams()
                                                         .size() - teamData.votesByUser(event.getMember(), jam)
                                                                           .stream().mapToInt(VoteEntry::points)

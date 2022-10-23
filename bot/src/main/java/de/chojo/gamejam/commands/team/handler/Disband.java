@@ -25,24 +25,24 @@ public final class Disband implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var optJam = jamData.getNextOrCurrentJam(event.getGuild());
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.noJamActive")).setEphemeral(true).queue();
+            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
 
         if (jam.state().isVoting()) {
-            event.reply(context.localize("error.votingActive")).setEphemeral(true).queue();
+            event.reply(context.localize("error.votingactive")).setEphemeral(true).queue();
             return;
         }
 
         if (!event.getOption("confirm").getAsBoolean()) {
-            event.reply(context.localize("error.noConfirm")).setEphemeral(true).queue();
+            event.reply(context.localize("error.noconfirm")).setEphemeral(true).queue();
             return;
         }
 
         var jamTeam = teamData.getTeamByMember(jam, event.getMember());
         if (jamTeam.isEmpty()) {
-            event.reply(context.localize("error.noTeam")).setEphemeral(true).queue();
+            event.reply(context.localize("error.noteam")).setEphemeral(true).queue();
             return;
         }
 
@@ -55,13 +55,13 @@ public final class Disband implements SlashHandler {
                  .flatMap(u -> event.getGuild().retrieveMember(u))
                  .queue(member -> {
                      member.getUser().openPrivateChannel()
-                           .flatMap(channel -> channel.sendMessage(context.localize("command.team.disband.disbanded")))
+                           .flatMap(channel -> channel.sendMessage(context.localize("command.team.disband.message.disbanded")))
                            .queue();
                  });
         }
 
         team.delete(event.getGuild());
         teamData.disbandTeam(team);
-        event.reply(context.localize("command.team.disband.disbanded")).setEphemeral(true).queue();
+        event.reply(context.localize("command.team.disband.message.disbanded")).setEphemeral(true).queue();
     }
 }

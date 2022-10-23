@@ -27,10 +27,10 @@ public final class JamStart implements SlashHandler {
                                      next -> {
                                          next.state().active(true);
                                          jamData.updateJamState(next);
-                                         event.reply(context.localize("command.start.activated")).setEphemeral(true)
+                                         event.reply(context.localize("command.start.message.activated")).setEphemeral(true)
                                               .queue();
                                      },
-                                     () -> event.reply(context.localize("error.noUpcomingJam")).setEphemeral(true)
+                                     () -> event.reply(context.localize("error.noupcomingjam")).setEphemeral(true)
                                                 .queue()));
     }
 }

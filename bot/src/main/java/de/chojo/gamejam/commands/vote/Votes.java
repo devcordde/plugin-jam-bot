@@ -17,16 +17,17 @@ import de.chojo.jdautil.interactions.slash.SubCommand;
 import de.chojo.jdautil.interactions.slash.provider.SlashCommand;
 
 public class Votes extends SlashCommand {
-
     public Votes(JamData jamData, TeamData teamData) {
-        super(Slash.of("votes", "Vote for teams")
-                .subCommand(SubCommand.of("vote", "vote for teams")
+        super(Slash.of("votes", "command.votes.description")
+                .subCommand(SubCommand.of("vote", "command.votes.vote.description")
                         .handler(new Vote(teamData, jamData))
-                        .argument(Argument.text("team", "Name of the team").asRequired().withAutoComplete())
-                        .argument(Argument.integer("points", "Points to give.").asRequired().withAutoComplete()))
-                .subCommand(SubCommand.of("info", "Information about your given vote")
+                        .argument(Argument.text("team", "command.votes.vote.team.description").asRequired()
+                                          .withAutoComplete())
+                        .argument(Argument.integer("points", "command.votes.vote.points.description").asRequired()
+                                          .withAutoComplete()))
+                .subCommand(SubCommand.of("info", "command.votes.info.description")
                         .handler(new Info(teamData, jamData)))
-                .subCommand(SubCommand.of("ranking", "The current ranking")
+                .subCommand(SubCommand.of("ranking", "command.votes.ranking.description")
                         .handler(new Ranking(teamData, jamData)))
         );
     }

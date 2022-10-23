@@ -28,10 +28,10 @@ public final class Info implements SlashHandler {
         var settings = jamData.getJamSettings(event.getGuild());
         var guildSettings = guildData.getSettings(event.getGuild());
         var embed = new LocalizedEmbedBuilder(context.guildLocalizer())
-                .setTitle("command.settings.info.settings")
-                .addField("command.settings.info.jamRole", MentionUtil.role(settings.jamRole()), true)
-                .addField("command.settings.info.teamSize", String.valueOf(settings.teamSize()), true)
-                .addField("command.settings.info.orgaRole", MentionUtil.role(guildSettings.orgaRole()), true)
+                .setTitle("command.settings.info.embed.settings")
+                .addField("command.settings.info.embed.jamrole", MentionUtil.role(settings.jamRole()), true)
+                .addField("command.settings.info.embed.teamsize", String.valueOf(settings.teamSize()), true)
+                .addField("command.settings.info.embed.orgarole", MentionUtil.role(guildSettings.orgaRole()), true)
                 .build();
         event.replyEmbeds(embed).setEphemeral(true).queue();
     }

@@ -30,13 +30,13 @@ public class Ranking implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var optJam = jamData.getNextOrCurrentJam(event.getGuild());
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.noJamActive")).setEphemeral(true).queue();
+            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
 
         if (jam.state().isVoting()) {
-            event.reply(context.localize("command.votes.ranking.voteActive")).setEphemeral(true).queue();
+            event.reply(context.localize("command.votes.ranking.message.voteactive")).setEphemeral(true).queue();
             return;
         }
 
@@ -48,7 +48,7 @@ public class Ranking implements SlashHandler {
                 var teamVote = currentElement();
                 var embed = new LocalizedEmbedBuilder(context.guildLocalizer())
                         .setTitle(teamVote.rank() + " | " + teamVote.jamTeam().name())
-                        .addField("command.votes.ranking.votes", String.valueOf(teamVote.votes()), true)
+                        .addField("command.votes.ranking.embed.votes", String.valueOf(teamVote.votes()), true)
                         .build();
                 return CompletableFuture.completedFuture(embed);
             }
