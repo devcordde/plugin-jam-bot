@@ -57,8 +57,8 @@ public class LocalizationTest {
         var english = resourceBundles.get(DiscordLocale.ENGLISH_US);
         for (var key : english.keySet()) {
             replacements.put(key, getReplacements(english.getString(key)));
-            Assertions.assertFalse(english.getString(key)
-                                          .isBlank(), "Blank string at " + key + "@" + DiscordLocale.ENGLISH_US);
+            Assertions.assertFalse(english.getString(key).isBlank(),
+                    "Blank string at " + key + "@" + DiscordLocale.ENGLISH_US);
         }
 
         for (var resourceBundle : resourceBundles.values()) {
