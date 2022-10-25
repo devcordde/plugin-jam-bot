@@ -7,7 +7,7 @@
 package de.chojo.gamejam.server;
 
 import de.chojo.gamejam.configuration.Configuration;
-import de.chojo.gamejam.data.wrapper.team.JamTeam;
+import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Queue;
 
 public class ServerService {
-    private final Map<JamTeam, TeamServer> server = new HashMap<>();
+    private final Map<Team, TeamServer> server = new HashMap<>();
     private final Configuration configuration;
     private int lastPort;
     private final Queue<Integer> freePorts = new ArrayDeque<>();
@@ -25,7 +25,7 @@ public class ServerService {
         lastPort = configuration.serverManagement().minPort();
     }
 
-    public TeamServer create(JamTeam team) {
+    public TeamServer create(Team team) {
         return server.computeIfAbsent(team, key -> new TeamServer(this, key, configuration, nextPort(), nextPort()));
     }
 

@@ -6,23 +6,22 @@
 
 package de.chojo.gamejam.commands.settings.handler;
 
-import de.chojo.gamejam.data.JamData;
+import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 public final class TeamSize implements SlashHandler {
-    private final JamData jamData;
+    private final Guilds guilds;
 
-    public TeamSize(JamData jamData) {
-        this.jamData = jamData;
+    public TeamSize(Guilds guilds) {
+        this.guilds = guilds;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        var settings = jamData.getJamSettings(event.getGuild());
+        var settings = guilds.guild(event).jamSettings();
         settings.teamSize(event.getOption("size").getAsInt());
-        jamData.updateJamSettings(event.getGuild(), settings);
         event.reply(context.localize("command.settings.teamsize.message.updated")).setEphemeral(true).queue();
 
     }

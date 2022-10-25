@@ -6,27 +6,22 @@
 
 package de.chojo.gamejam.commands.unregister.handler;
 
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.TeamData;
-import de.chojo.gamejam.data.wrapper.jam.Jam;
+import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-import java.util.Optional;
-
 public class Handler implements SlashHandler {
-    private final JamData jamData;
-    private final TeamData teamData;
+    private final Guilds guilds;
 
-    public Handler(JamData jamData, TeamData teamData) {
-        this.jamData = jamData;
-        this.teamData = teamData;
+    public Handler(Guilds guilds) {
+        this.guilds = guilds;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        Optional<Jam> optJam = jamData.getNextOrCurrentJam(event.getGuild());
+        var guild = guilds.guild(event);
+        var optJam = guild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
             event.reply(context.localize("error.noupcomingjam"))
                  .setEphemeral(true)
@@ -41,11 +36,11 @@ public class Handler implements SlashHandler {
             return;
         }
 
-        teamData.getTeamByMember(jam, event.getMember())
+        jam.teams().byMember(event.getMember())
                 .ifPresentOrElse(
                         team -> event.reply(context.localize("command.unregister.message.inteam")).queue(),
                         () -> {
-                            var settings = jamData.getJamSettings(event.getGuild());
+                            var settings = guild.jamSettings();
                             var role = event.getGuild().getRoleById(settings.jamRole());
                             if (role != null) {
                                 event.getGuild().removeRoleFromMember(event.getMember(), role).queue();

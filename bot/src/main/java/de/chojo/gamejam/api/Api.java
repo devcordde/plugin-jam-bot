@@ -10,18 +10,13 @@ import de.chojo.gamejam.api.exception.InterruptException;
 import de.chojo.gamejam.api.v1.Teams;
 import de.chojo.gamejam.api.v1.Users;
 import de.chojo.gamejam.configuration.Configuration;
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.data.access.Guilds;
 import io.javalin.Javalin;
-import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.http.Context;
-import io.javalin.http.HttpCode;
 import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.ui.ReDocOptions;
 import io.javalin.plugin.openapi.ui.SwaggerOptions;
-import io.swagger.models.Info;
-import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.slf4j.Logger;
 
@@ -35,21 +30,19 @@ public class Api {
     private static final Logger log = getLogger(Api.class);
     private Configuration configuration;
     private final ShardManager shardManager;
-    private final TeamData teamData;
-    private final JamData jamData;
+    private final Guilds guilds;
     private Javalin app;
 
-    public static Api create(Configuration configuration, ShardManager shardManager, TeamData teamData, JamData jamData) {
-        var api = new Api(configuration, shardManager, teamData, jamData);
+    public static Api create(Configuration configuration, ShardManager shardManager, Guilds guilds) {
+        var api = new Api(configuration, shardManager, guilds);
         api.build();
         return api;
     }
 
-    public Api(Configuration configuration, ShardManager shardManager, TeamData teamData, JamData jamData) {
+    public Api(Configuration configuration, ShardManager shardManager, Guilds guilds) {
         this.configuration = configuration;
         this.shardManager = shardManager;
-        this.teamData = teamData;
-        this.jamData = jamData;
+        this.guilds = guilds;
     }
 
     private void build() {
@@ -84,9 +77,9 @@ public class Api {
 
         app.routes(() -> {
             path("api/v1", () -> {
-                var users = new Users(shardManager, teamData, jamData);
+                var users = new Users(shardManager, guilds);
                 users.routes();
-                Teams teams = new Teams(shardManager, teamData, jamData);
+                var teams = new Teams(shardManager, guilds);
                 teams.routes();
             });
         });

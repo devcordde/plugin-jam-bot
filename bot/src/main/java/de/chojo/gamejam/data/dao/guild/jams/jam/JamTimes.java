@@ -4,7 +4,9 @@
  *     Copyright (C) 2022 DevCord Team and Contributor
  */
 
-package de.chojo.gamejam.data.wrapper.jam;
+package de.chojo.gamejam.data.dao.guild.jams.jam;
+
+import de.chojo.gamejam.data.wrapper.jam.TimeFrame;
 
 import java.time.ZoneId;
 

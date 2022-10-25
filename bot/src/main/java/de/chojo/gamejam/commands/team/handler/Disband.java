@@ -6,24 +6,24 @@
 
 package de.chojo.gamejam.commands.team.handler;
 
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.data.dao.guild.jams.Jam;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public final class Disband implements SlashHandler {
-    private final TeamData teamData;
-    private final JamData jamData;
+import java.util.Optional;
 
-    public Disband(TeamData teamData, JamData jamData) {
-        this.teamData = teamData;
-        this.jamData = jamData;
+public final class Disband implements SlashHandler {
+    private final Guilds guilds;
+
+    public Disband(Guilds guilds) {
+        this.guilds = guilds;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        var optJam = jamData.getNextOrCurrentJam(event.getGuild());
+        Optional<Jam> optJam = guilds.guild(event).jams().nextOrCurrent();
         if (optJam.isEmpty()) {
             event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
@@ -40,7 +40,7 @@ public final class Disband implements SlashHandler {
             return;
         }
 
-        var jamTeam = teamData.getTeamByMember(jam, event.getMember());
+        var jamTeam = jam.teams().byMember(event.getMember());
         if (jamTeam.isEmpty()) {
             event.reply(context.localize("error.noteam")).setEphemeral(true).queue();
             return;
@@ -49,7 +49,7 @@ public final class Disband implements SlashHandler {
         var team = jamTeam.get();
 
 
-        var members = teamData.getMember(team);
+        var members = team.member();
         for (var teamMember : members) {
             event.getJDA().getShardManager().retrieveUserById(teamMember.userId())
                  .flatMap(u -> event.getGuild().retrieveMember(u))
@@ -60,8 +60,8 @@ public final class Disband implements SlashHandler {
                  });
         }
 
-        team.delete(event.getGuild());
-        teamData.disbandTeam(team);
-        event.reply(context.localize("command.team.disband.message.disbanded")).setEphemeral(true).queue();
+        if (team.disband()) {
+            event.reply(context.localize("command.team.disband.message.disbanded")).setEphemeral(true).queue();
+        }
     }
 }

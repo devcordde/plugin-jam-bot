@@ -11,8 +11,8 @@ import de.chojo.gamejam.api.exception.InterruptException;
 import de.chojo.gamejam.api.v1.wrapper.GuildProfile;
 import de.chojo.gamejam.api.v1.wrapper.TeamProfile;
 import de.chojo.gamejam.api.v1.wrapper.UserProfile;
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.data.dao.JamGuild;
 import io.javalin.http.Context;
 import io.javalin.http.HttpCode;
 import io.javalin.plugin.openapi.annotations.HttpMethod;
@@ -32,13 +32,11 @@ import static io.javalin.apibuilder.ApiBuilder.path;
 
 public class Users {
     private final ShardManager shardManager;
-    private final TeamData teamData;
-    private final JamData jamData;
+    private final Guilds guilds;
 
-    public Users(ShardManager shardManager, TeamData teamData, JamData jamData) {
+    public Users(ShardManager shardManager, Guilds guilds) {
         this.shardManager = shardManager;
-        this.teamData = teamData;
-        this.jamData = jamData;
+        this.guilds = guilds;
     }
 
     public void routes() {
@@ -109,11 +107,12 @@ public class Users {
             })
     private void getUserTeam(Context ctx) throws InterruptException {
         var guildPath = resolveGuildPath(ctx);
+        var guild = guilds.guild(guildPath.guild());
 
-        var jam = jamData.getNextOrCurrentJam(guildPath.guild());
+        var jam = guild.jams().nextOrCurrent();
         Interrupt.assertNoJam(jam.isEmpty());
 
-        var team = teamData.getTeamByMember(jam.get(), guildPath.member());
+        var team = jam.get().teams().byMember(guildPath.member());
 
         Interrupt.assertNotFound(team.isEmpty(), "Team");
 

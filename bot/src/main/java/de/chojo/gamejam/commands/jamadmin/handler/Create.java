@@ -6,9 +6,9 @@
 
 package de.chojo.gamejam.commands.jamadmin.handler;
 
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.wrapper.jam.Jam;
-import de.chojo.gamejam.data.wrapper.jam.JamTimes;
+import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.data.wrapper.jam.JamCreator;
+import de.chojo.gamejam.data.dao.guild.jams.jam.JamTimes;
 import de.chojo.gamejam.data.wrapper.jam.TimeFrame;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.localization.util.Replacement;
@@ -29,11 +29,10 @@ import java.util.stream.Collectors;
 public class Create implements SlashHandler {
     public static final String PATTERN = "yyyy.MM.dd HH:mm";
     private static final DateTimeFormatter DATE_PARSER = DateTimeFormatter.ofPattern(PATTERN);
+    private final Guilds guilds;
 
-    private final JamData jamData;
-
-    public Create(JamData jamData) {
-        this.jamData = jamData;
+    public Create(Guilds guilds) {
+        this.guilds = guilds;
     }
 
     private ZonedDateTime parseTime(String time, ZoneId zoneId) throws DateTimeException {
@@ -43,6 +42,7 @@ public class Create implements SlashHandler {
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
+        var guild = guilds.guild(event);
         var topic = String.join("\n", event.getOption("topic").getAsString(),
                 event.getOption("tagline", "", OptionMapping::getAsString));
         ZoneId timezone;
@@ -53,7 +53,7 @@ public class Create implements SlashHandler {
             return;
         }
 
-        var jamBuilder = Jam.create()
+        var jamBuilder = JamCreator.create()
                 .setTopic(topic);
         try {
             var registerStart = parseTime(event.getOption("registerstart").getAsString(), timezone);
@@ -68,7 +68,7 @@ public class Create implements SlashHandler {
             return;
         }
 
-        jamData.createJam(jamBuilder.build(), event.getGuild());
+        guild.jams().create(jamBuilder.build());
         event.reply(context.localize("command.jamadmin.create.message.created")).setEphemeral(true).queue();
     }
 

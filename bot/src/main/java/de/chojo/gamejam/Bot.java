@@ -14,9 +14,7 @@ import de.chojo.gamejam.commands.team.Team;
 import de.chojo.gamejam.commands.unregister.Unregister;
 import de.chojo.gamejam.commands.vote.Votes;
 import de.chojo.gamejam.configuration.Configuration;
-import de.chojo.gamejam.data.GuildData;
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.util.LogNotify;
 import de.chojo.jdautil.interactions.dispatching.InteractionHub;
 import de.chojo.jdautil.interactions.message.Message;
@@ -67,9 +65,7 @@ public class Bot {
     private ShardManager shardManager;
     private InteractionHub<Slash, Message, User> commandHub;
     private QueryBuilderConfig config;
-    private JamData jamData;
-    private TeamData teamData;
-    private GuildData guildData;
+    private Guilds guilds;
 
     private static ThreadFactory createThreadFactory(String string) {
         return createThreadFactory(new ThreadGroup(string));
@@ -110,13 +106,13 @@ public class Bot {
 
         buildCommands();
 
-        Api.create(configuration, shardManager, teamData, jamData);
+        Api.create(configuration, shardManager, guilds);
     }
 
     private void buildLocale() {
         localizer = Localizer.builder(DiscordLocale.ENGLISH_US)
                 .addLanguage(DiscordLocale.GERMAN)
-                .withLanguageProvider(guild -> Optional.ofNullable(guildData.getSettings(guild).locale())
+                .withLanguageProvider(guild -> Optional.ofNullable(guilds.guild(guild).settings().locale())
                                                        .map(DiscordLocale::from))
                 .build();
     }
@@ -124,12 +120,12 @@ public class Bot {
     private void buildCommands() {
         commandHub = InteractionHub.builder(shardManager)
                 .withLocalizer(localizer)
-                .withCommands(new JamAdmin(jamData),
-                        new Register(jamData),
-                        new Settings(jamData, guildData),
-                        new Team(teamData, jamData),
-                        new Unregister(jamData, teamData),
-                        new Votes(jamData, teamData))
+                .withCommands(new JamAdmin(guilds),
+                        new Register(guilds),
+                        new Settings(guilds),
+                        new Team(guilds),
+                        new Unregister(guilds),
+                        new Votes(guilds))
                 .withPagination(builder -> builder.withLocalizer(localizer)
                                                   .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withMenuService(builder -> builder.withLocalizer(localizer)
@@ -171,8 +167,6 @@ public class Bot {
                 .setReplacements(new QueryReplacement("gamejam", configuration.database().schema()))
                 .execute();
 
-        jamData = new JamData(dataSource, config);
-        teamData = new TeamData(dataSource, config);
-        guildData = new GuildData(dataSource, config);
+        guilds = new Guilds(dataSource);
     }
 }

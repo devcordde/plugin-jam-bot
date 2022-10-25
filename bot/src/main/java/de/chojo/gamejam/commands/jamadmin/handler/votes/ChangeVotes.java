@@ -6,29 +6,28 @@
 
 package de.chojo.gamejam.commands.jamadmin.handler.votes;
 
-import de.chojo.gamejam.data.JamData;
+import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 public final class ChangeVotes implements SlashHandler {
-    private final JamData jamData;
+    private final Guilds guilds;
     private final boolean voting;
     private final String content;
 
-    public ChangeVotes(JamData jamData, boolean voting, String content) {
-        this.jamData = jamData;
+    public ChangeVotes(Guilds guilds, boolean voting, String content) {
+        this.guilds = guilds;
         this.voting = voting;
         this.content = content;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        jamData.getActiveJam(event.getGuild())
-               .ifPresentOrElse(
+        guilds.guild(event).jams().activeJam()
+              .ifPresentOrElse(
                        jam -> {
                            jam.state().voting(voting);
-                           jamData.updateJamState(jam);
                            event.reply(context.localize(content)).queue();
                        },
                        () -> event.reply(context.localize("error.noactivejam")).setEphemeral(true).queue());

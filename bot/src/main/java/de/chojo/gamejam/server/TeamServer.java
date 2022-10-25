@@ -7,7 +7,7 @@
 package de.chojo.gamejam.server;
 
 import de.chojo.gamejam.configuration.Configuration;
-import de.chojo.gamejam.data.wrapper.team.JamTeam;
+import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import de.chojo.jdautil.util.Futures;
 import org.slf4j.Logger;
 
@@ -25,7 +25,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class TeamServer {
     private static final Logger log = getLogger(TeamServer.class);
     private final ServerService serverService;
-    private final JamTeam team;
+    private final Team team;
     private final Configuration configuration;
     private final int port;
     private final int apiPort;
@@ -52,7 +52,7 @@ public class TeamServer {
     private Process start;
 
 
-    public TeamServer(ServerService serverService, JamTeam team, Configuration configuration, int port, int apiPort) {
+    public TeamServer(ServerService serverService, Team team, Configuration configuration, int port, int apiPort) {
         this.serverService = serverService;
         this.team = team;
         this.configuration = configuration;
@@ -165,14 +165,14 @@ public class TeamServer {
     }
 
     private String teamName() {
-        return team.name().toLowerCase().replace(" ", "_");
+        return team.meta().name().toLowerCase().replace(" ", "_");
     }
 
     private String screenName() {
         return "team_%d_%d".formatted(team.id(), port);
     }
 
-    public JamTeam team() {
+    public Team team() {
         return team;
     }
 

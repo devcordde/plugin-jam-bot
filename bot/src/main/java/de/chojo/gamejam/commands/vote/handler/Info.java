@@ -6,8 +6,7 @@
 
 package de.chojo.gamejam.commands.vote.handler;
 
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.wrapper.EventContext;
@@ -16,27 +15,26 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import java.util.stream.Collectors;
 
 public class Info implements SlashHandler {
-    private final TeamData teamData;
-    private final JamData jamData;
+    private final Guilds guilds;
 
-    public Info(TeamData teamData, JamData jamData) {
-        this.teamData = teamData;
-        this.jamData = jamData;
+    public Info(Guilds guilds) {
+        this.guilds = guilds;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        var optJam = jamData.getNextOrCurrentJam(event.getGuild());
+        var guild = guilds.guild(event);
+        var optJam = guild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
             event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
 
-        var voteEntries = teamData.votesByUser(event.getMember(), jam);
+        var voteEntries = jam.user(event.getMember()).votes();
         var given = voteEntries.stream()
                                .filter(e -> e.points() != 0)
-                               .map(e -> e.team().name() + ": **" + e.points() + "**")
+                               .map(e -> e.team().meta().name() + ": **" + e.points() + "**")
                                .collect(Collectors.joining("\n"));
 
         var build = new LocalizedEmbedBuilder(context.guildLocalizer())

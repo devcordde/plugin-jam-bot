@@ -6,16 +6,16 @@
 
 package de.chojo.gamejam.commands.jamadmin.handler.jam;
 
-import de.chojo.gamejam.data.JamData;
+import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 public final class JamEnd implements SlashHandler {
-    private final JamData jamData;
+    private final Guilds guilds;
 
-    public JamEnd(JamData jamData) {
-        this.jamData = jamData;
+    public JamEnd(Guilds guilds) {
+        this.guilds = guilds;
     }
 
     @Override
@@ -25,10 +25,10 @@ public final class JamEnd implements SlashHandler {
             return;
         }
 
-        jamData.getActiveJam(event.getGuild())
-               .ifPresentOrElse(jam -> {
-                   jam.finish(event.getGuild());
-                   jamData.updateJamState(jam);
+
+        guilds.guild(event).jams().activeJam()
+              .ifPresentOrElse(jam -> {
+                   jam.state().finish();
                    event.reply(context.localize("command.jamadmin.jam.end.message.ended")).setEphemeral(true).queue();
                }, () -> event.reply(context.localize("error.noactivejam")).setEphemeral(true).queue());
     }

@@ -6,8 +6,6 @@
 
 package de.chojo.gamejam.api.v1.wrapper;
 
-import de.chojo.gamejam.data.wrapper.team.TeamMember;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 
 public record UserProfile(String name, String tag, String iconUrl, long idLong) {

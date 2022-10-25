@@ -6,24 +6,23 @@
 
 package de.chojo.gamejam.commands.team.handler;
 
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.data.dao.JamGuild;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 public class Promote implements SlashHandler {
-    private final TeamData teamData;
-    private final JamData jamData;
+    private final Guilds guilds;
 
-    public Promote(TeamData teamData, JamData jamData) {
-        this.teamData = teamData;
-        this.jamData = jamData;
+    public Promote(Guilds guilds) {
+        this.guilds = guilds;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        var optJam = jamData.getNextOrCurrentJam(event.getGuild());
+        JamGuild guild = guilds.guild(event);
+        var optJam = guild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
             event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
@@ -31,25 +30,23 @@ public class Promote implements SlashHandler {
         var jam = optJam.get();
 
         var user = event.getOption("user").getAsMember();
-        teamData.getTeamByMember(jam, user)
-                .ifPresentOrElse(
-                        team -> {
-                            if (team.leader() != event.getUser().getIdLong()) {
-                                event.reply(context.localize("error.noleader")).setEphemeral(true).queue();
-                                return;
-                            }
+        jam.teams().byMember(user)
+           .ifPresentOrElse(
+                   team -> {
+                       if (!team.isLeader(event.getUser())) {
+                           event.reply(context.localize("error.noleader")).setEphemeral(true).queue();
+                           return;
+                       }
 
-                            if (user.getRoles().stream().noneMatch(role -> role.getIdLong() == team.roleId())) {
-                                event.reply(context.localize("command.team.promote.message.notinteam")).queue();
-                                return;
-                            }
+                       if (user.getRoles().stream().noneMatch(role -> role.getIdLong() == team.meta().role())) {
+                           event.reply(context.localize("command.team.promote.message.notinteam")).queue();
+                           return;
+                       }
 
-                            team.leader(user.getIdLong());
-                            teamData.updateTeam(team);
+                       team.meta().leader(user.getIdLong());
+                       event.reply(context.localize("command.team.promote.message.done")).setEphemeral(true).queue();
 
-                            event.reply(context.localize("command.team.promote.message.done")).setEphemeral(true).queue();
-
-                        },
-                        () -> event.reply(context.localize("error.noteam")).setEphemeral(true).queue());
+                   },
+                   () -> event.reply(context.localize("error.noteam")).setEphemeral(true).queue());
     }
 }

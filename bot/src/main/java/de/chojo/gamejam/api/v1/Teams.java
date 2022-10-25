@@ -11,9 +11,10 @@ import de.chojo.gamejam.api.exception.InterruptException;
 import de.chojo.gamejam.api.v1.wrapper.LeaderToken;
 import de.chojo.gamejam.api.v1.wrapper.TeamProfile;
 import de.chojo.gamejam.api.v1.wrapper.UserProfile;
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.TeamData;
-import de.chojo.gamejam.data.wrapper.team.JamTeam;
+import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.data.dao.JamGuild;
+import de.chojo.gamejam.data.dao.guild.jams.Jam;
+import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import io.javalin.http.Context;
 import io.javalin.http.HttpCode;
 import io.javalin.plugin.openapi.annotations.OpenApi;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
@@ -36,13 +38,11 @@ import static io.javalin.apibuilder.ApiBuilder.put;
 
 public class Teams {
     private final ShardManager shardManager;
-    private final TeamData teamData;
-    private final JamData jamData;
+    private final Guilds guilds;
 
-    public Teams(ShardManager shardManager, TeamData teamData, JamData jamData) {
+    public Teams(ShardManager shardManager, Guilds guilds) {
         this.shardManager = shardManager;
-        this.teamData = teamData;
-        this.jamData = jamData;
+        this.guilds = guilds;
     }
 
     private static void putName(Context ctx) {
@@ -154,7 +154,7 @@ public class Teams {
     private LeaderPath resolveTeamPath(Context ctx) throws InterruptException {
         var guild = shardManager.getGuildById(ctx.pathParamAsClass("guild-id", Long.class).get());
         Interrupt.assertNotFound(guild, "Guild");
-        var team = teamData.getTeamById(ctx.pathParamAsClass("team-id", Integer.class).get());
+        var team = guilds.guild(guild).teams().byId(ctx.pathParamAsClass("team-id", Integer.class).get());
         Interrupt.assertNotFound(team.isEmpty(), "Team");
         return new LeaderPath(team.get(), guild);
     }
@@ -190,9 +190,10 @@ public class Teams {
     })
     private void getGuildTeams(Context ctx) throws InterruptException {
         var guild = resolveGuild(ctx);
-        var jam = jamData.getNextOrCurrentJam(guild);
+        var jamGuild = guilds.guild(guild);
+        var jam = jamGuild.jams().nextOrCurrent();
         Interrupt.assertNoJam(jam.isEmpty());
-        ctx.status(HttpCode.OK).json(jam.get().teams().stream().map(TeamProfile::build).toList());
+        ctx.status(HttpCode.OK).json(jam.get().teams().teams().stream().map(TeamProfile::build).toList());
     }
 
     @OpenApi(responses = {
@@ -200,7 +201,7 @@ public class Teams {
     })
     private void getGuildTeamMembers(Context ctx) throws InterruptException {
         var teamPath = resolveTeamPath(ctx);
-        var teamMember = teamData.getMember(teamPath.team());
+        var teamMember = teamPath.team.member();
         List<Member> members = new ArrayList<>();
         for (var member : teamMember) {
             members.add(getMember(teamPath.guild(), member.userId()));
@@ -216,6 +217,6 @@ public class Teams {
         ctx.status(HttpCode.OK).json(TeamProfile.build(teamPath.team()));
     }
 
-    private record LeaderPath(JamTeam team, Guild guild) {
+    private record LeaderPath(Team team, Guild guild) {
     }
 }

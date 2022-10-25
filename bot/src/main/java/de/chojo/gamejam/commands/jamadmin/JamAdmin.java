@@ -10,7 +10,7 @@ import de.chojo.gamejam.commands.jamadmin.handler.Create;
 import de.chojo.gamejam.commands.jamadmin.handler.jam.JamEnd;
 import de.chojo.gamejam.commands.jamadmin.handler.jam.JamStart;
 import de.chojo.gamejam.commands.jamadmin.handler.votes.ChangeVotes;
-import de.chojo.gamejam.data.JamData;
+import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.jdautil.interactions.slash.Argument;
 import de.chojo.jdautil.interactions.slash.Group;
 import de.chojo.jdautil.interactions.slash.Slash;
@@ -20,11 +20,11 @@ import de.chojo.jdautil.interactions.slash.provider.SlashCommand;
 public class JamAdmin extends SlashCommand {
 
 
-    public JamAdmin(JamData jamData) {
+    public JamAdmin(Guilds guilds) {
         super(Slash.of("jamadmin", "command.jamadmin.description")
                 .adminCommand()
                 .subCommand(SubCommand.of("create", "command.jamadmin.create.description")
-                        .handler(new Create(jamData))
+                        .handler(new Create(guilds))
                         .argument(Argument.text("topic", "command.jamadmin.create.topic.description")
                                           .asRequired())
                         .argument(Argument.text("tagline", "command.jamadmin.create.tagline.description")
@@ -42,15 +42,15 @@ public class JamAdmin extends SlashCommand {
                                           .asRequired()))
                 .group(Group.of("jam", "command.jamadmin.jam.description")
                         .subCommand(SubCommand.of("start", "command.jamadmin.jam.start.description")
-                                .handler(new JamStart(jamData)))
+                                .handler(new JamStart(guilds)))
                         .subCommand(SubCommand.of("end", "command.jamadmin.jam.end.description")
-                                .handler(new JamEnd(jamData))
+                                .handler(new JamEnd(guilds))
                                 .argument(Argument.bool("confirm", "command.jamadmin.jam.confirm.description"))))
                 .group(Group.of("votes", "command.jamadmin.votes.description")
                         .subCommand(SubCommand.of("open", "command.jamadmin.votes.open.description")
-                                .handler(new ChangeVotes(jamData, true, "command.jamadmin.votes.message.opened")))
+                                .handler(new ChangeVotes(guilds, true, "command.jamadmin.votes.message.opened")))
                         .subCommand(SubCommand.of("close", "command.jamadmin.votes.close.description")
-                                .handler(new ChangeVotes(jamData, false, "command.jamadmin.votes.message.closed"))))
+                                .handler(new ChangeVotes(guilds, false, "command.jamadmin.votes.message.closed"))))
                 .build());
     }
 }

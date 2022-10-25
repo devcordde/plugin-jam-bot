@@ -6,53 +6,50 @@
 
 package de.chojo.gamejam.commands.team.handler;
 
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.data.dao.JamGuild;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 public class Rename implements SlashHandler {
-    private final TeamData teamData;
-    private final JamData jamData;
+    private final Guilds guilds;
 
-    public Rename(TeamData teamData, JamData jamData) {
-        this.teamData = teamData;
-        this.jamData = jamData;
+    public Rename(Guilds guilds) {
+        this.guilds = guilds;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        var optJam = jamData.getNextOrCurrentJam(event.getGuild());
+        JamGuild guild = guilds.guild(event);
+        var optJam = guild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
             event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
 
-        teamData.getTeamByName(jam, event.getOption("name").getAsString())
-                .ifPresentOrElse(
-                        team -> event.reply(context.localize("command.team.create.message.nametaken")).setEphemeral(true)
-                                     .queue(),
-                        () -> {
-                            var optCurrTeam = teamData.getTeamByMember(jam, event.getUser());
+        jam.teams().byName(event.getOption("name").getAsString())
+           .ifPresentOrElse(
+                   team -> event.reply(context.localize("command.team.create.message.nametaken")).setEphemeral(true)
+                                .queue(),
+                   () -> {
+                       var optCurrTeam = jam.teams().byMember(event.getUser());
 
-                            if (optCurrTeam.isEmpty()) {
-                                event.reply(context.localize("error.noteam")).setEphemeral(true).queue();
-                                return;
-                            }
+                       if (optCurrTeam.isEmpty()) {
+                           event.reply(context.localize("error.noteam")).setEphemeral(true).queue();
+                           return;
+                       }
 
-                            var team = optCurrTeam.get();
+                       var team = optCurrTeam.get();
 
-                            if (team.leader() != event.getUser().getIdLong()) {
-                                event.reply(context.localize("error.noleader")).setEphemeral(true).queue();
-                                return;
-                            }
+                       if (!team.isLeader(event.getUser())) {
+                           event.reply(context.localize("error.noleader")).setEphemeral(true).queue();
+                           return;
+                       }
 
-                            team.rename(event.getGuild(), event.getOption("name").getAsString());
-                            teamData.updateTeam(team);
-
-                            event.reply(context.localize("command.team.rename.message.done")).setEphemeral(true).queue();
-                        });
+                       team.meta().rename(event.getOption("name").getAsString());
+                       event.reply(context.localize("command.team.rename.message.done")).setEphemeral(true).queue();
+                   });
     }
 }

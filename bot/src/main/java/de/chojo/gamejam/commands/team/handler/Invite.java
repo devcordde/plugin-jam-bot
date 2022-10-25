@@ -6,9 +6,9 @@
 
 package de.chojo.gamejam.commands.team.handler;
 
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.TeamData;
-import de.chojo.gamejam.data.wrapper.team.JamTeam;
+import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.data.dao.JamGuild;
+import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.localization.LocalizationContext;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
@@ -23,17 +23,16 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public final class Invite implements SlashHandler {
-    private final TeamData teamData;
-    private final JamData jamData;
+    private final Guilds guilds;
 
-    public Invite(TeamData teamData, JamData jamData) {
-        this.teamData = teamData;
-        this.jamData = jamData;
+    public Invite(Guilds guilds) {
+        this.guilds = guilds;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        var optJam = jamData.getNextOrCurrentJam(event.getGuild());
+        JamGuild guild = guilds.guild(event);
+        var optJam = guild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
             event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
@@ -45,19 +44,21 @@ public final class Invite implements SlashHandler {
             return;
         }
 
-        var team = teamData.getTeamByMember(jam, event.getMember());
-        if (team.isEmpty()) {
+        var optTeam = jam.teams().byMember(event.getMember());
+        if (optTeam.isEmpty()) {
             event.reply(context.localize("error.noteam")).setEphemeral(true).queue();
             return;
         }
 
-        if (team.get().leader() != event.getUser().getIdLong()) {
+        var team = optTeam.get();
+
+        if (!team.isLeader(event.getUser())) {
             event.reply(context.localize("command.team.invite.message.noleader")).setEphemeral(true).queue();
             return;
         }
 
-        var member = teamData.getMember(team.get());
-        var settings = jamData.getJamSettings(event.getGuild());
+        var member = team.member();
+        var settings = guild.jamSettings();
 
         if (member.size() >= settings.teamSize()) {
             event.reply(context.localize("error.maxteamsize")).setEphemeral(true).queue();
@@ -71,7 +72,7 @@ public final class Invite implements SlashHandler {
             return;
         }
 
-        var currTeam = teamData.getTeamByMember(jam, user);
+        var currTeam = jam.teams().byMember(user);
 
         if (currTeam.isPresent()) {
             event.reply(context.localize("command.team.invite.message.partofteam")).queue();
@@ -80,50 +81,52 @@ public final class Invite implements SlashHandler {
 
         user.openPrivateChannel().queue(channel -> {
             var embed = new LocalizedEmbedBuilder(context.guildLocalizer())
-                    .setTitle("command.team.invite.message.invited", Replacement.create("GUILD", event.getGuild().getName()))
-                    .setDescription("command.team.invite.message.invitation", Replacement.createMention(event.getUser()), Replacement.create("TEAM", team.get()
-                                                                                                                                                         .name()))
+                    .setTitle("command.team.invite.message.invited", Replacement.create("GUILD", event.getGuild()
+                                                                                                      .getName()))
+                    .setDescription("command.team.invite.message.invitation",
+                            Replacement.createMention(event.getUser()), Replacement.create("TEAM", team.meta().name()))
                     .build();
             event.reply(context.localize("command.team.invite.message.send")).setEphemeral(true).queue();
             context.registerMenu(MenuAction.forChannel(embed, channel)
                                            .addComponent(ButtonEntry.of(Button.of(ButtonStyle.SUCCESS, "accept", "command.team.invite.message.accept"),
                                                    button -> accept(button, event.getGuild().getIdLong(),
-                                                           team.get(), user.getIdLong(), context.guildLocalizer())))
+                                                           team, user.getIdLong(), context.guildLocalizer())))
                                            .build());
         });
     }
 
-    private void accept(EntryContext<ButtonInteractionEvent, Button> button, long guildId, JamTeam team, long userId, LocalizationContext localizer) {
-        var members = teamData.getMember(team);
+    private void accept(EntryContext<ButtonInteractionEvent, Button> button, long guildId, Team team, long userId, LocalizationContext localizer) {
+        var members = team.member();
         var interaction = button.event();
         interaction.deferReply().queue();
         var manager = interaction.getJDA().getShardManager();
         var guild = manager.getGuildById(guildId);
         var user = manager.retrieveUserById(userId).complete();
         var member = guild.retrieveMember(user).complete();
-        var settings = jamData.getJamSettings(guild);
+        var jamGuild = guilds.guild(button.event());
+        var settings = jamGuild.jamSettings();
 
         if (members.size() >= settings.teamSize()) {
             interaction.getHook().editOriginal(localizer.localize("error.maxteamsize")).queue();
             return;
         }
-        var jam = jamData.getNextOrCurrentJam(guild);
+        var jam = jamGuild.jams().nextOrCurrent();
         if (jam.isEmpty()) {
             interaction.getHook().editOriginal(localizer.localize("command.team.invite.gameJamOver")).queue();
             return;
         }
 
-        var currTeam = teamData.getTeamByMember(jam.get(), user);
+        var currTeam = jam.get().teams().byMember(user);
 
         if (currTeam.isPresent()) {
             interaction.getHook().editOriginal(localizer.localize("command.team.invite.alreadyMember")).queue();
             return;
         }
 
-        teamData.joinTeam(team, member);
-        guild.addRoleToMember(member, guild.getRoleById(team.roleId())).queue();
+        jam.get().user(member).join(team);
+        guild.addRoleToMember(member, guild.getRoleById(team.meta().role())).queue();
         interaction.getHook().editOriginal(localizer.localize("command.team.invite.joined")).queue();
-        guild.getTextChannelById(team.textChannelId())
+        guild.getTextChannelById(team.meta().textChannel())
              .sendMessage(localizer.localize("command.team.invite.joinedBroadcast", Replacement.createMention(member)))
              .queue();
     }

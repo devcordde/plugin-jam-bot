@@ -6,8 +6,7 @@
 
 package de.chojo.gamejam.commands.vote.handler;
 
-import de.chojo.gamejam.data.JamData;
-import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.pagination.bag.ListPageBag;
@@ -18,21 +17,21 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import java.util.concurrent.CompletableFuture;
 
 public class Ranking implements SlashHandler {
-    private final TeamData teamData;
-    private final JamData jamData;
+    private final Guilds guilds;
 
-    public Ranking(TeamData teamData, JamData jamData) {
-        this.teamData = teamData;
-        this.jamData = jamData;
+    public Ranking(Guilds guilds) {
+        this.guilds = guilds;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        var optJam = jamData.getNextOrCurrentJam(event.getGuild());
+        var guild = guilds.guild(event);
+        var optJam = guild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
             event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
             return;
         }
+
         var jam = optJam.get();
 
         if (jam.state().isVoting()) {
@@ -40,14 +39,14 @@ public class Ranking implements SlashHandler {
             return;
         }
 
-        var ranking = teamData.votesByJam(jam);
+        var ranking = jam.votes();
 
         var pageBag = new ListPageBag<>(ranking) {
             @Override
             public CompletableFuture<MessageEmbed> buildPage() {
                 var teamVote = currentElement();
                 var embed = new LocalizedEmbedBuilder(context.guildLocalizer())
-                        .setTitle(teamVote.rank() + " | " + teamVote.jamTeam().name())
+                        .setTitle(teamVote.rank() + " | " + teamVote.team().meta().name())
                         .addField("command.votes.ranking.embed.votes", String.valueOf(teamVote.votes()), true)
                         .build();
                 return CompletableFuture.completedFuture(embed);

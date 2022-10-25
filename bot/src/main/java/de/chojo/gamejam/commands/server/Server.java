@@ -1,6 +1,12 @@
+/*
+ *     SPDX-License-Identifier: AGPL-3.0-only
+ *
+ *     Copyright (C) 2022 DevCord Team and Contributor
+ */
+
 package de.chojo.gamejam.commands.server;
 
-import de.chojo.gamejam.data.TeamData;
+import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.jdautil.interactions.slash.Argument;
 import de.chojo.jdautil.interactions.slash.Group;
@@ -9,7 +15,7 @@ import de.chojo.jdautil.interactions.slash.SubCommand;
 import de.chojo.jdautil.interactions.slash.provider.SlashCommand;
 
 public class Server extends SlashCommand {
-    public Server(TeamData teamData, ServerService serverService) {
+    public Server(Guilds guilds, ServerService serverService) {
         super(Slash.of("server", "Manage your server")
                 .adminCommand()
                 .group(Group.of("process", "Manage server process")
