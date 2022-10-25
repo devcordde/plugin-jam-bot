@@ -1,6 +1,6 @@
 package de.chojo.gamejam.commands.server;
 
-import de.chojo.gamejam.configuration.elements.ServerManagement;
+import de.chojo.gamejam.data.TeamData;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.jdautil.interactions.slash.Argument;
 import de.chojo.jdautil.interactions.slash.Group;
@@ -9,8 +9,9 @@ import de.chojo.jdautil.interactions.slash.SubCommand;
 import de.chojo.jdautil.interactions.slash.provider.SlashCommand;
 
 public class Server extends SlashCommand {
-    public Server(ServerService serverService) {
+    public Server(TeamData teamData, ServerService serverService) {
         super(Slash.of("server", "Manage your server")
+                .adminCommand()
                 .group(Group.of("process", "Manage server process")
                         .subCommand(SubCommand.of("start", "Start the server")
                                 .handler(null))
@@ -39,15 +40,13 @@ public class Server extends SlashCommand {
                                                   .asRequired()
                                                   .withAutoComplete())
                                 .argument(Argument.attachment("file", "File to upload")
-                                                  .asRequired()))
-                )
+                                                  .asRequired())))
                 .group(Group.of("plugins", "Manage installed plugins")
                         .subCommand(SubCommand.of("install", "install another plugin")
                                 .handler(null)
                                 .argument(Argument.text("plugin", "Plugin to install")
                                                   .asRequired()
-                                                  .withAutoComplete())
-                        )
+                                                  .withAutoComplete()))
                         .subCommand(SubCommand.of("uninstall", "Plugin to uninstall")
                                 .handler(null)
                                 .argument(Argument.bool("deletedata", "True to delete the plugin data as well")))
