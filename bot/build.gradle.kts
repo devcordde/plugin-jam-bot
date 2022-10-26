@@ -15,10 +15,11 @@ repositories {
 
 dependencies {
     // discord
-    implementation("de.chojo", "cjda-util", "2.7.6+alpha.22-DEV"){
+    implementation("de.chojo", "cjda-util", "2.7.6+alpha.22-DEV") {
         exclude(module = "opus-java")
     }
     implementation("io.javalin", "javalin-bundle", "4.4.0")
+    implementation("net.lingala.zip4j", "zip4j", "2.11.2")
 
     // database
     implementation("de.chojo.sadu", "sadu-queries", "1.2.0")

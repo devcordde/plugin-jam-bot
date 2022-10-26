@@ -9,11 +9,13 @@ package de.chojo.gamejam.server;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import de.chojo.jdautil.util.Futures;
+import net.lingala.zip4j.ZipFile;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
@@ -243,5 +245,78 @@ public class TeamServer {
 
     public Path logFile() {
         return serverDir().resolve("logs").resolve("latest.log");
+    }
+
+    public boolean replaceWorld(Path newWorld) {
+        log.info("Replacing world");
+        var worldDir = serverDir().resolve("world");
+        var tempWorld = serverDir().resolve("t_world");
+
+        try (var zip = new ZipFile(newWorld.toFile())) {
+            log.info("Extracting zip file");
+            zip.extractAll(tempWorld.toAbsolutePath().toString());
+        } catch (IOException e) {
+            log.info("Failed to extract zip file", e);
+            return false;
+        }
+
+        var copyWorld = tempWorld;
+        var dirFiles = List.of(tempWorld.toFile().listFiles());
+
+        var dirOffstet = 3;
+
+        if (dirFiles.size() == 1) {
+            log.info("No world data found");
+            copyWorld = tempWorld.resolve(dirFiles.get(0).getName());
+            dirOffstet++;
+        }
+
+        if (!copyWorld.resolve("region").toFile().exists()) {
+            log.warn("No region directory.");
+            return false;
+        }
+
+        log.info("Deleting old world");
+        try (var files = Files.walk(worldDir)) {
+            files.sorted(Comparator.reverseOrder())
+                 .map(Path::toFile)
+                 .forEach(File::delete);
+        } catch (NoSuchFileException e) {
+            // ignore
+        } catch (IOException e) {
+            log.error("Could not delete old world", e);
+            return false;
+        }
+
+        if (copyWorld.resolve("session.lock").toFile().exists()) {
+            log.info("Found session lock. Deleting.");
+            copyWorld.resolve("session.lock").toFile().delete();
+        }
+
+        log.info("Copy new world data.");
+        try (var files = Files.walk(copyWorld)) {
+            Files.createDirectories(worldDir);
+            for (var sourceTarget : files.toList()) {
+                // skip root dir
+                if (sourceTarget.getNameCount() == dirOffstet) continue;
+                var filePath = sourceTarget.subpath(dirOffstet, sourceTarget.getNameCount());
+                var serverTarget = worldDir.resolve(filePath);
+                Files.copy(sourceTarget, serverTarget, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            log.error("Could not copy world", e);
+            return false;
+        }
+
+        log.info("Cleaning up temp world");
+        try (var files = Files.walk(tempWorld)) {
+            files.sorted(Comparator.reverseOrder())
+                 .map(Path::toFile)
+                 .forEach(File::delete);
+        } catch (IOException e) {
+            log.info("Could not clean up temp world", e);
+            return false;
+        }
+        return true;
     }
 }
