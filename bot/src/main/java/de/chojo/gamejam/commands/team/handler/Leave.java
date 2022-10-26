@@ -25,7 +25,7 @@ public final class Leave implements SlashHandler {
         JamGuild jamGuild = guilds.guild(event);
         var optJam = jamGuild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
+            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
@@ -42,13 +42,12 @@ public final class Leave implements SlashHandler {
                    return;
                }
                team.member(event.getMember()).ifPresent(member -> {
-                   var guild = event.getGuild();
                    member.leave();
-                   guild.removeRoleFromMember(event.getMember(), guild.getRoleById(team.meta().role())).queue();
-                   guild.getTextChannelById(team.meta().textChannel())
-                        .sendMessage(context.localize("command.team.leave.leftBroadcast",
-                                Replacement.createMention(event.getMember())))
-                        .queue();
+                   team.meta().textChannel().ifPresent(channel -> {
+                       channel.sendMessage(context.localize("command.team.leave.leftBroadcast",
+                                      Replacement.createMention(event.getMember())))
+                              .queue();
+                   });
                    event.reply(context.localize("command.team.leave.left")).setEphemeral(true).queue();
                });
            }, () -> event.reply(context.localize("error.noteam")).setEphemeral(true).queue());

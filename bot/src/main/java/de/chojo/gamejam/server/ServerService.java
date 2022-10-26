@@ -25,7 +25,7 @@ public class ServerService {
         lastPort = configuration.serverManagement().minPort();
     }
 
-    public TeamServer create(Team team) {
+    public TeamServer get(Team team) {
         return server.computeIfAbsent(team, key -> new TeamServer(this, key, configuration, nextPort(), nextPort()));
     }
 
@@ -43,7 +43,7 @@ public class ServerService {
         freePorts.add(server.port());
         freePorts.add(server.apiPort());
         if (restart) {
-            create(server.team()).start();
+            get(server.team()).start();
         }
     }
 }

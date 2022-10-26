@@ -8,6 +8,13 @@ package de.chojo.gamejam.data.dao.guild.jams.jam.teams.team;
 
 import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import de.chojo.sadu.base.QueryFactory;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+
+import java.util.Optional;
 
 public class TeamMeta extends QueryFactory {
     private final Team team;
@@ -32,39 +39,43 @@ public class TeamMeta extends QueryFactory {
         return leader;
     }
 
-    public void leader(long leader) {
-        if (set("leader_id", leader)) {
-            this.leader = leader;
+    public void leader(Member leader) {
+        if (set("leader_id", leader.getIdLong())) {
+            this.leader = leader.getIdLong();
         }
     }
 
-    public long role() {
-        return role;
+    public Optional<Role> role() {
+        return Optional.ofNullable(guild().getRoleById(role));
     }
 
-    public long textChannel() {
-        return textChannel;
+    public Optional<TextChannel> textChannel() {
+        return Optional.ofNullable(guild().getTextChannelById(textChannel));
     }
 
-    public long voiceChannel() {
-        return voiceChannel;
+    private Guild guild(){
+        return team.jam().jamGuild().guild();
     }
 
-    public void role(long role) {
-        if (set("role_id", role)) {
-            this.role = role;
+    public Optional<VoiceChannel> voiceChannel() {
+        return Optional.ofNullable(guild().getVoiceChannelById(voiceChannel));
+    }
+
+    public void role(Role role) {
+        if (set("role_id", role.getIdLong())) {
+            this.role = role.getIdLong();
         }
     }
 
-    public void textChannel(long textChannel) {
-        if (set("text_channel_id", textChannel)) {
-            this.textChannel = textChannel;
+    public void textChannel(TextChannel textChannel) {
+        if (set("text_channel_id", textChannel.getIdLong())) {
+            this.textChannel = textChannel.getIdLong();
         }
     }
 
-    public void voiceChannel(long voiceChannel) {
-        if (set("voice_channel_id", voiceChannel)) {
-            this.voiceChannel = voiceChannel;
+    public void voiceChannel(VoiceChannel voiceChannel) {
+        if (set("voice_channel_id", voiceChannel.getIdLong())) {
+            this.voiceChannel = voiceChannel.getIdLong();
         }
     }
 
@@ -75,25 +86,24 @@ public class TeamMeta extends QueryFactory {
     public void rename(String name) {
         var changed = builder()
                 .query("""
-                       UPDATE team_meta SET name = ? WHERE team_id = ?
+                       UPDATE team_meta SET team_name = ? WHERE team_id = ?
                        """)
                 .parameter(stmt -> stmt.setString(name).setInt(team.id()))
                 .update()
                 .sendSync()
                 .changed();
         if (changed) {
-            var guild = team.jam().jamGuild().guild();
             this.name = name;
-            guild.getRoleById(role).getManager().setName(name()).queue();
-            guild.getTextChannelById(textChannel).getManager().setName(name().replace(" ", "-")).queue();
-            guild.getVoiceChannelById(voiceChannel).getManager().setName(name()).queue();
+            role().ifPresent(role -> role.getManager().setName(name()).queue());
+            textChannel().ifPresent(channel -> channel.getManager().setName(name().replace(" ", "-")).queue());
+            voiceChannel().ifPresent(channel -> channel.getManager().setName(name()).queue());
         }
     }
 
     private boolean set(String column, long value) {
         return builder()
                 .query("""
-                       INSERT INTO team_meta(team_id, %s) VALUES(?,?)
+                       INSERT INTO team_meta(team_id, team_name, %s) VALUES(?,'',?)
                        ON CONFLICT(team_id)
                            DO UPDATE
                                SET %s = excluded.%s

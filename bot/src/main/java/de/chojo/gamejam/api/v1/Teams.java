@@ -12,8 +12,6 @@ import de.chojo.gamejam.api.v1.wrapper.LeaderToken;
 import de.chojo.gamejam.api.v1.wrapper.TeamProfile;
 import de.chojo.gamejam.api.v1.wrapper.UserProfile;
 import de.chojo.gamejam.data.access.Guilds;
-import de.chojo.gamejam.data.dao.JamGuild;
-import de.chojo.gamejam.data.dao.guild.jams.Jam;
 import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import io.javalin.http.Context;
 import io.javalin.http.HttpCode;
@@ -30,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
@@ -204,7 +201,7 @@ public class Teams {
         var teamMember = teamPath.team.member();
         List<Member> members = new ArrayList<>();
         for (var member : teamMember) {
-            members.add(getMember(teamPath.guild(), member.userId()));
+            members.add(getMember(teamPath.guild(), member.member().getIdLong()));
         }
         ctx.status(HttpCode.OK).json(members.stream().map(UserProfile::build).toList());
     }

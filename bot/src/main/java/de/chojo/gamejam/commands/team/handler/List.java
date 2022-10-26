@@ -28,7 +28,7 @@ public class List implements SlashHandler {
         JamGuild guild = guilds.guild(event);
         var optJam = guild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
+            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();

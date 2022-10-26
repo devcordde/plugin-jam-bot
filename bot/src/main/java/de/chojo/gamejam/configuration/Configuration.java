@@ -15,7 +15,9 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import de.chojo.gamejam.configuration.elements.Api;
 import de.chojo.gamejam.configuration.elements.BaseSettings;
 import de.chojo.gamejam.configuration.elements.Database;
+import de.chojo.gamejam.configuration.elements.Plugins;
 import de.chojo.gamejam.configuration.elements.ServerManagement;
+import de.chojo.gamejam.configuration.elements.ServerTemplate;
 import de.chojo.gamejam.configuration.exception.ConfigurationException;
 import org.slf4j.Logger;
 
@@ -110,5 +112,13 @@ public class Configuration {
 
     public ServerManagement serverManagement() {
         return configFile.serverManagement();
+    }
+
+    public Plugins plugins() {
+        return configFile.plugins();
+    }
+
+    public ServerTemplate serverTemplate() {
+        return configFile.serverTemplate();
     }
 }

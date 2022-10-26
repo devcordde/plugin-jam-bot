@@ -13,12 +13,16 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -65,15 +69,26 @@ public class TeamServer {
     }
 
     public boolean setup() throws IOException {
-        if (!exists()) return false;
+        if (exists()) return false;
         var serverDir = serverDir();
         Files.createDirectories(serverDir);
 
-        var sourceDir = configuration.serverManagement().template();
-        try (var files = Files.walk(Path.of(sourceDir))) {
-            for (var source : files.toList()) {
-                var path = source.relativize(source);
-                Files.copy(source, serverDir.resolve(path));
+        var sourceDir = Path.of(configuration.serverTemplate().templateDir());
+        var symlinks = configuration.serverTemplate().symLinks()
+                                    .stream()
+                                    .map(sourceDir::resolve)
+                                    .collect(Collectors.toSet());
+        try (var files = Files.walk(sourceDir)) {
+            for (var sourceTarget : files.toList()) {
+                // skip root dir
+                if(sourceTarget.getNameCount() == 1) continue;
+                var filePath = sourceTarget.subpath(1, sourceTarget.getNameCount());
+                var serverTarget = serverDir.resolve(filePath);
+                if (symlinks.contains(sourceTarget)) {
+                    Files.createSymbolicLink(serverTarget, sourceTarget);
+                } else {
+                    Files.copy(sourceTarget, serverTarget, StandardCopyOption.REPLACE_EXISTING);
+                }
             }
         }
         return true;
@@ -161,7 +176,7 @@ public class TeamServer {
     }
 
     private Path serverDir() {
-        return Path.of("server", teamName());
+        return Path.of(configuration.serverManagement().serverDir(), String.valueOf(team().id()));
     }
 
     private String teamName() {

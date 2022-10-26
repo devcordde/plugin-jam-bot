@@ -6,6 +6,8 @@
 
 package de.chojo.gamejam.commands.server;
 
+import de.chojo.gamejam.commands.server.system.Delete;
+import de.chojo.gamejam.commands.server.system.Setup;
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.jdautil.interactions.slash.Argument;
@@ -28,9 +30,9 @@ public class Server extends SlashCommand {
                 )
                 .group(Group.of("system", "manage the server system")
                         .subCommand(SubCommand.of("setup", "Setup the server")
-                                .handler(null))
+                                .handler(new Setup(guilds, serverService)))
                         .subCommand(SubCommand.of("delete", "Delete the server data")
-                                .handler(null)))
+                                .handler(new Delete(guilds, serverService))))
                 .group(Group.of("upload", "Upload files")
                         .subCommand(SubCommand.of("world", "Upload a world replacing the current world")
                                 .handler(null)

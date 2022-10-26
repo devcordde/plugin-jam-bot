@@ -9,22 +9,23 @@ package de.chojo.gamejam;
 import de.chojo.gamejam.api.Api;
 import de.chojo.gamejam.commands.jamadmin.JamAdmin;
 import de.chojo.gamejam.commands.register.Register;
+import de.chojo.gamejam.commands.server.Server;
 import de.chojo.gamejam.commands.settings.Settings;
 import de.chojo.gamejam.commands.team.Team;
 import de.chojo.gamejam.commands.unregister.Unregister;
 import de.chojo.gamejam.commands.vote.Votes;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.server.ServerService;
 import de.chojo.gamejam.util.LogNotify;
 import de.chojo.jdautil.interactions.dispatching.InteractionHub;
-import de.chojo.jdautil.interactions.message.Message;
-import de.chojo.jdautil.interactions.slash.Slash;
-import de.chojo.jdautil.interactions.user.User;
 import de.chojo.jdautil.localization.ILocalizer;
 import de.chojo.jdautil.localization.Localizer;
 import de.chojo.sadu.databases.PostgreSql;
 import de.chojo.sadu.datasource.DataSourceCreator;
 import de.chojo.sadu.exceptions.ExceptionTransformer;
+import de.chojo.sadu.mapper.PostgresqlMapper;
+import de.chojo.sadu.mapper.RowMapperRegistry;
 import de.chojo.sadu.updater.QueryReplacement;
 import de.chojo.sadu.updater.SqlUpdater;
 import de.chojo.sadu.wrapper.QueryBuilderConfig;
@@ -39,6 +40,8 @@ import org.slf4j.Logger;
 import javax.security.auth.login.LoginException;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -63,9 +66,8 @@ public class Bot {
     private DataSource dataSource;
     private ILocalizer localizer;
     private ShardManager shardManager;
-    private InteractionHub<Slash, Message, User> commandHub;
-    private QueryBuilderConfig config;
     private Guilds guilds;
+    private ServerService serverService;
 
     private static ThreadFactory createThreadFactory(String string) {
         return createThreadFactory(new ThreadGroup(string));
@@ -100,6 +102,8 @@ public class Bot {
 
         initDb();
 
+        initServer();
+
         initBot();
 
         buildLocale();
@@ -107,6 +111,7 @@ public class Bot {
         buildCommands();
 
         Api.create(configuration, shardManager, guilds);
+
     }
 
     private void buildLocale() {
@@ -118,14 +123,15 @@ public class Bot {
     }
 
     private void buildCommands() {
-        commandHub = InteractionHub.builder(shardManager)
+        InteractionHub.builder(shardManager)
                 .withLocalizer(localizer)
                 .withCommands(new JamAdmin(guilds),
                         new Register(guilds),
                         new Settings(guilds),
                         new Team(guilds),
                         new Unregister(guilds),
-                        new Votes(guilds))
+                        new Votes(guilds),
+                        new Server(guilds, serverService))
                 .withPagination(builder -> builder.withLocalizer(localizer)
                                                   .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withMenuService(builder -> builder.withLocalizer(localizer)
@@ -146,9 +152,12 @@ public class Bot {
     }
 
     private void initDb() throws IOException, SQLException {
+        var mapperRegistry = new RowMapperRegistry();
+        mapperRegistry.register(PostgresqlMapper.getDefaultMapper());
         QueryBuilderConfig.setDefault(QueryBuilderConfig.builder()
                 .withExceptionHandler(err -> log.error(ExceptionTransformer.prettyException(err), err))
                 .withExecutor(createExecutor("DataWorker"))
+                .rowMappers(mapperRegistry)
                 .build());
 
         dataSource = DataSourceCreator.create(PostgreSql.get())
@@ -165,8 +174,21 @@ public class Bot {
 
         SqlUpdater.builder(dataSource, PostgreSql.get())
                 .setReplacements(new QueryReplacement("gamejam", configuration.database().schema()))
+                .setSchemas(configuration.database().schema())
                 .execute();
 
         guilds = new Guilds(dataSource);
+    }
+
+    private void initServer() throws IOException {
+        serverService = new ServerService(configuration);
+
+        var templateDir = Path.of(configuration.serverTemplate().templateDir());
+        var serverDir = Path.of(configuration.serverManagement().serverDir());
+        var pluginDir = Path.of(configuration.plugins().pluginDir());
+
+        Files.createDirectories(templateDir);
+        Files.createDirectories(serverDir);
+        Files.createDirectories(pluginDir);
     }
 }

@@ -12,3 +12,8 @@ Name of the server
 `-Djavalin.port`
 
 Port of the javalin api of the server
+
+## Start Arguments for velocity
+`-Djavalin.port`
+
+Port of the javalin api of the server

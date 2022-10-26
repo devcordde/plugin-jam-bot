@@ -6,22 +6,19 @@
 
 package de.chojo.gamejam.configuration.elements;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 public class ServerManagement {
-    private int minPort;
-    private int maxPort;
-    private int velocityApi;
-    private int maxPlayers;
-    private String template;
-    private int memory;
+    private String serverDir= "server";
+    private int minPort = 30001;
+    private int maxPort = 30500;
+    private int velocityApi = 30000;
+    private int maxPlayers = 50;
+    private int memory = 1024;
 
-    private List<String> parameter;
-
-    public String template() {
-        return template;
-    }
+    private List<String> parameter = new ArrayList<>();
 
     public int minPort() {
         return minPort;
@@ -45,5 +42,9 @@ public class ServerManagement {
 
     public int memory() {
         return memory;
+    }
+
+    public String serverDir() {
+        return serverDir;
     }
 }

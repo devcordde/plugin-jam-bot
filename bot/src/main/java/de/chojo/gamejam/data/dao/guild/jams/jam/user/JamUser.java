@@ -48,6 +48,11 @@ public class JamUser extends QueryFactory {
     }
 
     public boolean join(Team team) {
+        var guild = team.jam().jamGuild().guild();
+        var roleById = team.meta().role();
+
+        roleById.ifPresent(role -> guild.addRoleToMember(member, role).queue());
+
         return builder()
                 .query("INSERT INTO team_member(team_id, user_id) VALUES(?,?)")
                 .parameter(p -> p.setInt(team.id()).setLong(member.getIdLong()))

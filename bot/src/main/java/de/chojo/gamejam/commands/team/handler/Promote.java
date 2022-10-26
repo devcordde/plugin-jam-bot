@@ -8,9 +8,12 @@ package de.chojo.gamejam.commands.team.handler;
 
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.data.dao.JamGuild;
+import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+
+import java.util.Optional;
 
 public class Promote implements SlashHandler {
     private final Guilds guilds;
@@ -24,7 +27,7 @@ public class Promote implements SlashHandler {
         JamGuild guild = guilds.guild(event);
         var optJam = guild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
+            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
@@ -32,18 +35,13 @@ public class Promote implements SlashHandler {
         var user = event.getOption("user").getAsMember();
         jam.teams().byMember(user)
            .ifPresentOrElse(
-                   team -> {
-                       if (!team.isLeader(event.getUser())) {
+                   targetTeam -> {
+                       if (!targetTeam.isLeader(event.getUser())) {
                            event.reply(context.localize("error.noleader")).setEphemeral(true).queue();
                            return;
                        }
 
-                       if (user.getRoles().stream().noneMatch(role -> role.getIdLong() == team.meta().role())) {
-                           event.reply(context.localize("command.team.promote.message.notinteam")).queue();
-                           return;
-                       }
-
-                       team.meta().leader(user.getIdLong());
+                       targetTeam.meta().leader(user);
                        event.reply(context.localize("command.team.promote.message.done")).setEphemeral(true).queue();
 
                    },

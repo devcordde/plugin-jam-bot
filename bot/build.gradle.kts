@@ -10,15 +10,14 @@ repositories {
     maven("https://eldonexus.de/repository/maven-public")
     maven("https://eldonexus.de/repository/maven-proxies")
     maven("https://m2.dv8tion.net/releases")
+    mavenCentral()
 }
 
 dependencies {
     // discord
-    implementation("net.dv8tion", "JDA", "5.0.0-alpha.9") {
+    implementation("de.chojo", "cjda-util", "2.7.6+alpha.22-DEV"){
         exclude(module = "opus-java")
     }
-
-    implementation("de.chojo", "cjda-util", "2.7.6+alpha.21")
     implementation("io.javalin", "javalin-bundle", "4.4.0")
 
     // database
@@ -29,13 +28,13 @@ dependencies {
     implementation("org.postgresql", "postgresql", "42.3.3")
 
     // Logging
-    implementation("org.slf4j", "slf4j-api", "1.7.36")
-    implementation("org.apache.logging.log4j", "log4j-core", "2.17.2")
-    implementation("org.apache.logging.log4j", "log4j-slf4j-impl", "2.17.2")
+    implementation("org.slf4j", "slf4j-api", "2.0.3")
+    implementation("org.apache.logging.log4j", "log4j-core", "2.19.0")
+    implementation("org.apache.logging.log4j", "log4j-slf4j2-impl", "2.19.0")
     implementation("club.minnced", "discord-webhooks", "0.7.5")
 
     // unit testing
-    testImplementation(platform("org.junit:junit-bom:5.8.2"))
+    testImplementation(platform("org.junit:junit-bom:5.9.0"))
     testImplementation("org.junit.jupiter", "junit-jupiter")
 }
 

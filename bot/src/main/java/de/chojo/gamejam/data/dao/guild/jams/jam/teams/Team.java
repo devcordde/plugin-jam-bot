@@ -20,12 +20,14 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Team extends QueryFactory {
     private final Jam jam;
     private final int id;
+    private TeamMeta meta;
 
     public Team(Jam jam, int id) {
         super(jam);
@@ -34,20 +36,19 @@ public class Team extends QueryFactory {
     }
 
     public void delete() {
-        var guild = jam.jamGuild().guild();
         var meta = meta();
-        guild.getTextChannelById(meta.textChannel()).delete().queue();
-        guild.getVoiceChannelById(meta.voiceChannel()).delete().queue();
-        guild.getRoleById(meta.role()).delete().queue();
+        meta.textChannel().ifPresent(channel -> channel.delete().queue());
+        meta.voiceChannel().ifPresent(channel -> channel.delete().queue());
+        meta.role().ifPresent(role -> role.delete().queue());
     }
 
     public MessageEmbed profileEmbed(LocalizationContext localizer) {
 
         var member = member().stream()
-                             .map(u -> MentionUtil.user(u.userId()))
+                             .map(u -> u.member().getAsMention())
                              .collect(Collectors.joining(", "));
 
-        TeamMeta meta = meta();
+        var meta = meta();
         return new LocalizedEmbedBuilder(localizer)
                 .setTitle(meta.name())
                 .addField("command.team.profile.member", member, true)
@@ -60,8 +61,18 @@ public class Team extends QueryFactory {
         return builder(TeamMember.class)
                 .query("SELECT user_id FROM team_member WHERE team_id = ?")
                 .parameter(p -> p.setInt(id()))
-                .readRow(r -> new TeamMember(this, r.getLong("user_id")))
-                .allSync();
+                .readRow(r -> {
+                    try {
+                        var member = jam.jamGuild().guild().retrieveMemberById(r.getLong("user_id")).complete();
+                        return new TeamMember(this, member);
+                    } catch (RuntimeException e) {
+                        return null;
+                    }
+                })
+                .allSync()
+                .stream()
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     public int id() {
@@ -73,7 +84,7 @@ public class Team extends QueryFactory {
         return meta().name().toLowerCase(Locale.ROOT).contains(name.toLowerCase(Locale.ROOT));
     }
 
-    public boolean isLeader(ISnowflake snowflake){
+    public boolean isLeader(ISnowflake snowflake) {
         return meta().leader() == snowflake.getIdLong();
     }
 
@@ -132,26 +143,29 @@ public class Team extends QueryFactory {
     }
 
     public TeamMeta meta() {
-        return builder(TeamMeta.class)
-                .query("""
-                       SELECT name,
-                              leader_id,
-                              role_id,
-                              text_channel_id,
-                              voice_channel_id
-                       FROM team_meta WHERE team_id = ?
-                       """)
-                .parameter(stmt -> stmt.setInt(id))
-                .readRow(row -> new TeamMeta(this, row.getString("name"), row.getLong("leader_id"), row.getLong("role_id"), row.getLong("text_channel_id"), row.getLong("voice_channel_id")))
-                .firstSync()
-                .orElseThrow();
+        if (meta == null) {
+            meta = builder(TeamMeta.class)
+                    .query("""
+                           SELECT team_name,
+                                  leader_id,
+                                  role_id,
+                                  text_channel_id,
+                                  voice_channel_id
+                           FROM team_meta WHERE team_id = ?
+                           """)
+                    .parameter(stmt -> stmt.setInt(id))
+                    .readRow(row -> new TeamMeta(this, row.getString("team_name"), row.getLong("leader_id"), row.getLong("role_id"), row.getLong("text_channel_id"), row.getLong("voice_channel_id")))
+                    .firstSync()
+                    .orElseThrow();
+        }
+        return meta;
     }
 
     public Optional<TeamMember> member(Member member) {
         return builder(TeamMember.class)
                 .query("SELECT user_id FROM team_member WHERE team_id = ? AND user_id = ?")
-                .parameter(p -> p.setInt(id()))
-                .readRow(r -> new TeamMember(this, r.getLong("user_id")))
+                .parameter(p -> p.setInt(id()).setLong(member.getIdLong()))
+                .readRow(r -> new TeamMember(this, member))
                 .firstSync();
     }
 }

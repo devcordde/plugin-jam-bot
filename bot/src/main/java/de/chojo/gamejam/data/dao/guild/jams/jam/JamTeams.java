@@ -24,25 +24,28 @@ public class JamTeams extends QueryFactory {
     }
 
     public Team create(String name) {
-        return builder(Team.class)
+        var teamId = builder(Integer.class)
                 .query("""
-                       WITH id AS (
-                           INSERT INTO team(jam_id) VALUES(?) RETURNING id AS team_id
-                       )
-                       INSERT INTO team_meta(team_id, name)
-                       VALUES ((SELECT team_id FROM id),?) RETURNING team_id;
+                       INSERT INTO team(jam_id) VALUES(?) RETURNING id AS team_id;
                        """)
-                .parameter(stmt -> stmt.setInt(jam.jamId()).setString(name))
-                .readRow(row -> new Team(jam, row.getInt("id")))
+                .parameter(stmt -> stmt.setInt(jam.jamId()))
+                .readRow(row -> row.getInt("team_id"))
                 .firstSync()
                 .orElseThrow();
+        builder().query("""
+                        INSERT INTO team_meta(team_id, team_name) VALUES (?,?);
+                        """)
+                .parameter(stmt -> stmt.setInt(teamId).setString(name))
+                .insert()
+                .sendSync();
+        return new Team(jam, teamId);
     }
 
     public List<Team> teams() {
         return builder(Team.class)
                 .query("""
                        SELECT id,
-                              name
+                              team_name
                        FROM team t
                           LEFT JOIN team_meta m ON t.id = m.team_id
                        WHERE jam_id = ?
@@ -59,11 +62,10 @@ public class JamTeams extends QueryFactory {
     public Optional<Team> byMember(User member) {
         return builder(Integer.class)
                 .query("""
-                       SELECT
-                           m.team_id
+                       SELECT m.team_id
                        FROM team_member m
-                       LEFT JOIN team t ON t.id = m.team_id
-                       LEFT JOIN jam j ON j.id = t.jam_id
+                           LEFT JOIN team t ON t.id = m.team_id
+                           LEFT JOIN jam j ON j.id = t.jam_id
                        WHERE j.id = ?
                            AND user_id = ?
                        """)
@@ -78,7 +80,7 @@ public class JamTeams extends QueryFactory {
                 .query("""
                        SELECT id FROM team t LEFT JOIN team_meta m ON t.id = m.team_id
                        WHERE jam_id = ?
-                           AND LOWER(m.name) = LOWER(?)
+                           AND LOWER(m.team_name) = LOWER(?)
                        """)
                 .parameter(p -> p.setInt(jam.jamId()).setString(name))
                 .readRow(r -> r.getInt("id"))
@@ -88,7 +90,7 @@ public class JamTeams extends QueryFactory {
 
     public Optional<Team> byId(int id) {
         return builder(Team.class)
-                .query("SELECT id, name FROM team t LEFT JOIN team_meta m ON t.id = m.team_id WHERE id = ?")
+                .query("SELECT id, team_name FROM team t LEFT JOIN team_meta m ON t.id = m.team_id WHERE id = ?")
                 .parameter(stmt -> stmt.setInt(id))
                 .readRow(r -> new Team(jam, r.getInt("id")))
                 .firstSync();

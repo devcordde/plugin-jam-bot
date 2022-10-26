@@ -25,7 +25,7 @@ public final class Disband implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         Optional<Jam> optJam = guilds.guild(event).jams().nextOrCurrent();
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
+            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
@@ -51,13 +51,11 @@ public final class Disband implements SlashHandler {
 
         var members = team.member();
         for (var teamMember : members) {
-            event.getJDA().getShardManager().retrieveUserById(teamMember.userId())
-                 .flatMap(u -> event.getGuild().retrieveMember(u))
-                 .queue(member -> {
-                     member.getUser().openPrivateChannel()
-                           .flatMap(channel -> channel.sendMessage(context.localize("command.team.disband.message.disbanded")))
-                           .queue();
-                 });
+            teamMember.member()
+                      .getUser()
+                      .openPrivateChannel()
+                      .flatMap(channel -> channel.sendMessage(context.localize("command.team.disband.message.disbanded")))
+                      .queue();
         }
 
         if (team.disband()) {

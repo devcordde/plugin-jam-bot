@@ -17,7 +17,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public class PluginJam extends JavaPlugin implements Listener {
     private Api api;
-    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     private ReportService service;
 
     @Override

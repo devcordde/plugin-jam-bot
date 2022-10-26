@@ -1,9 +1,3 @@
-/*
- *     SPDX-License-Identifier: AGPL-3.0-only
- *
- *     Copyright (C) 2022 DevCord Team and Contributor
- */
-
 package de.chojo.gamejam.commands.server.system;
 
 import de.chojo.gamejam.data.access.Guilds;
@@ -17,14 +11,14 @@ import java.io.IOException;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class Setup implements SlashHandler {
-    private static final Logger log = getLogger(Setup.class);
-    private final ServerService serverService;
+public class Delete implements SlashHandler {
+    private static final Logger log = getLogger(Delete.class);
     private final Guilds guilds;
+    private final ServerService serverService;
 
-    public Setup(Guilds guilds, ServerService serverService) {
-        this.serverService = serverService;
+    public Delete(Guilds guilds, ServerService serverService) {
         this.guilds = guilds;
+        this.serverService = serverService;
     }
 
     @Override
@@ -47,19 +41,19 @@ public class Setup implements SlashHandler {
         var team = optTeam.get();
 
         var teamServer = serverService.get(team);
-        boolean setup;
+        boolean deleted;
         try {
-            setup = teamServer.setup();
+            deleted = teamServer.purge();
         } catch (IOException e) {
-            log.error("Could not setup server", e);
-            event.reply("Something went wrong during server setup").queue();
+            log.error("Could not purge server", e);
+            event.reply("Something went wrong during server deletion").queue();
             return;
         }
 
-        if (setup) {
-            event.reply("Server was setup successfully.").queue();
+        if (deleted) {
+            event.reply("Server was deleted successfully.").queue();
         } else {
-            event.reply("Server was already created.").queue();
+            event.reply("Server is not set up.").queue();
         }
     }
 }

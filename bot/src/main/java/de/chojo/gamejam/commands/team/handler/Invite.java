@@ -34,7 +34,7 @@ public final class Invite implements SlashHandler {
         JamGuild guild = guilds.guild(event);
         var optJam = guild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
+            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
@@ -124,10 +124,11 @@ public final class Invite implements SlashHandler {
         }
 
         jam.get().user(member).join(team);
-        guild.addRoleToMember(member, guild.getRoleById(team.meta().role())).queue();
+        team.meta().role().ifPresent(role -> guild.addRoleToMember(member, role));
         interaction.getHook().editOriginal(localizer.localize("command.team.invite.joined")).queue();
-        guild.getTextChannelById(team.meta().textChannel())
-             .sendMessage(localizer.localize("command.team.invite.joinedBroadcast", Replacement.createMention(member)))
-             .queue();
+        team.meta().textChannel().ifPresent(channel -> {
+            channel.sendMessage(localizer.localize("command.team.invite.joinedBroadcast", Replacement.createMention(member)))
+                   .queue();
+        });
     }
 }

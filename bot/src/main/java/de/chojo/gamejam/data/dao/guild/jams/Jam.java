@@ -55,7 +55,7 @@ public class Jam extends QueryFactory {
         return builder(Long.class)
                 .query("SELECT user_id FROM jam_registrations WHERE jam_id = ?")
                 .parameter(stmt -> stmt.setInt(id))
-                .map()
+                .readRow(row -> row.getLong("user_id"))
                 .allSync();
     }
 

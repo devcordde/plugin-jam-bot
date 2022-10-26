@@ -8,6 +8,7 @@ package de.chojo.gamejam.commands.team.handler;
 
 
 import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.data.dao.guild.jams.jam.user.JamUser;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.Permission;
@@ -28,7 +29,7 @@ public final class Create implements SlashHandler {
         var jamGuild = guilds.guild(event.getGuild());
         var optJam = jamGuild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
-            event.reply(context.localize("command.team.message.nojamactive")).setEphemeral(true).queue();
+            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
             return;
         }
         var jam = optJam.get();
@@ -42,7 +43,9 @@ public final class Create implements SlashHandler {
             event.reply(context.localize("command.team.create.message.unregistered")).setEphemeral(true).queue();
             return;
         }
-        var userTeam = jam.teams().byMember(event.getMember());
+        var jamUser = jam.user(event.getMember());
+
+        var userTeam = jamUser.team();
         if (userTeam.isPresent()) {
             event.reply(context.localize("command.team.create.message.alreadymember")).setEphemeral(true).queue();
             return;
@@ -94,12 +97,12 @@ public final class Create implements SlashHandler {
         var team = jam.teams()
                 .create(teamName);
         var meta = team.meta();
-        meta.leader(event.getMember().getIdLong());
-        meta.textChannel(text.getIdLong());
-        meta.voiceChannel(voice.getIdLong());
-        meta.role(role.getIdLong());
+        meta.leader(event.getMember());
+        meta.textChannel(text);
+        meta.voiceChannel(voice);
+        meta.role(role);
+        jamUser.join(team);
 
-        event.getGuild().addRoleToMember(event.getMember(), role).queue();
         event.getHook().editOriginal(context.localize("command.team.create.message.created")).queue();
     }
 }
