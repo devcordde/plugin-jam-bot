@@ -6,6 +6,8 @@
 
 package de.chojo.gamejam.commands.server;
 
+import de.chojo.gamejam.commands.server.process.Console;
+import de.chojo.gamejam.commands.server.process.Log;
 import de.chojo.gamejam.commands.server.process.Restart;
 import de.chojo.gamejam.commands.server.process.Start;
 import de.chojo.gamejam.commands.server.process.Stop;
@@ -29,7 +31,11 @@ public class Server extends SlashCommand {
                         .subCommand(SubCommand.of("stop", "Stop the server")
                                 .handler(new Stop(guilds, serverService)))
                         .subCommand(SubCommand.of("restart", "Restart the server")
-                                .handler(new Restart(guilds, serverService))))
+                                .handler(new Restart(guilds, serverService)))
+                        .subCommand(SubCommand.of("console", "Send a command via console")
+                                .handler(new Console(guilds, serverService)))
+                        .subCommand(SubCommand.of("log", "Restart the server")
+                                .handler(new Log(guilds, serverService))))
                 .group(Group.of("system", "manage the server system")
                         .subCommand(SubCommand.of("setup", "Setup the server")
                                 .handler(new Setup(guilds, serverService)))

@@ -240,4 +240,8 @@ public class TeamServer {
                ", apiPort=" + apiPort +
                '}';
     }
+
+    public Path logFile() {
+        return serverDir().resolve("logs").resolve("latest.log");
+    }
 }
