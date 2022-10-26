@@ -168,4 +168,9 @@ public class Team extends QueryFactory {
                 .readRow(r -> new TeamMember(this, member))
                 .firstSync();
     }
+
+    @Override
+    public String toString() {
+        return "%s (%s)".formatted(meta().name(), id);
+    }
 }

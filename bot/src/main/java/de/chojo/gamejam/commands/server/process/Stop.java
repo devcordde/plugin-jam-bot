@@ -4,25 +4,19 @@
  *     Copyright (C) 2022 DevCord Team and Contributor
  */
 
-package de.chojo.gamejam.commands.server.system;
+package de.chojo.gamejam.commands.server.process;
 
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import org.slf4j.Logger;
 
-import java.io.IOException;
-
-import static org.slf4j.LoggerFactory.getLogger;
-
-public class Delete implements SlashHandler {
-    private static final Logger log = getLogger(Delete.class);
+public class Stop implements SlashHandler {
     private final Guilds guilds;
     private final ServerService serverService;
 
-    public Delete(Guilds guilds, ServerService serverService) {
+    public Stop(Guilds guilds, ServerService serverService) {
         this.guilds = guilds;
         this.serverService = serverService;
     }
@@ -47,19 +41,8 @@ public class Delete implements SlashHandler {
         var team = optTeam.get();
 
         var teamServer = serverService.get(team);
-        boolean deleted;
-        try {
-            deleted = teamServer.purge();
-        } catch (IOException e) {
-            log.error("Could not purge server", e);
-            event.reply("Something went wrong during server deletion").queue();
-            return;
-        }
-
-        if (deleted) {
-            event.reply("Server was deleted successfully.").queue();
-        } else {
-            event.reply("Server is not set up.").queue();
+        if (teamServer.exists()) {
+            teamServer.stop(false).thenRun(() ->event.reply("Server stopped").queue());
         }
     }
 }
