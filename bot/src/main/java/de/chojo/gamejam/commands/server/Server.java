@@ -13,6 +13,7 @@ import de.chojo.gamejam.commands.server.process.Start;
 import de.chojo.gamejam.commands.server.process.Stop;
 import de.chojo.gamejam.commands.server.system.Delete;
 import de.chojo.gamejam.commands.server.system.Setup;
+import de.chojo.gamejam.commands.server.upload.Plugin;
 import de.chojo.gamejam.commands.server.upload.World;
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
@@ -48,7 +49,7 @@ public class Server extends SlashCommand {
                                 .argument(Argument.text("url", "Link to download the world as zip"))
                                 .argument(Argument.attachment("file", "World as zip")))
                         .subCommand(SubCommand.of("plugin", "Upload your plugin")
-                                .handler(null)
+                                .handler(new Plugin(guilds, serverService))
                                 .argument(Argument.attachment("file", "Your plugin file")
                                                   .asRequired()))
                         .subCommand(SubCommand.of("plugindata", "Upload plugin data")

@@ -319,4 +319,23 @@ public class TeamServer {
         }
         return true;
     }
+
+    public Path plugins() {
+        var plugins = serverDir().resolve("plugins");
+        try {
+            Files.createDirectories(plugins);
+        } catch (IOException e) {
+            //ignore
+        }
+        return plugins;
+    }
+    public Path world() {
+        var plugins = serverDir().resolve("world");
+        try {
+            Files.createDirectories(plugins);
+        } catch (IOException e) {
+            //ignore
+        }
+        return plugins;
+    }
 }
