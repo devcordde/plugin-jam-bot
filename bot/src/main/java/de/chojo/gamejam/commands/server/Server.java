@@ -43,25 +43,6 @@ public class Server implements SlashProvider<Slash> {
         this.configuration = configuration;
     }
 
-    public Optional<TeamServer> getServer(SlashCommandInteractionEvent event, EventContext context) {
-        var optJam = guilds.guild(event).jams().activeJam();
-
-        if (optJam.isEmpty()) {
-            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
-            return Optional.empty();
-        }
-
-        var jam = optJam.get();
-        var optTeam = jam.teams().byMember(event.getUser());
-
-        if (optTeam.isEmpty()) {
-            event.reply(context.localize("error.noteam")).setEphemeral(true).queue();
-            return Optional.empty();
-        }
-
-        return Optional.ofNullable(serverService.get(optTeam.get()));
-    }
-
     @Override
     public Slash slash() {
         return Slash.of("server", "Manage your server")
@@ -109,5 +90,24 @@ public class Server implements SlashProvider<Slash> {
                                 .argument(Argument.text("plugin", "The plugin to uninstall").asRequired().withAutoComplete())
                                 .argument(Argument.bool("deletedata", "True to delete the plugin data as well").asRequired()))
                 ).build();
+    }
+
+    public Optional<TeamServer> getServer(SlashCommandInteractionEvent event, EventContext context) {
+        var optJam = guilds.guild(event).jams().activeJam();
+
+        if (optJam.isEmpty()) {
+            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
+            return Optional.empty();
+        }
+
+        var jam = optJam.get();
+        var optTeam = jam.teams().byMember(event.getUser());
+
+        if (optTeam.isEmpty()) {
+            event.reply(context.localize("error.noteam")).setEphemeral(true).queue();
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(serverService.get(optTeam.get()));
     }
 }

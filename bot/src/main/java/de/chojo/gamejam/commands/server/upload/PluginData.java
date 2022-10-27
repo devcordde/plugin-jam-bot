@@ -20,10 +20,6 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -49,17 +45,33 @@ public class PluginData implements SlashHandler {
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var optServer = server.getServer(event, context);
-        if(optServer.isEmpty())return;
+        if (optServer.isEmpty()) return;
         var teamServer = optServer.get();
 
         var downloadUrl = event.getOption("file").getAsAttachment().getProxy().getUrl();
+        var path = event.getOption("path").getAsString();
+
+        if (path.contains("..")) {
+            event.reply("Invalid path").queue();
+            return;
+        }
 
         var download = ProgressDownloader.download(event, context, downloadUrl);
 
         if (download.isEmpty()) return;
-        var pluginFile = teamServer.plugins();
 
-        pluginFile = pluginFile.resolve(event.getOption("path").getAsString());
+        var pluginFile = teamServer.plugins().resolve(path);
+        // No upload in plugin root
+        if (pluginFile.getParent().equals(teamServer.plugins())) {
+            event.reply("Invalid path").queue();
+            return;
+        }
+
+        // No updates into the update directory
+        if(pluginFile.equals(teamServer.plugins().resolve("update"))){
+            event.reply("Invalid path").queue();
+            return;
+        }
         try {
             Files.copy(download.get(), pluginFile, StandardCopyOption.REPLACE_EXISTING);
             event.getHook().editOriginal("Added or replaced file.").queue();
@@ -81,6 +93,10 @@ public class PluginData implements SlashHandler {
         if ("path".equals(option.getName())) {
             var plugins = server.plugins();
             var currPath = option.getValue();
+            if (currPath.contains("..")) {
+                event.replyChoices().queue();
+                return;
+            }
             var split = currPath.split("/");
 
             // Root dir

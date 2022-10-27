@@ -55,7 +55,7 @@ public class Uninstall implements SlashHandler {
             var pluginDir = teamServer.plugins().resolve(pluginName);
             teamServer.deleteDirectory(pluginDir);
             event.reply("Uninstalled plugin and deleted data").queue();
-        }else {
+        } else {
             event.reply("Uninstalled plugin.").queue();
         }
     }
@@ -73,17 +73,21 @@ public class Uninstall implements SlashHandler {
             var allowedPlugins = configuration.plugins().pluginFiles().stream()
                                               .map(File::getName)
                                               .collect(Collectors.toSet());
-            var installesPlugins = Stream.of(optServer.get().plugins().toFile().listFiles(File::isFile))
+
+            var installedPlugins = Stream.of(optServer.get().plugins().toFile().listFiles(File::isFile))
                     .filter(plugin -> allowedPlugins.contains(plugin.getName()))
                     .map(file -> file.getName().replace(".jar", ""))
                     .toList();
+
             var currValue = option.getValue().toLowerCase();
+
             if (currValue.isEmpty()) {
-                event.replyChoices(Choice.toStringChoice(installesPlugins))
+                event.replyChoices(Choice.toStringChoice(installedPlugins))
                      .queue();
                 return;
             }
-            var stream = installesPlugins.stream()
+
+            var stream = installedPlugins.stream()
                                          .filter(name -> name.toLowerCase().startsWith(currValue))
                                          .limit(25);
             event.replyChoices(Choice.toStringChoice(stream)).queue();
