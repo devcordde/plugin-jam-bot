@@ -105,12 +105,7 @@ public class TeamServer {
     public boolean purge() throws IOException {
         if (!exists()) return false;
         log.info("Purging server of team {}", team);
-        try (var files = Files.walk(serverDir())) {
-            files.sorted(Comparator.reverseOrder())
-                 .map(Path::toFile)
-                 .forEach(File::delete);
-        }
-        return true;
+        return deleteDirectory(serverDir());
     }
 
     public boolean start() {
@@ -277,14 +272,7 @@ public class TeamServer {
         }
 
         log.info("Deleting old world");
-        try (var files = Files.walk(worldDir)) {
-            files.sorted(Comparator.reverseOrder())
-                 .map(Path::toFile)
-                 .forEach(File::delete);
-        } catch (NoSuchFileException e) {
-            // ignore
-        } catch (IOException e) {
-            log.error("Could not delete old world", e);
+        if (!deleteDirectory(worldDir)) {
             return false;
         }
 
@@ -309,12 +297,18 @@ public class TeamServer {
         }
 
         log.info("Cleaning up temp world");
-        try (var files = Files.walk(tempWorld)) {
+        return deleteDirectory(tempWorld);
+    }
+
+    public boolean deleteDirectory(Path path) {
+        try (var files = Files.walk(path)) {
             files.sorted(Comparator.reverseOrder())
                  .map(Path::toFile)
                  .forEach(File::delete);
+        } catch (NoSuchFileException e){
+            return true;
         } catch (IOException e) {
-            log.info("Could not clean up temp world", e);
+            log.info("Could not delete directory", e);
             return false;
         }
         return true;
@@ -329,6 +323,7 @@ public class TeamServer {
         }
         return plugins;
     }
+
     public Path world() {
         var plugins = serverDir().resolve("world");
         try {

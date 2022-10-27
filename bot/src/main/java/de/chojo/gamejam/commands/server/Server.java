@@ -7,6 +7,7 @@
 package de.chojo.gamejam.commands.server;
 
 import de.chojo.gamejam.commands.server.plugins.Install;
+import de.chojo.gamejam.commands.server.plugins.Uninstall;
 import de.chojo.gamejam.commands.server.process.Console;
 import de.chojo.gamejam.commands.server.process.Log;
 import de.chojo.gamejam.commands.server.process.Restart;
@@ -104,7 +105,7 @@ public class Server implements SlashProvider<Slash> {
                                                   .asRequired()
                                                   .withAutoComplete()))
                         .subCommand(SubCommand.of("uninstall", "Plugin to uninstall")
-                                .handler(null)
+                                .handler(new Uninstall(this, configuration, guilds, serverService))
                                 .argument(Argument.text("plugin", "The plugin to uninstall").asRequired().withAutoComplete())
                                 .argument(Argument.bool("deletedata", "True to delete the plugin data as well").asRequired()))
                 ).build();
