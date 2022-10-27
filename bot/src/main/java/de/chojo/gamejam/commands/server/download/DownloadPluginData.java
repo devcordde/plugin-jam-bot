@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,7 +61,6 @@ public class DownloadPluginData implements SlashHandler {
 
         var pluginFile = teamServer.plugins().resolve(path);
 
-
         if (pluginFile.toFile().isFile()) {
             // No download from plugin root
             if (pluginFile.getParent().equals(teamServer.plugins())) {
@@ -77,7 +75,9 @@ public class DownloadPluginData implements SlashHandler {
         Path tempFile;
         try {
             tempFile = TempFile.createPath("download", "zip");
-            new ZipFile(tempFile.toFile()).addFolder(pluginFile.toFile());
+            try (var zip = new ZipFile(tempFile.toFile())) {
+                zip.addFolder(pluginFile.toFile());
+            }
             tempFile.toFile().deleteOnExit();
         } catch (ZipException e) {
             log.error("Failed to zip date", e);
