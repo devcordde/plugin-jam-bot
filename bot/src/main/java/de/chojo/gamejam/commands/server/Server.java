@@ -14,6 +14,7 @@ import de.chojo.gamejam.commands.server.process.Stop;
 import de.chojo.gamejam.commands.server.system.Delete;
 import de.chojo.gamejam.commands.server.system.Setup;
 import de.chojo.gamejam.commands.server.upload.Plugin;
+import de.chojo.gamejam.commands.server.upload.PluginData;
 import de.chojo.gamejam.commands.server.upload.World;
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
@@ -53,7 +54,7 @@ public class Server extends SlashCommand {
                                 .argument(Argument.attachment("file", "Your plugin file")
                                                   .asRequired()))
                         .subCommand(SubCommand.of("plugindata", "Upload plugin data")
-                                .handler(null)
+                                .handler(new PluginData(guilds, serverService))
                                 .argument(Argument.text("path", "Path in the plugin directory")
                                                   .asRequired()
                                                   .withAutoComplete())
