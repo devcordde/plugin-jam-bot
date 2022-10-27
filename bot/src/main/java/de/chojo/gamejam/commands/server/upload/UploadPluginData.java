@@ -30,13 +30,13 @@ import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class PluginData implements SlashHandler {
-    private static final Logger log = getLogger(PluginData.class);
+public class UploadPluginData implements SlashHandler {
+    private static final Logger log = getLogger(UploadPluginData.class);
     private final Server server;
     private final Guilds guilds;
     private final ServerService serverService;
 
-    public PluginData(Server server, Guilds guilds, ServerService serverService) {
+    public UploadPluginData(Server server, Guilds guilds, ServerService serverService) {
         this.server = server;
         this.guilds = guilds;
         this.serverService = serverService;

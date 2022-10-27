@@ -6,6 +6,7 @@
 
 package de.chojo.gamejam.commands.server;
 
+import de.chojo.gamejam.commands.server.download.DownloadPluginData;
 import de.chojo.gamejam.commands.server.plugins.Install;
 import de.chojo.gamejam.commands.server.plugins.Uninstall;
 import de.chojo.gamejam.commands.server.process.Console;
@@ -16,7 +17,7 @@ import de.chojo.gamejam.commands.server.process.Stop;
 import de.chojo.gamejam.commands.server.system.Delete;
 import de.chojo.gamejam.commands.server.system.Setup;
 import de.chojo.gamejam.commands.server.upload.Plugin;
-import de.chojo.gamejam.commands.server.upload.PluginData;
+import de.chojo.gamejam.commands.server.upload.UploadPluginData;
 import de.chojo.gamejam.commands.server.upload.World;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.access.Guilds;
@@ -73,12 +74,18 @@ public class Server implements SlashProvider<Slash> {
                                 .argument(Argument.attachment("file", "Your plugin file")
                                                   .asRequired()))
                         .subCommand(SubCommand.of("plugindata", "Upload plugin data")
-                                .handler(new PluginData(this, guilds, serverService))
+                                .handler(new UploadPluginData(this, guilds, serverService))
                                 .argument(Argument.text("path", "Path in the plugin directory")
                                                   .asRequired()
                                                   .withAutoComplete())
                                 .argument(Argument.attachment("file", "File to upload")
                                                   .asRequired())))
+                .group(Group.of("download", "Download files")
+                        .subCommand(SubCommand.of("plugindata", "Download plugin files")
+                                .handler(new DownloadPluginData(this, guilds, serverService))
+                                .argument(Argument.text("path", "Path in the plugin directory")
+                                                  .asRequired()
+                                                  .withAutoComplete())))
                 .group(Group.of("plugins", "Manage installed plugins")
                         .subCommand(SubCommand.of("install", "install another plugin")
                                 .handler(new Install(configuration, this))
@@ -87,8 +94,10 @@ public class Server implements SlashProvider<Slash> {
                                                   .withAutoComplete()))
                         .subCommand(SubCommand.of("uninstall", "Plugin to uninstall")
                                 .handler(new Uninstall(this, configuration, guilds, serverService))
-                                .argument(Argument.text("plugin", "The plugin to uninstall").asRequired().withAutoComplete())
-                                .argument(Argument.bool("deletedata", "True to delete the plugin data as well").asRequired()))
+                                .argument(Argument.text("plugin", "The plugin to uninstall").asRequired()
+                                                  .withAutoComplete())
+                                .argument(Argument.bool("deletedata", "True to delete the plugin data as well")
+                                                  .asRequired()))
                 ).build();
     }
 
