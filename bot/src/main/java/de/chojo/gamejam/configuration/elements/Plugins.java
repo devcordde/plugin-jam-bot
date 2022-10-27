@@ -6,19 +6,44 @@
 
 package de.chojo.gamejam.configuration.elements;
 
-import java.util.HashMap;
-import java.util.Map;
+import de.chojo.jdautil.container.Pair;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
 
 @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 public class Plugins {
     private String pluginDir = "plugins";
-    private Map<String, String> plugins = new HashMap<>();
 
     public String pluginDir() {
         return pluginDir;
     }
 
-    public Map<String, String> plugins() {
-        return plugins;
+    private Path pluginPath() {
+        return Path.of(pluginDir);
+    }
+
+    public List<File> pluginFiles() {
+        return List.of(pluginPath().toFile().listFiles(File::isFile));
+    }
+
+    public List<String> pluginNames() {
+        return pluginFiles().stream()
+                            .map(File::getName)
+                            .map(name -> name.replace(".jar", "")).toList();
+    }
+
+    public List<Pair<String, File>> plugins() {
+        return pluginFiles().stream()
+                            .map(file -> Pair.of(file.getName().replace(".jar", ""), file))
+                            .toList();
+    }
+
+    public Optional<Path> byName(String pluginName) {
+        return plugins().stream().filter(plugin -> plugin.first.equals(pluginName))
+                        .findFirst()
+                        .map(plugin -> plugin.second.toPath());
     }
 }

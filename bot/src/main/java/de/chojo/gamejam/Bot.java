@@ -131,7 +131,7 @@ public class Bot {
                         new Team(guilds),
                         new Unregister(guilds),
                         new Votes(guilds),
-                        new Server(guilds, serverService))
+                        new Server(guilds, serverService, configuration))
                 .withPagination(builder -> builder.withLocalizer(localizer)
                                                   .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withMenuService(builder -> builder.withLocalizer(localizer)

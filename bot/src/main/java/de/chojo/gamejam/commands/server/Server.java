@@ -6,6 +6,7 @@
 
 package de.chojo.gamejam.commands.server;
 
+import de.chojo.gamejam.commands.server.plugins.Install;
 import de.chojo.gamejam.commands.server.process.Console;
 import de.chojo.gamejam.commands.server.process.Log;
 import de.chojo.gamejam.commands.server.process.Restart;
@@ -16,6 +17,7 @@ import de.chojo.gamejam.commands.server.system.Setup;
 import de.chojo.gamejam.commands.server.upload.Plugin;
 import de.chojo.gamejam.commands.server.upload.PluginData;
 import de.chojo.gamejam.commands.server.upload.World;
+import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.gamejam.server.TeamServer;
@@ -32,10 +34,12 @@ import java.util.Optional;
 public class Server implements SlashProvider<Slash> {
     private final Guilds guilds;
     private final ServerService serverService;
+    private final Configuration configuration;
 
-    public Server(Guilds guilds, ServerService serverService) {
+    public Server(Guilds guilds, ServerService serverService, Configuration configuration) {
         this.guilds = guilds;
         this.serverService = serverService;
+        this.configuration = configuration;
     }
 
     public Optional<TeamServer> getServer(SlashCommandInteractionEvent event, EventContext context) {
@@ -95,13 +99,14 @@ public class Server implements SlashProvider<Slash> {
                                                   .asRequired())))
                 .group(Group.of("plugins", "Manage installed plugins")
                         .subCommand(SubCommand.of("install", "install another plugin")
-                                .handler(null)
+                                .handler(new Install(configuration, this))
                                 .argument(Argument.text("plugin", "Plugin to install")
                                                   .asRequired()
                                                   .withAutoComplete()))
                         .subCommand(SubCommand.of("uninstall", "Plugin to uninstall")
                                 .handler(null)
-                                .argument(Argument.bool("deletedata", "True to delete the plugin data as well")))
+                                .argument(Argument.text("plugin", "The plugin to uninstall").asRequired().withAutoComplete())
+                                .argument(Argument.bool("deletedata", "True to delete the plugin data as well").asRequired()))
                 ).build();
     }
 }
