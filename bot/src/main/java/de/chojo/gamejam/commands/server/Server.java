@@ -18,43 +18,76 @@ import de.chojo.gamejam.commands.server.upload.PluginData;
 import de.chojo.gamejam.commands.server.upload.World;
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
+import de.chojo.gamejam.server.TeamServer;
 import de.chojo.jdautil.interactions.slash.Argument;
 import de.chojo.jdautil.interactions.slash.Group;
 import de.chojo.jdautil.interactions.slash.Slash;
 import de.chojo.jdautil.interactions.slash.SubCommand;
-import de.chojo.jdautil.interactions.slash.provider.SlashCommand;
+import de.chojo.jdautil.interactions.slash.provider.SlashProvider;
+import de.chojo.jdautil.wrapper.EventContext;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public class Server extends SlashCommand {
+import java.util.Optional;
+
+public class Server implements SlashProvider<Slash> {
+    private final Guilds guilds;
+    private final ServerService serverService;
+
     public Server(Guilds guilds, ServerService serverService) {
-        super(Slash.of("server", "Manage your server")
+        this.guilds = guilds;
+        this.serverService = serverService;
+    }
+
+    public Optional<TeamServer> getServer(SlashCommandInteractionEvent event, EventContext context) {
+        var optJam = guilds.guild(event).jams().activeJam();
+
+        if (optJam.isEmpty()) {
+            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
+            return Optional.empty();
+        }
+
+        var jam = optJam.get();
+        var optTeam = jam.teams().byMember(event.getUser());
+
+        if (optTeam.isEmpty()) {
+            event.reply(context.localize("error.noteam")).setEphemeral(true).queue();
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(serverService.get(optTeam.get()));
+    }
+
+    @Override
+    public Slash slash() {
+        return Slash.of("server", "Manage your server")
                 .adminCommand()
                 .group(Group.of("process", "Manage server process")
                         .subCommand(SubCommand.of("start", "Start the server")
-                                .handler(new Start(guilds, serverService)))
+                                .handler(new Start(this)))
                         .subCommand(SubCommand.of("stop", "Stop the server")
-                                .handler(new Stop(guilds, serverService)))
+                                .handler(new Stop(this)))
                         .subCommand(SubCommand.of("restart", "Restart the server")
-                                .handler(new Restart(guilds, serverService)))
+                                .handler(new Restart(this)))
                         .subCommand(SubCommand.of("console", "Send a command via console")
-                                .handler(new Console(guilds, serverService)))
+                                .handler(new Console(this)))
                         .subCommand(SubCommand.of("log", "Restart the server")
-                                .handler(new Log(guilds, serverService))))
+                                .handler(new Log(this))))
                 .group(Group.of("system", "manage the server system")
                         .subCommand(SubCommand.of("setup", "Setup the server")
-                                .handler(new Setup(guilds, serverService)))
+                                .handler(new Setup(this)))
                         .subCommand(SubCommand.of("delete", "Delete the server data")
-                                .handler(new Delete(guilds, serverService))))
+                                .handler(new Delete(this))))
                 .group(Group.of("upload", "Upload files")
                         .subCommand(SubCommand.of("world", "Upload a world replacing the current world")
-                                .handler(new World(guilds, serverService))
+                                .handler(new World(this))
                                 .argument(Argument.text("url", "Link to download the world as zip"))
                                 .argument(Argument.attachment("file", "World as zip")))
                         .subCommand(SubCommand.of("plugin", "Upload your plugin")
-                                .handler(new Plugin(guilds, serverService))
+                                .handler(new Plugin(this))
                                 .argument(Argument.attachment("file", "Your plugin file")
                                                   .asRequired()))
                         .subCommand(SubCommand.of("plugindata", "Upload plugin data")
-                                .handler(new PluginData(guilds, serverService))
+                                .handler(new PluginData(this, guilds, serverService))
                                 .argument(Argument.text("path", "Path in the plugin directory")
                                                   .asRequired()
                                                   .withAutoComplete())
@@ -69,7 +102,6 @@ public class Server extends SlashCommand {
                         .subCommand(SubCommand.of("uninstall", "Plugin to uninstall")
                                 .handler(null)
                                 .argument(Argument.bool("deletedata", "True to delete the plugin data as well")))
-                )
-        );
+                ).build();
     }
 }

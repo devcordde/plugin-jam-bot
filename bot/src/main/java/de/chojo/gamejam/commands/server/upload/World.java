@@ -6,8 +6,8 @@
 
 package de.chojo.gamejam.commands.server.upload;
 
-import de.chojo.gamejam.data.access.Guilds;
-import de.chojo.gamejam.server.ServerService;
+import de.chojo.gamejam.commands.server.Server;
+import de.chojo.gamejam.commands.server.util.ProgressDownloader;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -25,35 +25,17 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 public class World implements SlashHandler {
     private static final Logger log = getLogger(World.class);
-    private final Guilds guilds;
-    private final ServerService serverService;
+    private final Server server;
 
-    public World(Guilds guilds, ServerService serverService) {
-        this.guilds = guilds;
-        this.serverService = serverService;
+    public World(Server server) {
+        this.server = server;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        var optJam = guilds.guild(event).jams().activeJam();
-
-        if (optJam.isEmpty()) {
-            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
-            return;
-        }
-
-        var jam = optJam.get();
-        var optTeam = jam.teams().byMember(event.getUser());
-
-        if (optJam.isEmpty()) {
-            event.reply(context.localize("error.noteam")).setEphemeral(true).queue();
-            return;
-        }
-
-        var team = optTeam.get();
-
-        var teamServer = serverService.get(team);
-
+        var optServer = server.getServer(event, context);
+        if (optServer.isEmpty()) return;
+        var teamServer = optServer.get();
 
         String downloadUrl = null;
 
@@ -72,34 +54,12 @@ public class World implements SlashHandler {
             return;
         }
 
-        event.reply("Attempting to replace world").queue();
+        var download = ProgressDownloader.download(event, context, downloadUrl);
 
-        Path world;
-        try {
-            world = Files.createTempFile("world", String.valueOf(System.currentTimeMillis()));
-        } catch (IOException e) {
-            log.error("Failed to create download file", e);
-            event.getHook().editOriginal("Failed to create download file").queue();
-            return;
-        }
-
-        var request = HttpRequest.newBuilder(URI.create(downloadUrl)).GET().build();
-
-        try {
-            event.getHook().editOriginal("Downloading world file.").queue();
-            HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofFile(world));
-        } catch (IOException e) {
-            log.error("Failed to write response", e);
-            event.getHook().editOriginal("Could not download file.").queue();
-            return;
-        } catch (InterruptedException e) {
-            log.error("Failed to retrieve response", e);
-            event.getHook().editOriginal("Could not download file.").queue();
-            return;
-        }
+        if (download.isEmpty()) return;
 
         event.getHook().editOriginal("Download done. Replacing.").queue();
-        if (teamServer.replaceWorld(world)) {
+        if (teamServer.replaceWorld(download.get())) {
             event.getHook().editOriginal("Replaced world").queue();
         } else {
             event.getHook().editOriginal("Failed to replace world").queue();

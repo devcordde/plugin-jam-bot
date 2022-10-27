@@ -6,8 +6,7 @@
 
 package de.chojo.gamejam.commands.server.process;
 
-import de.chojo.gamejam.data.access.Guilds;
-import de.chojo.gamejam.server.ServerService;
+import de.chojo.gamejam.commands.server.Server;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -17,34 +16,17 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public class Log implements SlashHandler {
-    private final Guilds guilds;
-    private final ServerService serverService;
+    private final Server server;
 
-    public Log(Guilds guilds, ServerService serverService) {
-        this.guilds = guilds;
-        this.serverService = serverService;
+    public Log(Server server) {
+        this.server = server;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        var optJam = guilds.guild(event).jams().activeJam();
-
-        if (optJam.isEmpty()) {
-            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
-            return;
-        }
-
-        var jam = optJam.get();
-        var optTeam = jam.teams().byMember(event.getUser());
-
-        if (optJam.isEmpty()) {
-            event.reply(context.localize("error.noteam")).setEphemeral(true).queue();
-            return;
-        }
-
-        var team = optTeam.get();
-
-        var teamServer = serverService.get(team);
+        var optServer = server.getServer(event, context);
+        if(optServer.isEmpty())return;
+        var teamServer = optServer.get();
         var logFile = teamServer.logFile();
         String content;
         try {

@@ -6,6 +6,8 @@
 
 package de.chojo.gamejam.commands.server.upload;
 
+import de.chojo.gamejam.commands.server.Server;
+import de.chojo.gamejam.commands.server.util.ProgressDownloader;
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.data.dao.guild.jams.Jam;
 import de.chojo.gamejam.server.ServerService;
@@ -34,69 +36,32 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 public class PluginData implements SlashHandler {
     private static final Logger log = getLogger(PluginData.class);
+    private final Server server;
     private final Guilds guilds;
     private final ServerService serverService;
 
-    public PluginData(Guilds guilds, ServerService serverService) {
+    public PluginData(Server server, Guilds guilds, ServerService serverService) {
+        this.server = server;
         this.guilds = guilds;
         this.serverService = serverService;
     }
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        var optJam = guilds.guild(event).jams().activeJam();
-
-        if (optJam.isEmpty()) {
-            event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();
-            return;
-        }
-
-        var jam = optJam.get();
-        var optTeam = jam.teams().byMember(event.getUser());
-
-        if (optJam.isEmpty()) {
-            event.reply(context.localize("error.noteam")).setEphemeral(true).queue();
-            return;
-        }
-
-        var team = optTeam.get();
-
-        var teamServer = serverService.get(team);
-
+        var optServer = server.getServer(event, context);
+        if(optServer.isEmpty())return;
+        var teamServer = optServer.get();
 
         var downloadUrl = event.getOption("file").getAsAttachment().getProxy().getUrl();
 
-        event.reply("Attempting to download file").queue();
+        var download = ProgressDownloader.download(event, context, downloadUrl);
 
-        Path file;
-        try {
-            file = Files.createTempFile("upload", String.valueOf(System.currentTimeMillis()));
-        } catch (IOException e) {
-            log.error("Failed to create download file", e);
-            event.getHook().editOriginal("Failed to create download file").queue();
-            return;
-        }
-
-        var request = HttpRequest.newBuilder(URI.create(downloadUrl)).GET().build();
-
-        try {
-            event.getHook().editOriginal("Downloading file.").queue();
-            HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofFile(file));
-        } catch (IOException e) {
-            log.error("Failed to write response", e);
-            event.getHook().editOriginal("Could not download file.").queue();
-            return;
-        } catch (InterruptedException e) {
-            log.error("Failed to retrieve response", e);
-            event.getHook().editOriginal("Could not download file.").queue();
-            return;
-        }
-
-        event.getHook().editOriginal("Download done. Replacing.").queue();
+        if (download.isEmpty()) return;
         var pluginFile = teamServer.plugins();
+
         pluginFile = pluginFile.resolve(event.getOption("path").getAsString());
         try {
-            Files.copy(file, pluginFile, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(download.get(), pluginFile, StandardCopyOption.REPLACE_EXISTING);
             event.getHook().editOriginal("Added or replaced file.").queue();
         } catch (IOException e) {
             event.getHook().editOriginal("Failed to add file.").queue();
