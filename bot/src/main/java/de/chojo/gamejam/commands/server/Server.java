@@ -6,7 +6,10 @@
 
 package de.chojo.gamejam.commands.server;
 
+import de.chojo.gamejam.commands.server.configure.MaxPlayers;
 import de.chojo.gamejam.commands.server.configure.Message;
+import de.chojo.gamejam.commands.server.configure.SpectatorOverflow;
+import de.chojo.gamejam.commands.server.configure.Whitelist;
 import de.chojo.gamejam.commands.server.download.DownloadPluginData;
 import de.chojo.gamejam.commands.server.plugins.Install;
 import de.chojo.gamejam.commands.server.plugins.Uninstall;
@@ -105,7 +108,16 @@ public class Server implements SlashProvider<Slash> {
                                                   .asRequired())))
                 .group(Group.of("configure", "Configure server")
                         .subCommand(SubCommand.of("message", "Set the welcome message")
-                                .handler(new Message(this))))
+                                .handler(new Message(this)))
+                        .subCommand(SubCommand.of("maxplayers", "Set the max players of this server")
+                                .handler(new MaxPlayers(this))
+                                .argument(Argument.integer("amount", "Max amount of players.")))
+                        .subCommand(SubCommand.of("spectatoroverflow", "Active the spectator overflow")
+                                .handler(new SpectatorOverflow(this))
+                                .argument(Argument.bool("state", "true to enable overflow")))
+                        .subCommand(SubCommand.of("whitelist", "Enable the whitelist")
+                                .handler(new Whitelist(this))
+                                .argument(Argument.bool("state", "true to enable whitelist"))))
                 .build();
     }
 
