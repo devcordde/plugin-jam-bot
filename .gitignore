@@ -41,4 +41,4 @@ buildNumber.properties
 /out/
 *.db
 *.sqlite
-/conf/dev/config.json
+/wait.sh

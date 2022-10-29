@@ -11,13 +11,16 @@ import org.bukkit.GameMode;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
 public class JoinService implements Listener {
     private final Plugin plugin;
+    private final ServerRequests requests;
 
-    public JoinService(Plugin plugin) {
+    public JoinService(Plugin plugin, ServerRequests requests) {
         this.plugin = plugin;
+        this.requests = requests;
     }
 
     @EventHandler
@@ -36,6 +39,13 @@ public class JoinService implements Listener {
         }
 
         event.getPlayer().kick(Component.text("Server is full."));
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        if (plugin.getServer().getOnlinePlayers().isEmpty()) {
+            requests.restartByEmpty(true);
+        }
     }
 
     private int maxPlayers() {

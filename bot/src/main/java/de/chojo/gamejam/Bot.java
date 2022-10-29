@@ -41,13 +41,18 @@ import org.slf4j.Logger;
 
 import javax.security.auth.login.LoginException;
 import javax.sql.DataSource;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -71,8 +76,8 @@ public class Bot {
     private Guilds guilds;
     private ServerService serverService;
 
-    private static ThreadFactory createThreadFactory(String string) {
-        return createThreadFactory(new ThreadGroup(string));
+    private static ThreadFactory createThreadFactory(String name) {
+        return createThreadFactory(new ThreadGroup(name));
     }
 
     private static ThreadFactory createThreadFactory(ThreadGroup group) {
@@ -93,6 +98,10 @@ public class Bot {
 
     private ExecutorService createExecutor(String name) {
         return Executors.newCachedThreadPool(createThreadFactory(name));
+    }
+
+    private ScheduledExecutorService createScheduledExecutor(String name, int size) {
+        return Executors.newScheduledThreadPool(10, createThreadFactory(name));
     }
 
     private ExecutorService createExecutor(int threads, String name) {
@@ -187,7 +196,7 @@ public class Bot {
     }
 
     private void initServer() throws IOException {
-        serverService = new ServerService(configuration);
+        serverService = ServerService.create(createScheduledExecutor("Server ping", 1), configuration);
 
         var templateDir = Path.of(configuration.serverTemplate().templateDir());
         var serverDir = Path.of(configuration.serverManagement().serverDir());
@@ -196,5 +205,9 @@ public class Bot {
         Files.createDirectories(templateDir);
         Files.createDirectories(serverDir);
         Files.createDirectories(pluginDir);
+
+        Path wait = Path.of("wait.sh");
+        Files.copy(getClass().getClassLoader().getResourceAsStream("wait.sh"), wait, StandardCopyOption.REPLACE_EXISTING);
+        Files.setPosixFilePermissions(wait, Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
     }
 }

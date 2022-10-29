@@ -8,30 +8,36 @@ package de.chojo.pluginjam;
 
 import de.chojo.pluginjam.api.Api;
 import de.chojo.pluginjam.greeting.Welcomer;
+import de.chojo.pluginjam.service.CommandBlocker;
+import de.chojo.pluginjam.service.ServerRequests;
 import de.chojo.pluginjam.velocity.ReportService;
+import de.eldoria.eldoutilities.plugin.EldoPlugin;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-public class PluginJam extends JavaPlugin implements Listener {
+public class PluginJam extends EldoPlugin implements Listener {
     private Api api;
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     private ReportService service;
 
     @Override
-    public void onEnable() {
+    public void onPluginEnable() {
         saveDefaultConfig();
 
-        getServer().getPluginManager().registerEvents(new Welcomer(this), this);
+        var serverRequests = new ServerRequests();
 
-        api = Api.create(this);
+        api = Api.create(this, serverRequests);
         service = ReportService.create(this, executor);
+
+        registerListener(new CommandBlocker(serverRequests));
+        registerListener(new Welcomer(this));
     }
 
     @Override
-    public void onDisable() {
+    public void onPluginDisable() {
         service.shutdown();
         executor.shutdown();
     }

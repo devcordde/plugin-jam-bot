@@ -13,34 +13,52 @@ import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import de.chojo.gamejam.util.Mapper;
 import de.chojo.pluginjam.payload.Registration;
 import org.slf4j.Logger;
-import org.yaml.snakeyaml.util.ArrayStack;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Stack;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class ServerService {
+public class ServerService implements Runnable {
     private static final Logger log = getLogger(ServerService.class);
     private final Map<Team, TeamServer> server = new HashMap<>();
     private Teams teams;
     private final Configuration configuration;
     private final Stack<Integer> freePorts = new Stack<>();
 
-    public ServerService(Configuration configuration) {
+    public static ServerService create(ScheduledExecutorService executorService, Configuration configuration) {
+        var serverService = new ServerService(configuration);
+        executorService.scheduleAtFixedRate(serverService, 10, 30, TimeUnit.SECONDS);
+        return serverService;
+    }
+
+    private ServerService(Configuration configuration) {
         this.configuration = configuration;
         IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
                  .forEach(freePorts::add);
+    }
+
+    @Override
+    public void run() {
+        for (var value : server.values()) {
+            value.serverRequests()
+                 .ifPresent(server -> {
+                     if (server.restart()) {
+                         log.info("Server of team {} requested restart", value.team());
+                         value.restart();
+                     }
+                 });
+        }
     }
 
     public void syncVelocity() {
@@ -73,6 +91,7 @@ public class ServerService {
             throw new RuntimeException(e);
         }
 
+        server.clear();
         for (var registration : registrations) {
             var optTeam = teams.byId(registration.id());
             if (optTeam.isEmpty()) {
@@ -109,7 +128,7 @@ public class ServerService {
         }
     }
 
-    public void inject(Teams teams){
+    public void inject(Teams teams) {
         this.teams = teams;
     }
 }

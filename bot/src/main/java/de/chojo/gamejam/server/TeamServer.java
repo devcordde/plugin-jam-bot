@@ -13,6 +13,7 @@ import de.chojo.gamejam.util.Mapper;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.util.Futures;
 import de.chojo.jdautil.wrapper.EventContext;
+import de.chojo.pluginjam.payload.RequestsPayload;
 import de.chojo.pluginjam.payload.StatsPayload;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.lingala.zip4j.ZipFile;
@@ -198,13 +199,11 @@ public class TeamServer {
         if (!running) {
             return CompletableFuture.completedFuture(null);
         }
-        send("stop");
-        log.info("Stopping server of team {}", team);
         running = false;
         try {
-            return new ProcessBuilder()
-                    .directory(serverDir().toFile())
-                    .command("sh", "while", "screen", "-ls", "|", "grep", "-q", screenName() + ";", "do", "sleep", "1;", "done;")
+            CompletableFuture<Void> future = new ProcessBuilder()
+                    .directory(new File("").toPath().toAbsolutePath().toFile())
+                    .command("./wait.sh", screenName())
                     .redirectOutput(ProcessBuilder.Redirect.to(processLogFile("stop")))
                     .start()
                     .onExit()
@@ -213,10 +212,14 @@ public class TeamServer {
                                 log.info("Stopped server of team {}", team);
                                 serverService.stopped(this, restart);
                             },
-                            err -> log.error("Could not stop server {}", this))
+                            err -> log.error("Could not stop server {}", team))
                     )
                     .thenApply(r -> null);
+            send("stop");
+            log.info("Stopping server of team {}", team);
+            return future;
         } catch (IOException e) {
+            log.error("Failed to build process builder", e);
             throw new RuntimeException(e);
         }
     }
@@ -464,5 +467,22 @@ public class TeamServer {
         if (exists() && running()) return "🟢";
         if (exists()) return "🟡";
         return "🔴";
+    }
+
+    public Optional<RequestsPayload> serverRequests() {
+        var request = requestBuilder("v1/requests").GET().build();
+        HttpResponse<String> send;
+        try {
+            send = http().send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            return Optional.of(Mapper.MAPPER.readValue(send.body(), RequestsPayload.class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
