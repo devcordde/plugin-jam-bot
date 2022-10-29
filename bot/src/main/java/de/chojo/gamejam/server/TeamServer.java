@@ -8,7 +8,10 @@ package de.chojo.gamejam.server;
 
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
+import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.util.Futures;
+import de.chojo.jdautil.wrapper.EventContext;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.lingala.zip4j.ZipFile;
 import org.slf4j.Logger;
 
@@ -78,6 +81,11 @@ public class TeamServer {
     public boolean setup() throws IOException {
         if (exists()) return false;
         log.info("Setting up server of team {}", team);
+        writeTemplate();
+        return true;
+    }
+
+    private void writeTemplate() throws IOException {
         var serverDir = serverDir();
         Files.createDirectories(serverDir);
 
@@ -93,11 +101,30 @@ public class TeamServer {
                 var filePath = sourceTarget.subpath(1, sourceTarget.getNameCount());
                 var serverTarget = serverDir.resolve(filePath);
                 if (symlinks.contains(sourceTarget)) {
+                    if (serverTarget.toFile().isFile() && serverTarget.toFile().delete()) {
+                        log.debug("Deleted old version of file {}", serverTarget);
+                    }
                     Files.createSymbolicLink(serverTarget, sourceTarget.toAbsolutePath());
                 } else {
                     Files.copy(sourceTarget, serverTarget, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
+        }
+    }
+
+    /**
+     * Refresh the files of the server present in the template. This is basically a new setup without purging the data beforehand.
+     * <p>
+     * Files with the same name will be overridden
+     *
+     * @return true when the refresh was successful
+     */
+    public boolean refresh() {
+        log.info("Refreshing template files of server {}", team);
+        try {
+            writeTemplate();
+        } catch (IOException e) {
+            return false;
         }
         return true;
     }
@@ -144,31 +171,39 @@ public class TeamServer {
         return true;
     }
 
+    public CompletableFuture<Void> stop() {
+        return stop(false);
+    }
+
+    public CompletableFuture<Void> restart() {
+        return stop(true);
+    }
+
     public CompletableFuture<Void> stop(boolean restart) {
-        if (start != null) {
-            send("stop");
-            log.info("Stopping server of team {}", team);
-            start = null;
-            try {
-                return new ProcessBuilder()
-                        .directory(serverDir().toFile())
-                        .command("sh", "while", "screen", "-ls", "|", "grep", "-q", screenName() + ";", "do", "sleep", "1;", "done;")
-                        .redirectOutput(ProcessBuilder.Redirect.to(processLogFile("stop")))
-                        .start()
-                        .onExit()
-                        .whenComplete(Futures.whenComplete(
-                                exit -> {
-                                    log.info("Stopped server of team {}", team);
-                                    serverService.stopped(this, restart);
-                                },
-                                err -> log.error("Could not stop server {}", this))
-                        )
-                        .thenApply(r -> null);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        if (start == null) {
+            return CompletableFuture.completedFuture(null);
         }
-        return CompletableFuture.completedFuture(null);
+        send("stop");
+        log.info("Stopping server of team {}", team);
+        start = null;
+        try {
+            return new ProcessBuilder()
+                    .directory(serverDir().toFile())
+                    .command("sh", "while", "screen", "-ls", "|", "grep", "-q", screenName() + ";", "do", "sleep", "1;", "done;")
+                    .redirectOutput(ProcessBuilder.Redirect.to(processLogFile("stop")))
+                    .start()
+                    .onExit()
+                    .whenComplete(Futures.whenComplete(
+                            exit -> {
+                                log.info("Stopped server of team {}", team);
+                                serverService.stopped(this, restart);
+                            },
+                            err -> log.error("Could not stop server {}", this))
+                    )
+                    .thenApply(r -> null);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void send(String command) {
@@ -305,7 +340,7 @@ public class TeamServer {
             files.sorted(Comparator.reverseOrder())
                  .map(Path::toFile)
                  .forEach(File::delete);
-        } catch (NoSuchFileException e){
+        } catch (NoSuchFileException e) {
             return true;
         } catch (IOException e) {
             log.info("Could not delete directory", e);
@@ -332,5 +367,38 @@ public class TeamServer {
             //ignore
         }
         return plugins;
+    }
+
+    public CompletableFuture<MessageEmbed> detailStatus(EventContext context) {
+        var builder = new LocalizedEmbedBuilder(context.guildLocalizer())
+                .setTitle("%s #%d | %s".formatted(statusEmoji(), team.id(), team.meta().name()));
+        if (!exists()) {
+            builder.setDescription("Server not set up.");
+        } else {
+            if (running()) {
+                builder.setDescription("Server running")
+                       .addField("Ports", "Server: %d%nApi: %d".formatted(port, apiPort), false);
+            } else {
+                builder.setDescription("Server set up")
+                       .addField("Ports", "Not running", false);
+            }
+        }
+
+        return CompletableFuture.completedFuture(builder.build());
+    }
+
+    public String status() {
+        var status = statusEmoji();
+        var ports = "";
+        if (exists() && running()) {
+            ports = "Server: %s Api: %s".formatted(port, apiPort);
+        }
+        return "%s %s %s".formatted(status, team, ports);
+    }
+
+    private String statusEmoji() {
+        if (exists() && running()) return "🟢";
+        if (exists()) return "🟡";
+        return "🔴";
     }
 }

@@ -12,7 +12,9 @@ import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import de.chojo.sadu.base.QueryFactory;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.interactions.commands.Command;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +25,7 @@ public class Teams extends QueryFactory {
 
     public Optional<Team> byId(int id) {
         return builder(Team.class)
-                .query("SELECT id, name FROM team t LEFT JOIN team_meta m ON t.id = m.team_id WHERE id = ?")
+                .query("SELECT id, team_name FROM team t LEFT JOIN team_meta m ON t.id = m.team_id WHERE id = ?")
                 .parameter(stmt -> stmt.setInt(id))
                 .readRow(r -> new Team(null, r.getInt("id")))
                 .firstSync();

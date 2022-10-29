@@ -59,19 +59,13 @@ public final class Profile implements SlashHandler {
 
     @Override
     public void onAutoComplete(CommandAutoCompleteInteractionEvent event, EventContext context) {
-        JamGuild guild = guilds.guild(event);
-        if ("team".equals(event.getFocusedOption().getName())) {
-            var jam = guild.jams().nextOrCurrent();
-            if (jam.isEmpty()) {
-                event.replyChoices(Collections.emptyList()).queue();
-                return;
-            }
-            var teams = jam.get().teams().teams().stream()
-                           .filter(team -> team.matchName(event.getFocusedOption().getValue()))
-                           .map(team -> team.meta().name())
-                           .map(team -> new Command.Choice(team, team))
-                           .toList();
-            event.replyChoices(teams).queue();
+        var guild = guilds.guild(event);
+        var option = event.getFocusedOption();
+        if ("team".equals(option.getName())) {
+            var choices = guild.jams().nextOrCurrent()
+                               .map(jam -> jam.teams().completeTeam(option.getValue()))
+                               .orElse(Collections.emptyList());
+            event.replyChoices(choices).queue();
         }
     }
 }

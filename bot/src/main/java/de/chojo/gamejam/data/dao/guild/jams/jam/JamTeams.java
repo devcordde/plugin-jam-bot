@@ -11,6 +11,7 @@ import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import de.chojo.sadu.base.QueryFactory;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.interactions.commands.Command;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,9 +36,9 @@ public class JamTeams extends QueryFactory {
         builder().query("""
                         INSERT INTO team_meta(team_id, team_name) VALUES (?,?);
                         """)
-                .parameter(stmt -> stmt.setInt(teamId).setString(name))
-                .insert()
-                .sendSync();
+                 .parameter(stmt -> stmt.setInt(teamId).setString(name))
+                 .insert()
+                 .sendSync();
         return new Team(jam, teamId);
     }
 
@@ -94,5 +95,20 @@ public class JamTeams extends QueryFactory {
                 .parameter(stmt -> stmt.setInt(id))
                 .readRow(r -> new Team(jam, r.getInt("id")))
                 .firstSync();
+    }
+
+    public List<Command.Choice> completeTeam(String name) {
+        if (name.isBlank()) {
+            return teams().stream()
+                          .map(team -> team.meta().name())
+                          .map(team -> new Command.Choice(team, team))
+                          .toList();
+        }
+
+        return teams().stream()
+                      .filter(team -> team.matchName(name))
+                      .map(team -> team.meta().name())
+                      .map(team -> new Command.Choice(team, team))
+                      .toList();
     }
 }

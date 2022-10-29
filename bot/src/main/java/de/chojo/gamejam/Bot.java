@@ -10,6 +10,7 @@ import de.chojo.gamejam.api.Api;
 import de.chojo.gamejam.commands.jamadmin.JamAdmin;
 import de.chojo.gamejam.commands.register.Register;
 import de.chojo.gamejam.commands.server.Server;
+import de.chojo.gamejam.commands.serveradmin.ServerAdmin;
 import de.chojo.gamejam.commands.settings.Settings;
 import de.chojo.gamejam.commands.team.Team;
 import de.chojo.gamejam.commands.unregister.Unregister;
@@ -131,7 +132,8 @@ public class Bot {
                         new Team(guilds),
                         new Unregister(guilds),
                         new Votes(guilds),
-                        new Server(guilds, serverService, configuration))
+                        new Server(guilds, serverService, configuration),
+                        new ServerAdmin(guilds, serverService))
                 .withPagination(builder -> builder.withLocalizer(localizer)
                                                   .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withMenuService(builder -> builder.withLocalizer(localizer)
