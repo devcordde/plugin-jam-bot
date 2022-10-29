@@ -35,5 +35,13 @@ public class Guilds {
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
+
+    }
+    public JamGuild guild(long guild) {
+        try {
+            return cache.get(guild, () -> new JamGuild(dataSource, guild));
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

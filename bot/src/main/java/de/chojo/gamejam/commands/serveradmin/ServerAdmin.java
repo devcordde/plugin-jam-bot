@@ -6,6 +6,7 @@
 
 package de.chojo.gamejam.commands.serveradmin;
 
+import de.chojo.gamejam.commands.serveradmin.handler.SyncVelocity;
 import de.chojo.gamejam.commands.serveradmin.handler.info.Detailed;
 import de.chojo.gamejam.commands.serveradmin.handler.info.Short;
 import de.chojo.gamejam.commands.serveradmin.handler.refresh.RefreshAll;
@@ -56,6 +57,8 @@ public class ServerAdmin extends SlashCommand {
                         .subCommand(SubCommand.of("detailed", "Detailed information about team servers")
                                 .handler(new Detailed(serverService, guilds))
                                 .argument(Argument.text("team", "team").withAutoComplete())))
+                .subCommand(SubCommand.of("syncvelocity", "Sync servers with velocity data")
+                        .handler(new SyncVelocity(serverService)))
         );
     }
 }

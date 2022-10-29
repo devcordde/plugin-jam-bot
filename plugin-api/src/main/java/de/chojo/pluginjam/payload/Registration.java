@@ -6,5 +6,5 @@
 
 package de.chojo.pluginjam.payload;
 
-public record Registration(int id, String name, int port) {
+public record Registration(int id, String name, int port, int apiPort) {
 }

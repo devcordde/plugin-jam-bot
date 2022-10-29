@@ -17,6 +17,7 @@ import de.chojo.gamejam.commands.unregister.Unregister;
 import de.chojo.gamejam.commands.vote.Votes;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.data.access.Teams;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.gamejam.util.LogNotify;
 import de.chojo.jdautil.interactions.dispatching.InteractionHub;
@@ -138,6 +139,7 @@ public class Bot {
                                                   .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withMenuService(builder -> builder.withLocalizer(localizer)
                                                    .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
+                .withModalService(builder -> builder.withLocalizer(localizer).build())
                 .build();
     }
 
@@ -151,6 +153,8 @@ public class Bot {
                                                  .setEventPool(Executors.newScheduledThreadPool(5, createThreadFactory("Event Worker")))
                                                  .build();
         RestAction.setDefaultFailure(throwable -> log.error("Unhandled exception occured: ", throwable));
+        serverService.inject(new Teams(dataSource, guilds, shardManager));
+        serverService.syncVelocity();
     }
 
     private void initDb() throws IOException, SQLException {

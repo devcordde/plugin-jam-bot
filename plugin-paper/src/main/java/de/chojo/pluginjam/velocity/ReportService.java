@@ -28,12 +28,14 @@ public class ReportService implements Runnable {
     private final Gson gson = new Gson();
     private final String name;
     private final int velocityApi;
+    private final int apiPort;
 
     private ReportService(Plugin plugin) {
         this.plugin = plugin;
         id = Integer.parseInt(System.getProperty("pluginjam.team.id"));
         name = System.getProperty("pluginjam.team.name");
         velocityApi = Integer.parseInt(System.getProperty("pluginjam.port"));
+        apiPort = Integer.parseInt(System.getProperty("javalin.port", "30000"));
     }
 
     public static ReportService create(Plugin plugin, ScheduledExecutorService executor) {
@@ -51,7 +53,7 @@ public class ReportService implements Runnable {
 
     private void register() {
         log.info("Registering server at velocity instance");
-        var registration = new Registration(id, name, plugin.getServer().getPort());
+        var registration = new Registration(id, name, plugin.getServer().getPort(), apiPort);
         var builder = HttpRequest.newBuilder(apiUrl("v1", "server"))
                                  .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(registration)))
                                  .build();
@@ -66,7 +68,7 @@ public class ReportService implements Runnable {
     }
 
     private void ping() {
-        var registration = new Registration(id, name, plugin.getServer().getPort());
+        var registration = new Registration(id, name, plugin.getServer().getPort(), apiPort);
         var builder = HttpRequest.newBuilder(apiUrl("v1", "server"))
                                  .method("PATCH", HttpRequest.BodyPublishers.ofString(gson.toJson(registration)))
                                  .build();

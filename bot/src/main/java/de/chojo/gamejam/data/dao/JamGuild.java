@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import javax.sql.DataSource;
 
 public class JamGuild extends QueryFactory {
+    private final long guildId;
     private Guild guild;
     private final Jams jams;
     private final Teams teams;
@@ -23,6 +24,15 @@ public class JamGuild extends QueryFactory {
     public JamGuild(DataSource dataSource, Guild guild) {
         super(dataSource);
         this.guild = guild;
+        this.guildId = guild.getIdLong();
+        jams = new Jams(this);
+        teams = new Teams(this);
+    }
+
+    public JamGuild(DataSource dataSource, long guild) {
+        super(dataSource);
+        this.guild = null;
+        this.guildId = guild;
         jams = new Jams(this);
         teams = new Teams(this);
     }
@@ -45,7 +55,7 @@ public class JamGuild extends QueryFactory {
                 .orElseGet(() -> new JamSettings(this));
     }
 
-    public JamGuild refresh(Guild guild){
+    public JamGuild refresh(Guild guild) {
         this.guild = guild;
         return this;
     }
@@ -63,6 +73,6 @@ public class JamGuild extends QueryFactory {
     }
 
     public long guildId() {
-        return guild.getIdLong();
+        return guildId;
     }
 }

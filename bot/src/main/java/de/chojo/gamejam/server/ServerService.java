@@ -6,23 +6,87 @@
 
 package de.chojo.gamejam.server;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import de.chojo.gamejam.configuration.Configuration;
+import de.chojo.gamejam.data.access.Teams;
 import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
+import de.chojo.gamejam.util.Mapper;
+import de.chojo.pluginjam.payload.Registration;
+import org.slf4j.Logger;
+import org.yaml.snakeyaml.util.ArrayStack;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Stack;
+import java.util.stream.IntStream;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class ServerService {
+    private static final Logger log = getLogger(ServerService.class);
     private final Map<Team, TeamServer> server = new HashMap<>();
+    private Teams teams;
     private final Configuration configuration;
-    private int lastPort;
-    private final Queue<Integer> freePorts = new ArrayDeque<>();
+    private final Stack<Integer> freePorts = new Stack<>();
 
     public ServerService(Configuration configuration) {
         this.configuration = configuration;
-        lastPort = configuration.serverManagement().minPort();
+        IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
+                 .forEach(freePorts::add);
+    }
+
+    public void syncVelocity() {
+        log.info("Syncing server with velocity instance.");
+        freePorts.clear();
+        IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
+                 .forEach(freePorts::add);
+        var velocityApi = configuration.serverManagement().velocityApi();
+        var httpClient = HttpClient.newHttpClient();
+        var req = HttpRequest.newBuilder(URI.create("http://localhost:%d/v1/server".formatted(velocityApi)))
+                             .GET()
+                             .build();
+        HttpResponse<String> response;
+        try {
+            response = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            log.error("Could not read response", e);
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            log.error("Interrupted", e);
+            throw new RuntimeException(e);
+        }
+        var collectionType = Mapper.MAPPER.getTypeFactory()
+                                          .constructCollectionType(List.class, Registration.class);
+        List<Registration> registrations;
+        try {
+            registrations = Mapper.MAPPER.readValue(response.body(), collectionType);
+        } catch (JsonProcessingException e) {
+            log.error("Could not map response");
+            throw new RuntimeException(e);
+        }
+
+        for (var registration : registrations) {
+            var optTeam = teams.byId(registration.id());
+            if (optTeam.isEmpty()) {
+                log.warn("Could not find a matching team for id {} of team {}", registration.id(), registration.name());
+                return;
+            }
+            var team = optTeam.get();
+            log.info("Registered server for team {} with id {}", team.meta().name(), team.id());
+            var teamServer = new TeamServer(this, team, configuration, registration.port(), registration.apiPort());
+            teamServer.running(true);
+            server.put(team, teamServer);
+            freePorts.removeElement(registration.apiPort());
+            freePorts.removeElement(registration.port());
+        }
     }
 
     public TeamServer get(Team team) {
@@ -31,19 +95,21 @@ public class ServerService {
 
     private int nextPort() {
         if (!freePorts.isEmpty()) {
-            return freePorts.poll();
+            return freePorts.pop();
         }
-
-        if (lastPort >= configuration.serverManagement().maxPort()) throw new RuntimeException("Ports exhausted");
-        return lastPort++;
+        throw new RuntimeException("Ports exhausted");
     }
 
     void stopped(TeamServer server, boolean restart) {
         this.server.remove(server.team());
-        freePorts.add(server.port());
-        freePorts.add(server.apiPort());
+        freePorts.push(server.port());
+        freePorts.push(server.apiPort());
         if (restart) {
             get(server.team()).start();
         }
+    }
+
+    public void inject(Teams teams){
+        this.teams = teams;
     }
 }

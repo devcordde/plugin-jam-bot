@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class TeamServer {
+    private static final HttpClient http = HttpClient.newHttpClient();
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss.SSSS");
     private static final Logger log = getLogger(TeamServer.class);
     private final ServerService serverService;
@@ -67,7 +68,7 @@ public class TeamServer {
             "-Dusing.aikars.flags=https://mcflags.emc.gs",
             "-Daikars.new.flags=true"
     );
-    private Process start;
+    private boolean running;
 
 
     public TeamServer(ServerService serverService, Team team, Configuration configuration, int port, int apiPort) {
@@ -79,7 +80,7 @@ public class TeamServer {
     }
 
     public boolean running() {
-        return start != null;
+        return running;
     }
 
     public boolean exists() {
@@ -173,11 +174,12 @@ public class TeamServer {
         command.add(String.valueOf(port));
         log.info("Starting server server of team {}", team);
         try {
-            start = new ProcessBuilder()
+            new ProcessBuilder()
                     .directory(serverDir().toFile())
                     .command(command)
                     .redirectOutput(ProcessBuilder.Redirect.to(processLogFile("start")))
                     .start();
+            running = true;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -193,12 +195,12 @@ public class TeamServer {
     }
 
     public CompletableFuture<Void> stop(boolean restart) {
-        if (start == null) {
+        if (!running) {
             return CompletableFuture.completedFuture(null);
         }
         send("stop");
         log.info("Stopping server of team {}", team);
-        start = null;
+        running = false;
         try {
             return new ProcessBuilder()
                     .directory(serverDir().toFile())
@@ -421,12 +423,12 @@ public class TeamServer {
     }
 
     public Optional<StatsPayload> stats() {
-        var request = HttpRequest.newBuilder(URI.create("http://localhost:%d/v1/stats".formatted(apiPort())))
-                                 .GET()
-                                 .build();
+        var request = requestBuilder("v1/stats")
+                .GET()
+                .build();
         HttpResponse<String> send = null;
         try {
-            send = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            send = http().send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
             log.error("Could not read stats", e);
             return Optional.empty();
@@ -440,6 +442,22 @@ public class TeamServer {
             log.error("Could not parse status", e);
             return Optional.empty();
         }
+    }
+
+    public HttpRequest.Builder requestBuilder(String path) {
+        return HttpRequest.newBuilder(URI.create("http://localhost:%d/%s".formatted(apiPort(), path)));
+    }
+
+    public HttpRequest.Builder requestBuilder(String path, String query) {
+        return HttpRequest.newBuilder(URI.create("http://localhost:%d/%s?%s".formatted(apiPort(), path, query)));
+    }
+
+    public HttpClient http() {
+        return http;
+    }
+
+    public void running(boolean running) {
+        this.running = running;
     }
 
     private String statusEmoji() {

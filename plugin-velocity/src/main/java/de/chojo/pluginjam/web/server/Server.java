@@ -11,6 +11,7 @@ import de.chojo.pluginjam.servers.ServerRegistry;
 import io.javalin.http.HttpCode;
 
 import static io.javalin.apibuilder.ApiBuilder.delete;
+import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.patch;
 import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.apibuilder.ApiBuilder.post;
@@ -35,11 +36,15 @@ public class Server {
             });
 
             delete("", ctx -> {
-                String id = ctx.queryParam("id");
-                String port = ctx.queryParam("port");
-                var registration = new Registration(Integer.parseInt(id), "", Integer.parseInt(port));
+                var id = ctx.queryParam("id");
+                var port = ctx.queryParam("port");
+                var registration = new Registration(Integer.parseInt(id), "", Integer.parseInt(port), 0);
                 registry.unregister(registration);
                 ctx.status(HttpCode.ACCEPTED);
+            });
+            get("", ctx -> {
+                ctx.json(registry.server());
+                ctx.status(HttpCode.OK);
             });
         });
     }

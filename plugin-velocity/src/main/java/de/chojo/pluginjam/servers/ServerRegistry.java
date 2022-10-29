@@ -15,7 +15,9 @@ import org.slf4j.Logger;
 import java.net.InetSocketAddress;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -76,6 +78,11 @@ public class ServerRegistry implements Runnable {
     public void ping(Registration registration) {
         log.debug("Ping of server {} received.", registration.name());
         seen.put(registration, Instant.now());
+        if (!ids.containsKey(registration.id()) && !ports.containsKey(registration.port())) {
+            log.info("Received ping of unkown server {} with id {}", registration.id(), registration.name());
+            log.info("Attempting to register server.");
+            register(registration);
+        }
     }
 
     public void unregister(Registration registration) {
@@ -88,5 +95,9 @@ public class ServerRegistry implements Runnable {
         seen.remove(removed);
         log.info("Unregistered server {} on port {}", removed.name(), removed.port());
         proxy.unregisterServer(new ServerInfo(removed.name(), new InetSocketAddress("localhost", removed.port())));
+    }
+
+    public Collection<Registration> server() {
+        return ids.values();
     }
 }

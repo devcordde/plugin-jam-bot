@@ -88,7 +88,7 @@ public class Jams extends QueryFactory {
                 .parameter(stmt -> stmt.setLong(jamGuild.guildId()))
                 .readRow(r -> r.getInt("id"))
                 .firstSync()
-                .flatMap(this::getJamById);
+                .flatMap(this::byId);
     }
 
     public Optional<Jam> activeJam() {
@@ -105,10 +105,10 @@ public class Jams extends QueryFactory {
                 .parameter(stmt -> stmt.setLong(jamGuild.guildId()))
                 .readRow(r -> r.getInt("id"))
                 .firstSync()
-                .flatMap(this::getJamById);
+                .flatMap(this::byId);
     }
 
-    public Optional<Jam> getJamById(int id) {
+    public Optional<Jam> byId(int id) {
         return builder(Jam.class)
                 .query("""
                        SELECT id FROM jam WHERE guild_id = ? AND id = ?

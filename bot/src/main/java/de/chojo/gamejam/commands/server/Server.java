@@ -6,6 +6,7 @@
 
 package de.chojo.gamejam.commands.server;
 
+import de.chojo.gamejam.commands.server.configure.Message;
 import de.chojo.gamejam.commands.server.download.DownloadPluginData;
 import de.chojo.gamejam.commands.server.plugins.Install;
 import de.chojo.gamejam.commands.server.plugins.Uninstall;
@@ -101,8 +102,11 @@ public class Server implements SlashProvider<Slash> {
                                 .argument(Argument.text("plugin", "The plugin to uninstall").asRequired()
                                                   .withAutoComplete())
                                 .argument(Argument.bool("deletedata", "True to delete the plugin data as well")
-                                                  .asRequired()))
-                ).build();
+                                                  .asRequired())))
+                .group(Group.of("configure", "Configure server")
+                        .subCommand(SubCommand.of("message", "Set the welcome message")
+                                .handler(new Message(this))))
+                .build();
     }
 
     public Optional<TeamServer> getServer(SlashCommandInteractionEvent event, EventContext context) {
