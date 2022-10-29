@@ -7,25 +7,33 @@
 package de.chojo.pluginjam.velocity;
 
 import com.google.gson.Gson;
+import de.chojo.pluginjam.payload.Registration;
 import org.bukkit.plugin.Plugin;
+import org.slf4j.Logger;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 public class ReportService implements Runnable {
+    private static final Logger log = getLogger(ReportService.class);
     private final Plugin plugin;
     private final HttpClient client = HttpClient.newBuilder().build();
-    private final String name;
+    private final int id;
     private final Gson gson = new Gson();
+    private final String name;
+    private final int velocityApi;
 
     private ReportService(Plugin plugin) {
         this.plugin = plugin;
-        name = System.getProperty("pluginjam.name");
+        id = Integer.parseInt(System.getProperty("pluginjam.team.id"));
+        name = System.getProperty("pluginjam.team.name");
+        velocityApi = Integer.parseInt(System.getProperty("pluginjam.port"));
     }
 
     public static ReportService create(Plugin plugin, ScheduledExecutorService executor) {
@@ -37,31 +45,55 @@ public class ReportService implements Runnable {
 
     @Override
     public void run() {
+        log.debug("Sending ping");
         ping();
     }
 
     private void register() {
+        log.info("Registering server at velocity instance");
+        var registration = new Registration(id, name, plugin.getServer().getPort());
         var builder = HttpRequest.newBuilder(apiUrl("v1", "server"))
-                                 .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(gson)))
+                                 .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(registration)))
                                  .build();
-        client.sendAsync(builder, HttpResponse.BodyHandlers.discarding());
+        client.sendAsync(builder, HttpResponse.BodyHandlers.discarding())
+              .whenComplete((res, err) -> {
+                  if (err == null) {
+                      log.info("Registered server at velocity instance");
+                  } else {
+                      log.error("Could not register", err);
+                  }
+              });
     }
 
     private void ping() {
+        var registration = new Registration(id, name, plugin.getServer().getPort());
         var builder = HttpRequest.newBuilder(apiUrl("v1", "server"))
-                                 .method("PATCH", HttpRequest.BodyPublishers.ofString(gson.toJson(gson)))
+                                 .method("PATCH", HttpRequest.BodyPublishers.ofString(gson.toJson(registration)))
                                  .build();
-        client.sendAsync(builder, HttpResponse.BodyHandlers.discarding());
+        client.sendAsync(builder, HttpResponse.BodyHandlers.discarding())
+              .whenComplete((res, err) -> {
+                  if (err != null) {
+                      log.error("Could not send ping to velocity instance", err);
+                  }
+              });
     }
 
     private void unregister() {
-        var builder = HttpRequest.newBuilder(queryApiUrl("name=%s&port=%s".formatted(name,
+        log.info("Unregistering server at velocity instance.");
+        var builder = HttpRequest.newBuilder(queryApiUrl("id=%s&port=%s".formatted(id,
                                                  plugin.getServer()
                                                        .getPort()),
                                          "v1", "server"))
                                  .DELETE()
                                  .build();
-        client.sendAsync(builder, HttpResponse.BodyHandlers.discarding());
+        client.sendAsync(builder, HttpResponse.BodyHandlers.discarding())
+              .whenComplete((res, err) -> {
+                  if (err != null) {
+                      log.error("Could not unregister", err);
+                  } else {
+                      log.info("Server unregistered at velocity instance");
+                  }
+              });
     }
 
     public void shutdown() {
@@ -69,18 +101,10 @@ public class ReportService implements Runnable {
     }
 
     private URI apiUrl(String... path) {
-        try {
-            return new URI("http", null, "localhost", Integer.parseInt(System.getProperty("pluginjam.port")), String.join("/", path), null, null);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        return URI.create("http://localhost:%d/%s".formatted(velocityApi, String.join("/", path)));
     }
 
     private URI queryApiUrl(String query, String... path) {
-        try {
-            return new URI("http", null, "localhost", Integer.parseInt(System.getProperty("pluginjam.port")), String.join("/", path), query, null);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        return URI.create("http://localhost:%d/%s?%s".formatted(velocityApi, String.join("/", path), query));
     }
 }

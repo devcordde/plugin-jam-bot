@@ -30,7 +30,7 @@ public class LocalizationTest {
     private static final Pattern SIMPLE_LOCALIZATION_CODE = Pattern.compile("\"([a-zA-Z]+?\\.[a-zA-Z.]+)\"");
     private static final Pattern REPLACEMENTS = Pattern.compile("%[a-zA-Z\\d.]+?%");
     private static final Set<String> WHITELIST = Set.of("bot.config", "bot.testmode", "bot.cleancommands", "yyyy.MM.dd", "io.javalin.example.java");
-    private static final Set<String> WHITELIST_ENDS = Set.of(".gg", ".com", "bot.config", ".png", ".json", ".yml", ".jar", ".properties", ".zip");
+    private static final Set<String> WHITELIST_ENDS = Set.of(".gg", ".com", "bot.config", ".png", ".json", ".yml", ".jar", ".properties", ".zip", ".log", ".lock");
 
     private static final DiscordLocale[] LOCALES = {
             DiscordLocale.ENGLISH_US,

@@ -6,17 +6,24 @@
 
 package de.chojo.gamejam.server;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
+import de.chojo.gamejam.util.Mapper;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.util.Futures;
 import de.chojo.jdautil.wrapper.EventContext;
+import de.chojo.pluginjam.payload.StatsPayload;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.lingala.zip4j.ZipFile;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -26,6 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -106,6 +114,9 @@ public class TeamServer {
                     }
                     Files.createSymbolicLink(serverTarget, sourceTarget.toAbsolutePath());
                 } else {
+                    if (sourceTarget.toFile().isDirectory() && serverTarget.toFile().exists()) {
+                        continue;
+                    }
                     Files.copy(sourceTarget, serverTarget, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
@@ -124,6 +135,7 @@ public class TeamServer {
         try {
             writeTemplate();
         } catch (IOException e) {
+            log.error("Could not refresh template", e);
             return false;
         }
         return true;
@@ -148,7 +160,8 @@ public class TeamServer {
         command.addAll(AIKAR);
         command.addAll(server.parameter());
         command.add("-Dpluginjam.port=" + server.velocityApi());
-        command.add("-Dpluginjam.name=" + teamName());
+        command.add("-Dpluginjam.team.id=" + team.id());
+        command.add("-Dpluginjam.team.name=" + teamName());
         command.add("-Djavalin.port=" + apiPort);
         command.add("-Dcom.mojang.eula.agree=true");
         command.add("-jar");
@@ -370,21 +383,32 @@ public class TeamServer {
     }
 
     public CompletableFuture<MessageEmbed> detailStatus(EventContext context) {
-        var builder = new LocalizedEmbedBuilder(context.guildLocalizer())
-                .setTitle("%s #%d | %s".formatted(statusEmoji(), team.id(), team.meta().name()));
-        if (!exists()) {
-            builder.setDescription("Server not set up.");
-        } else {
-            if (running()) {
-                builder.setDescription("Server running")
-                       .addField("Ports", "Server: %d%nApi: %d".formatted(port, apiPort), false);
-            } else {
-                builder.setDescription("Server set up")
-                       .addField("Ports", "Not running", false);
-            }
-        }
+        return CompletableFuture.supplyAsync(() -> {
 
-        return CompletableFuture.completedFuture(builder.build());
+            var builder = new LocalizedEmbedBuilder(context.guildLocalizer())
+                    .setTitle("%s #%d | %s".formatted(statusEmoji(), team.id(), team.meta().name()));
+            if (!exists()) {
+                builder.setDescription("Server not set up.");
+            } else {
+                if (running()) {
+                    builder.setDescription("Server running")
+                           .addField("Ports", "Server: %d%nApi: %d".formatted(port, apiPort), true);
+                    stats().ifPresent(stats -> {
+                        var memory = stats.memory();
+                        builder.addField("Memory", "Used %d%nTotal: %d%nMax: %d".formatted(memory.usedMb(), memory.totalMb(), memory.maxMb()), true)
+                               .addField("Tps", "1 min: %.2f%n5 min: %.2f%n 15 min: %.2f%nAverage Tick time %.2f".formatted(
+                                       stats.tps()[0], stats.tps()[1], stats.tps()[2], stats.averageTickTime()), true)
+                               .addField("Players", String.valueOf(stats.onlinePlayers()), true)
+                               .addField("System", "Active threads: %d".formatted(stats.activeThreads()), true);
+                    });
+                } else {
+                    builder.setDescription("Server set up")
+                           .addField("Ports", "Not running", true);
+                }
+            }
+
+            return builder.build();
+        });
     }
 
     public String status() {
@@ -394,6 +418,28 @@ public class TeamServer {
             ports = "Server: %s Api: %s".formatted(port, apiPort);
         }
         return "%s %s %s".formatted(status, team, ports);
+    }
+
+    public Optional<StatsPayload> stats() {
+        var request = HttpRequest.newBuilder(URI.create("http://localhost:%d/v1/stats".formatted(apiPort())))
+                                 .GET()
+                                 .build();
+        HttpResponse<String> send = null;
+        try {
+            send = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            log.error("Could not read stats", e);
+            return Optional.empty();
+        } catch (InterruptedException e) {
+            log.error("Interrupted", e);
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(Mapper.MAPPER.readValue(send.body(), StatsPayload.class));
+        } catch (JsonProcessingException e) {
+            log.error("Could not parse status", e);
+            return Optional.empty();
+        }
     }
 
     private String statusEmoji() {

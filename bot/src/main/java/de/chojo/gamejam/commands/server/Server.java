@@ -13,6 +13,7 @@ import de.chojo.gamejam.commands.server.process.Console;
 import de.chojo.gamejam.commands.server.process.Log;
 import de.chojo.gamejam.commands.server.process.Restart;
 import de.chojo.gamejam.commands.server.process.Start;
+import de.chojo.gamejam.commands.server.process.Status;
 import de.chojo.gamejam.commands.server.process.Stop;
 import de.chojo.gamejam.commands.server.system.Delete;
 import de.chojo.gamejam.commands.server.system.Setup;
@@ -56,7 +57,10 @@ public class Server implements SlashProvider<Slash> {
                         .subCommand(SubCommand.of("restart", "Restart the server")
                                 .handler(new Restart(this)))
                         .subCommand(SubCommand.of("console", "Send a command via console")
-                                .handler(new Console(this)))
+                                .handler(new Console(this))
+                                .argument(Argument.text("command", "The command to send")))
+                        .subCommand(SubCommand.of("status", "Server status")
+                                .handler(new Status(this)))
                         .subCommand(SubCommand.of("log", "Restart the server")
                                 .handler(new Log(this))))
                 .group(Group.of("system", "manage the server system")

@@ -14,6 +14,8 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":plugin-api"))
+
     // discord
     implementation("de.chojo", "cjda-util", "2.7.6+alpha.22-SNAPSHOT") {
         exclude(module = "opus-java")

@@ -11,10 +11,10 @@ import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-public class Console implements SlashHandler {
+public class Status implements SlashHandler {
     private final Server server;
 
-    public Console(Server server) {
+    public Status(Server server) {
         this.server = server;
     }
 
@@ -22,14 +22,7 @@ public class Console implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var optServer = server.getServer(event, context);
         if (optServer.isEmpty()) return;
-        var teamServer = optServer.get();
-        var command = event.getOption("command").getAsString();
 
-        if (command.startsWith("stop") || command.startsWith("restart")) {
-            event.reply("Those commands can not be executed").queue();
-            return;
-        }
-        teamServer.send(command);
-        event.reply("Executed").queue();
+        event.replyEmbeds(optServer.get().detailStatus(context).join()).queue();
     }
 }

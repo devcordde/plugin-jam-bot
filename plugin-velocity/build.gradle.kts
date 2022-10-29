@@ -20,8 +20,7 @@ tasks{
         //relocate("io.javalin", "$shadebase.javalin")
         //relocate("org.eclipse", shadebase)
         mergeServiceFiles()
-        archiveBaseName.set("PluginJam")
-        archiveClassifier.set("")
+        archiveFileName.set("PluginJam.jar")
     }
 
     register<Copy>("copyToServer") {

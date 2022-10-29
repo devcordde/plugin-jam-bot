@@ -11,15 +11,17 @@ dependencies {
     compileOnly("io.papermc.paper", "paper-api", "1.19.2-R0.1-SNAPSHOT")
     implementation("io.javalin", "javalin", "4.6.5")
     implementation("de.eldoria", "eldo-util", "1.14.0-DEV")
+    implementation("org.slf4j", "slf4j-api", "1.7.36")
 }
 
 tasks {
     shadowJar {
         val shadebase = "de.chojo.pluginjam."
         relocate("de.eldoria.eldoutilities", shadebase + "eldoutilities")
-        relocate("io.javalin", shadebase + "javalin")
+        //relocate("io.javalin", shadebase + "javalin")
         mergeServiceFiles()
-        minimize()
+        archiveFileName.set("pluginjam.jar")
+        //minimize()
     }
 
     register<Copy>("copyToServer") {
@@ -31,11 +33,15 @@ tasks {
         from(shadowJar)
         destinationDir = File(path.toString())
     }
+
+    build{
+        dependsOn(shadowJar)
+    }
 }
 
 bukkit {
     name = "PluginJam"
-    main = "de.chojo.gamejam.PluginJam"
+    main = "de.chojo.pluginjam.PluginJam"
     website = "https://github.com/devcordde/plugin-jam-bot"
     apiVersion = "1.19"
     version = rootProject.version.toString()

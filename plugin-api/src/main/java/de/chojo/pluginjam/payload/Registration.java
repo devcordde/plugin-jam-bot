@@ -6,23 +6,5 @@
 
 package de.chojo.pluginjam.payload;
 
-public class Registration {
-    private String name;
-    private int port;
-
-    public Registration() {
-    }
-
-    public Registration(String name, int port) {
-        this.name = name;
-        this.port = port;
-    }
-
-    public String name() {
-        return name.toLowerCase();
-    }
-
-    public int port() {
-        return port;
-    }
+public record Registration(int id, String name, int port) {
 }

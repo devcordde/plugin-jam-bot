@@ -8,6 +8,7 @@ package de.chojo.pluginjam.api;
 
 import de.chojo.pluginjam.PluginJam;
 import de.chojo.pluginjam.api.routes.Configuration;
+import de.chojo.pluginjam.api.routes.Stats;
 import io.javalin.Javalin;
 import org.bukkit.plugin.Plugin;
 import org.slf4j.Logger;
@@ -20,10 +21,12 @@ public class Api {
     private static final Logger log = getLogger(Api.class);
     private final Javalin javalin;
     private final Configuration configuration;
+    private final Stats stats;
 
     private Api(Javalin javalin, Plugin plugin) {
         this.javalin = javalin;
         configuration = new Configuration(plugin);
+        stats = new Stats(plugin);
     }
 
     public static Api create(Plugin plugin) {
@@ -41,6 +44,7 @@ public class Api {
         javalin.routes(() -> {
             before(ctx -> log.debug("Received request on {}.", ctx.path()));
             path("v1", configuration::buildRoutes);
+            path("v1", stats::buildRoutes);
         });
     }
 }

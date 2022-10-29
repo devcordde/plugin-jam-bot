@@ -24,7 +24,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 public class ServerRegistry implements Runnable {
     private static final Logger log = getLogger(ServerRegistry.class);
-    private final Map<String, Registration> names = new HashMap<>();
+    private final Map<Integer, Registration> ids = new HashMap<>();
     private final Map<Integer, Registration> ports = new HashMap<>();
     private final Map<Registration, Instant> seen = new HashMap<>();
 
@@ -52,7 +52,7 @@ public class ServerRegistry implements Runnable {
     }
 
     public void register(Registration registration) {
-        var reg = names.get(registration.name());
+        var reg = ids.get(registration.id());
 
         if (reg != null && !reg.equals(registration)) {
             throw AlreadyRegisteredException.forName(registration.name());
@@ -66,7 +66,7 @@ public class ServerRegistry implements Runnable {
 
         log.info("Registered server {} on port {}", registration.name(), registration.port());
 
-        names.put(registration.name(), registration);
+        ids.put(registration.id(), registration);
         ports.put(registration.port(), registration);
 
         proxy.registerServer(new ServerInfo(registration.name(), new InetSocketAddress("localhost", registration.port())));
@@ -79,10 +79,14 @@ public class ServerRegistry implements Runnable {
     }
 
     public void unregister(Registration registration) {
-        log.info("Unregistered server {} on port {}", registration.name(), registration.port());
-        names.remove(registration.name());
-        ports.remove(registration.port());
-        seen.remove(registration);
-        proxy.unregisterServer(new ServerInfo(registration.name(), new InetSocketAddress("localhost", registration.port())));
+        var removed = ids.remove(registration.id());
+        if(removed == null){
+            log.warn("Unregistered server {} from port {}, but this server is not known.", registration.id(), registration.port());
+            return;
+        }
+        ports.remove(removed.port());
+        seen.remove(removed);
+        log.info("Unregistered server {} on port {}", removed.name(), removed.port());
+        proxy.unregisterServer(new ServerInfo(removed.name(), new InetSocketAddress("localhost", removed.port())));
     }
 }
