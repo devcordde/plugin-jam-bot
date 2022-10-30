@@ -10,6 +10,7 @@ import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.gamejam.server.TeamServer;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
+import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -45,9 +46,11 @@ public class RefreshTeam implements SlashHandler {
                              .map(TeamServer::refresh)
                              .orElse(false);
         if (started) {
-            event.reply("Server of team " + optTeam.get() + " refreshed.").queue();
+            event.reply(context.localize("command.serveradmin.refresh.refreshteam.message.refreshed",
+                    Replacement.create("TEAM", optTeam.get()))).queue();
         } else {
-            event.reply("Failure during refresh of " + optTeam.get() + ".").queue();
+            event.reply(context.localize("command.serveradmin.refresh.refreshteam.message.failed",
+                    Replacement.create("TEAM", optTeam.get()))).queue();
         }
     }
 

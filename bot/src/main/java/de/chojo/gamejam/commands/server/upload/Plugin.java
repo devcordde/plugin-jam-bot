@@ -47,9 +47,9 @@ public class Plugin implements SlashHandler {
         var pluginFile = teamServer.plugins().resolve("plugin.jar");
         try {
             Files.copy(download.get(), pluginFile, StandardCopyOption.REPLACE_EXISTING);
-            event.getHook().editOriginal("Added or replaced plugin.").queue();
+            event.getHook().editOriginal(context.localize("command.server.upload.plugin.message.success")).queue();
         } catch (IOException e) {
-            event.getHook().editOriginal("Failed to add plugin.").queue();
+            event.getHook().editOriginal(context.localize("command.server.upload.plugin.message.fail")).queue();
         }
     }
 }

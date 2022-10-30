@@ -21,6 +21,6 @@ public class SyncVelocity implements SlashHandler {
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         serverService.syncVelocity();
-        event.reply("Synced server").queue();
+        event.reply(context.localize("command.serveradmin.syncvelocity.message.synced")).queue();
     }
 }

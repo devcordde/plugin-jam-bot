@@ -43,7 +43,7 @@ public class Uninstall implements SlashHandler {
         var pluginName = event.getOption("plugin").getAsString();
         var optPlugin = configuration.plugins().byName(pluginName);
         if (optPlugin.isEmpty()) {
-            event.reply("Plugin not found").queue();
+            event.reply(context.localize("error.pluginnotfound")).queue();
             return;
         }
         var plugin = optPlugin.get();
@@ -54,9 +54,9 @@ public class Uninstall implements SlashHandler {
         if (event.getOption("deletedata").getAsBoolean()) {
             var pluginDir = teamServer.plugins().resolve(pluginName);
             teamServer.deleteDirectory(pluginDir);
-            event.reply("Uninstalled plugin and deleted data").queue();
+            event.reply(context.localize("command.server.plugins.uninstall.message.success.pluginanddata")).queue();
         } else {
-            event.reply("Uninstalled plugin.").queue();
+            event.reply(context.localize("command.server.plugins.uninstall.message.success.plugin")).queue();
         }
     }
 

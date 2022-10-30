@@ -406,22 +406,22 @@ public class TeamServer {
             var builder = new LocalizedEmbedBuilder(context.guildLocalizer())
                     .setTitle("%s #%d | %s".formatted(statusEmoji(), team.id(), team.meta().name()));
             if (!exists()) {
-                builder.setDescription("Server not set up.");
+                builder.setDescription("teamserver.message.detailstatus.nonexisting.description");
             } else {
                 if (running()) {
-                    builder.setDescription("Server running")
-                           .addField("Ports", "Server: %d%nApi: %d".formatted(port, apiPort), true);
+                    builder.setDescription("teamserver.message.detailstatus.existing.description")
+                           .addField("word.ports", "$word.server$: %d%n$word.api$: %d".formatted(port, apiPort), true);
                     stats().ifPresent(stats -> {
                         var memory = stats.memory();
-                        builder.addField("Memory", "Used %d%nTotal: %d%nMax: %d".formatted(memory.usedMb(), memory.totalMb(), memory.maxMb()), true)
-                               .addField("Tps", "1 min: %.2f%n5 min: %.2f%n 15 min: %.2f%nAverage Tick time %.2f".formatted(
+                        builder.addField("word.memory", "$word.used$ %d%n$word.total$: %d%n$word.max$: %d".formatted(memory.usedMb(), memory.totalMb(), memory.maxMb()), true)
+                               .addField("word.tps", "1 $word.min$: %.2f%n5 $word.min$: %.2f%n 15 $word.min$: %.2f%n$word.averageticktime$ %.2f".formatted(
                                        stats.tps()[0], stats.tps()[1], stats.tps()[2], stats.averageTickTime()), true)
-                               .addField("Players", String.valueOf(stats.onlinePlayers()), true)
-                               .addField("System", "Active threads: %d".formatted(stats.activeThreads()), true);
+                               .addField("word.players", String.valueOf(stats.onlinePlayers()), true)
+                               .addField("word.system", "$word.activethreads$: %d".formatted(stats.activeThreads()), true);
                     });
                 } else {
-                    builder.setDescription("Server set up")
-                           .addField("Ports", "Not running", true);
+                    builder.setDescription("word.serversetup")
+                           .addField("word.ports", "word.notrunning", true);
                 }
             }
 

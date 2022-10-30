@@ -42,7 +42,7 @@ public class World implements SlashHandler {
         }
 
         if (downloadUrl == null) {
-            event.reply("No file or url provided").queue();
+            event.reply(context.localize("command.server.upload.world.message.nofileorurl")).queue();
             return;
         }
 
@@ -50,11 +50,11 @@ public class World implements SlashHandler {
 
         if (download.isEmpty()) return;
 
-        event.getHook().editOriginal("Download done. Replacing.").queue();
+        event.getHook().editOriginal(context.localize("command.server.upload.world.message.replacing")).queue();
         if (teamServer.replaceWorld(download.get())) {
-            event.getHook().editOriginal("Replaced world").queue();
+            event.getHook().editOriginal(context.localize("command.server.upload.world.message.replaced")).queue();
         } else {
-            event.getHook().editOriginal("Failed to replace world").queue();
+            event.getHook().editOriginal(context.localize("command.server.upload.world.message.failed")).queue();
         }
     }
 }

@@ -34,14 +34,14 @@ public class Delete implements SlashHandler {
             deleted = teamServer.purge();
         } catch (IOException e) {
             log.error("Could not purge server", e);
-            event.reply("Something went wrong during server deletion").queue();
+            event.reply(context.localize("command.server.system.delete.message.error")).queue();
             return;
         }
 
         if (deleted) {
-            event.reply("Server was deleted successfully.").queue();
+            event.reply(context.localize("command.server.system.delete.message.success")).queue();
         } else {
-            event.reply("Server is not set up.").queue();
+            event.reply(context.localize("command.server.system.delete.message.notsetup")).queue();
         }
     }
 }

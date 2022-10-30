@@ -35,7 +35,8 @@ public class MaxPlayers implements SlashHandler {
                                .POST(HttpRequest.BodyPublishers.ofString(String.valueOf(event.getOption("amount").getAsInt())))
                                .build();
         optServer.get().http().sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                 .whenComplete(Futures.whenComplete(res -> event.reply("Max players set.").queue(),
-                         err -> log.error("Failed to send request.", err)));;
+                 .whenComplete(Futures.whenComplete(
+                         res -> event.reply(context.localize("command.server.configure.maxplayers.message.success")).queue(),
+                         err -> log.error("Failed to send request.", err)));
     }
 }

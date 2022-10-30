@@ -52,7 +52,7 @@ public class UploadPluginData implements SlashHandler {
         var path = event.getOption("path").getAsString();
 
         if (path.contains("..")) {
-            event.reply("Invalid path").queue();
+            event.reply(context.localize("error.invalidpath")).queue();
             return;
         }
 
@@ -63,20 +63,20 @@ public class UploadPluginData implements SlashHandler {
         var pluginFile = teamServer.plugins().resolve(path);
         // No upload in plugin root
         if (pluginFile.getParent().equals(teamServer.plugins())) {
-            event.reply("Invalid path").queue();
+            event.reply(context.localize("error.invalidpath")).queue();
             return;
         }
 
         // No updates into the update directory
         if(pluginFile.equals(teamServer.plugins().resolve("update"))){
-            event.reply("Invalid path").queue();
+            event.reply(context.localize("error.invalidpath")).queue();
             return;
         }
         try {
             Files.copy(download.get(), pluginFile, StandardCopyOption.REPLACE_EXISTING);
-            event.getHook().editOriginal("Added or replaced file.").queue();
+            event.getHook().editOriginal(context.localize("command.server.upload.uploadplugindata.message.success")).queue();
         } catch (IOException e) {
-            event.getHook().editOriginal("Failed to add file.").queue();
+            event.getHook().editOriginal(context.localize("command.server.upload.uploadplugindata.message.fail")).queue();
         }
     }
 

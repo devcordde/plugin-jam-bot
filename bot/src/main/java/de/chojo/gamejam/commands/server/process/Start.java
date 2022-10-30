@@ -25,9 +25,9 @@ public class Start implements SlashHandler {
         var teamServer = optServer.get();
         if (teamServer.exists()) {
             if (teamServer.start()) {
-                event.reply("Server started").queue();
+                event.reply(context.localize("command.server.process.start.message.success")).queue();
             } else {
-                event.reply("Could not start server. It is already running or not set up.").queue();
+                event.reply(context.localize("command.server.process.start.message.fail")).queue();
             }
         }
     }

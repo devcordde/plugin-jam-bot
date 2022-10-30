@@ -9,6 +9,7 @@ package de.chojo.gamejam.commands.serveradmin.handler.restart;
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
+import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -46,9 +47,11 @@ public class RestartTeam implements SlashHandler {
             return running;
         }).orElse(false);
         if (started) {
-            event.reply("Server of team " + optTeam.get() + " restarted.").queue();
+            event.reply(context.localize("command.serveradmin.restart.restartteam.message.restarted",
+                    Replacement.create("TEAM", optTeam.get()))).queue();
         } else {
-            event.reply("Server of team " + optTeam.get() + " was not running.").queue();
+            event.reply(context.localize("command.serveradmin.restart.restartteam.message.failed",
+                    Replacement.create("TEAM", optTeam.get()))).queue();
         }
     }
 

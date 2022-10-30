@@ -9,6 +9,7 @@ package de.chojo.gamejam.commands.serveradmin.handler.restart;
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
+import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
@@ -41,6 +42,7 @@ public class RestartAll implements SlashHandler {
                        })
                        .filter(v -> v)
                        .count();
-        event.reply("Restarted " + count + " servers.").queue();
+        event.reply(context.localize("command.serveradmin.restart.restartall.message.restarted",
+                Replacement.create("AMOUNT", count))).queue();
     }
 }

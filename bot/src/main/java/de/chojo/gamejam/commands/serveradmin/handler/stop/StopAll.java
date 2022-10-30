@@ -9,6 +9,7 @@ package de.chojo.gamejam.commands.serveradmin.handler.stop;
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
+import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
@@ -39,6 +40,7 @@ public class StopAll implements SlashHandler {
                        })
                        .filter(v -> v)
                        .count();
-        event.reply("Stopped " + count + " servers.").queue();
+        event.reply(context.localize("command.serveradmin.stop.stopall.message.stopped",
+                Replacement.create("AMOUNT", count))).queue();
     }
 }

@@ -10,6 +10,7 @@ import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.gamejam.server.TeamServer;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
+import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
@@ -31,11 +32,12 @@ public class StartAll implements SlashHandler {
         }
         var jam = currentJam.get();
 
-        long count = jam.teams().teams().stream()
+        var count = jam.teams().teams().stream()
                         .map(serverService::get)
                         .map(TeamServer::start)
                         .filter(v -> v)
                         .count();
-        event.reply("Started " + count + " servers.").queue();
+        event.reply(context.localize("command.serveradmin.start.startall.message.started",
+                Replacement.create("AMOUNT", count))).queue();
     }
 }
