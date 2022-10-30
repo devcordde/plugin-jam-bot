@@ -38,7 +38,7 @@ public class ServerService implements Runnable {
 
     public static ServerService create(ScheduledExecutorService executorService, Configuration configuration) {
         var serverService = new ServerService(configuration);
-        executorService.scheduleAtFixedRate(serverService, 10, 30, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(serverService, 10, 10, TimeUnit.SECONDS);
         return serverService;
     }
 
@@ -51,13 +51,18 @@ public class ServerService implements Runnable {
     @Override
     public void run() {
         for (var value : server.values()) {
-            value.serverRequests()
-                 .ifPresent(server -> {
-                     if (server.restart()) {
-                         log.info("Server of team {} requested restart", value.team());
-                         value.restart();
-                     }
-                 });
+            if (!value.running()) continue;
+            try {
+                value.serverRequests()
+                     .ifPresent(server -> {
+                         if (server.restart()) {
+                             log.info("Server of team {} requested restart", value.team());
+                             value.restart();
+                         }
+                     });
+            } catch (RuntimeException e) {
+                log.error("Could not reach server {}", value);
+            }
         }
     }
 
@@ -75,11 +80,11 @@ public class ServerService implements Runnable {
         try {
             response = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
-            log.error("Could not read response", e);
-            throw new RuntimeException(e);
+            log.error("Could not reach velocity inteance", e);
+            return;
         } catch (InterruptedException e) {
             log.error("Interrupted", e);
-            throw new RuntimeException(e);
+            return;
         }
         var collectionType = Mapper.MAPPER.getTypeFactory()
                                           .constructCollectionType(List.class, Registration.class);

@@ -22,7 +22,7 @@ public final class Leave implements SlashHandler {
 
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
-        JamGuild jamGuild = guilds.guild(event);
+        var jamGuild = guilds.guild(event);
         var optJam = jamGuild.jams().nextOrCurrent();
         if (optJam.isEmpty()) {
             event.reply(context.localize("error.nojamactive")).setEphemeral(true).queue();

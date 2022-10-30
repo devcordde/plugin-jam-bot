@@ -22,17 +22,19 @@ public final class JamStart implements SlashHandler {
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var jams = guilds.guild(event).jams();
         var currJam = jams.activeJam();
-        currJam.ifPresentOrElse(
-                jam -> event.reply(context.localize("error.alreadyActive")).setEphemeral(true).queue(),
-                () -> jams.nextOrCurrent()
-                          .ifPresentOrElse(
-                                  next -> {
-                                      next.state().active(true);
-                                      event.reply(context.localize("command.start.message.activated"))
-                                           .setEphemeral(true)
-                                           .queue();
-                                  },
-                                  () -> event.reply(context.localize("error.noupcomingjam")).setEphemeral(true)
-                                             .queue()));
+        if (currJam.isPresent()) {
+            event.reply(context.localize("error.alreadyActive")).setEphemeral(true).queue();
+            return;
+        }
+        var next = jams.nextOrCurrent();
+        if (next.isPresent()) {
+            next.get().state().active(true);
+            event.reply(context.localize("command.start.message.activated"))
+                 .setEphemeral(true)
+                 .queue();
+
+        }
+        event.reply(context.localize("error.noupcomingjam")).setEphemeral(true)
+             .queue();
     }
 }

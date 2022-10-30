@@ -8,12 +8,15 @@ package de.chojo.gamejam.data.dao.guild.jams.jam.teams.team;
 
 import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import de.chojo.sadu.base.QueryFactory;
+import de.chojo.sadu.exceptions.ThrowingConsumer;
+import de.chojo.sadu.wrapper.util.ParamBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 
+import java.sql.SQLException;
 import java.util.Optional;
 
 public class TeamMeta extends QueryFactory {
@@ -23,9 +26,11 @@ public class TeamMeta extends QueryFactory {
     private long role;
     private long textChannel;
     private long voiceChannel;
+    private String projectDescription;
+    private String projectUrl;
 
 
-    public TeamMeta(Team team, String name, long leader, long role, long textChannel, long voiceChannel) {
+    public TeamMeta(Team team, String name, long leader, long role, long textChannel, long voiceChannel, String projectDescription, String projectUrl) {
         super(team);
         this.team = team;
         this.name = name;
@@ -33,6 +38,8 @@ public class TeamMeta extends QueryFactory {
         this.role = role;
         this.textChannel = textChannel;
         this.voiceChannel = voiceChannel;
+        this.projectDescription = projectDescription;
+        this.projectUrl = projectUrl;
     }
 
     public long leader() {
@@ -53,7 +60,7 @@ public class TeamMeta extends QueryFactory {
         return Optional.ofNullable(guild().getTextChannelById(textChannel));
     }
 
-    private Guild guild(){
+    private Guild guild() {
         return team.jam().jamGuild().guild();
     }
 
@@ -79,6 +86,27 @@ public class TeamMeta extends QueryFactory {
         }
     }
 
+
+    public String projectDescription() {
+        return projectDescription;
+    }
+
+    public void projectDescription(String projectDescription) {
+        if (set("project_description", projectDescription)) {
+            this.projectDescription = projectDescription;
+        }
+    }
+
+    public String projectUrl() {
+        return projectUrl;
+    }
+
+    public void projectUrl(String projectUrl) {
+        if (set("project_url", projectUrl)) {
+            this.projectUrl = projectUrl;
+        }
+    }
+
     public String name() {
         return name;
     }
@@ -101,6 +129,14 @@ public class TeamMeta extends QueryFactory {
     }
 
     private boolean set(String column, long value) {
+        return set(column, p -> p.setLong(value));
+    }
+
+    private boolean set(String column, String value) {
+        return set(column, p -> p.setString(value));
+    }
+
+    private boolean set(String column, ThrowingConsumer<ParamBuilder, SQLException> value) {
         return builder()
                 .query("""
                        INSERT INTO team_meta(team_id, team_name, %s) VALUES(?,'',?)
@@ -108,7 +144,10 @@ public class TeamMeta extends QueryFactory {
                            DO UPDATE
                                SET %s = excluded.%s
                        """, column, column, column)
-                .parameter(p -> p.setInt(team.id()).setLong(value))
+                .parameter(p -> {
+                    p.setInt(team.id());
+                    value.accept(p);
+                })
                 .update()
                 .sendSync()
                 .changed();

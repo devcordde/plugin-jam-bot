@@ -148,7 +148,7 @@ public class Bot {
                                                   .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withMenuService(builder -> builder.withLocalizer(localizer)
                                                    .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
-                .withModalService(builder -> builder.withLocalizer(localizer).build())
+                .withModalService(builder -> builder.withLocalizer(localizer))
                 .build();
     }
 

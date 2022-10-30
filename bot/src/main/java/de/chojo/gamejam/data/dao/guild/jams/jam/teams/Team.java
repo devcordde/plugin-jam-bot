@@ -51,8 +51,10 @@ public class Team extends QueryFactory {
         var meta = meta();
         return new LocalizedEmbedBuilder(localizer)
                 .setTitle(meta.name())
+                .setDescription(meta.projectDescription())
                 .addField("command.team.profile.member", member, true)
                 .addField("command.team.profile.leader", MentionUtil.user(meta.leader()), true)
+                .addField("command.team.profile.projecturl", meta.projectUrl(), true)
                 .setFooter(String.format("#%s", id()))
                 .build();
     }
@@ -150,11 +152,20 @@ public class Team extends QueryFactory {
                                   leader_id,
                                   role_id,
                                   text_channel_id,
-                                  voice_channel_id
+                                  voice_channel_id,
+                                  project_description,
+                                  project_url
                            FROM team_meta WHERE team_id = ?
                            """)
                     .parameter(stmt -> stmt.setInt(id))
-                    .readRow(row -> new TeamMeta(this, row.getString("team_name"), row.getLong("leader_id"), row.getLong("role_id"), row.getLong("text_channel_id"), row.getLong("voice_channel_id")))
+                    .readRow(row -> new TeamMeta(this,
+                            row.getString("team_name"),
+                            row.getLong("leader_id"),
+                            row.getLong("role_id"),
+                            row.getLong("text_channel_id"),
+                            row.getLong("voice_channel_id"),
+                            row.getString("project_description"),
+                            row.getString("project_url")))
                     .firstSync()
                     .orElseThrow();
         }
@@ -172,5 +183,14 @@ public class Team extends QueryFactory {
     @Override
     public String toString() {
         return "%s (%s)".formatted(meta().name(), id);
+    }
+
+    public Integer votes(Member member) {
+        return builder(Integer.class)
+                .query("SELECT points FROM vote WHERE team_id = ? AND voter_id = ?")
+                .parameter(stmt -> stmt.setInt(id()).setLong(member.getIdLong()))
+                .readRow(r -> r.getInt("vote"))
+                .firstSync()
+                .orElse(0);
     }
 }

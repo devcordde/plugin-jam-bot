@@ -8,6 +8,7 @@ package de.chojo.gamejam.commands.server.configure;
 
 import de.chojo.gamejam.commands.server.Server;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
+import de.chojo.jdautil.util.Futures;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import java.net.http.HttpResponse;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class SpectatorOverflow implements SlashHandler {
+    private static final Logger log = getLogger(SpectatorOverflow.class);
     private final Server server;
 
     public SpectatorOverflow(Server server) {
@@ -32,6 +34,8 @@ public class SpectatorOverflow implements SlashHandler {
         var request = optServer.get().requestBuilder("v1/config/spectatoroverflow")
                                .POST(HttpRequest.BodyPublishers.ofString(String.valueOf(event.getOption("state").getAsBoolean())))
                                .build();
-        optServer.get().http().sendAsync(request, HttpResponse.BodyHandlers.discarding());
+        optServer.get().http().sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                 .whenComplete(Futures.whenComplete(res -> event.reply("Overflow set.").queue(),
+                         err -> log.error("Failed to send request.", err)));;
     }
 }

@@ -8,6 +8,7 @@ package de.chojo.gamejam.commands.team;
 
 import de.chojo.gamejam.commands.team.handler.Create;
 import de.chojo.gamejam.commands.team.handler.Disband;
+import de.chojo.gamejam.commands.team.handler.Edit;
 import de.chojo.gamejam.commands.team.handler.Invite;
 import de.chojo.gamejam.commands.team.handler.Leave;
 import de.chojo.gamejam.commands.team.handler.List;
@@ -27,6 +28,8 @@ public class Team extends SlashCommand {
                         .handler(new Create(guilds))
                         .argument(Argument.text("name", "command.team.create.name.description")
                                           .asRequired()))
+                .subCommand(SubCommand.of("edit", "Edit Eeam information")
+                        .handler(new Edit(guilds)))
                 .subCommand(SubCommand.of("invite", "command.team.invite.description")
                         .handler(new Invite(guilds))
                         .argument(Argument.user("user", "command.team.invite.user.description")

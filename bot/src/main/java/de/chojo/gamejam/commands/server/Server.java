@@ -62,7 +62,7 @@ public class Server implements SlashProvider<Slash> {
                                 .handler(new Restart(this)))
                         .subCommand(SubCommand.of("console", "Send a command via console")
                                 .handler(new Console(this))
-                                .argument(Argument.text("command", "The command to send")))
+                                .argument(Argument.text("command", "The command to send").asRequired()))
                         .subCommand(SubCommand.of("status", "Server status")
                                 .handler(new Status(this)))
                         .subCommand(SubCommand.of("log", "Restart the server")
@@ -111,13 +111,13 @@ public class Server implements SlashProvider<Slash> {
                                 .handler(new Message(this)))
                         .subCommand(SubCommand.of("maxplayers", "Set the max players of this server")
                                 .handler(new MaxPlayers(this))
-                                .argument(Argument.integer("amount", "Max amount of players.")))
+                                .argument(Argument.integer("amount", "Max amount of players.").asRequired()))
                         .subCommand(SubCommand.of("spectatoroverflow", "Active the spectator overflow")
                                 .handler(new SpectatorOverflow(this))
-                                .argument(Argument.bool("state", "true to enable overflow")))
+                                .argument(Argument.bool("state", "true to enable overflow").asRequired()))
                         .subCommand(SubCommand.of("whitelist", "Enable the whitelist")
                                 .handler(new Whitelist(this))
-                                .argument(Argument.bool("state", "true to enable whitelist"))))
+                                .argument(Argument.bool("state", "true to enable whitelist").asRequired())))
                 .build();
     }
 

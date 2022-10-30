@@ -9,6 +9,7 @@ package de.chojo.pluginjam.service;
 import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -23,7 +24,7 @@ public class JoinService implements Listener {
         this.requests = requests;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (plugin.getServer().getOnlinePlayers().size() < maxPlayers()) return;
 

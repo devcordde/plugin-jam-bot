@@ -7,6 +7,7 @@
 package de.chojo.gamejam.commands.vote.handler;
 
 import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import de.chojo.gamejam.data.dao.guild.jams.jam.user.JamUser;
 import de.chojo.gamejam.data.wrapper.votes.VoteEntry;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
@@ -50,48 +51,44 @@ public class Vote implements SlashHandler {
         }
 
         var teams = jam.teams();
-        var teamList = teams.teams();
-        var voteTeam = teamList.stream()
-                             .filter(t -> t.meta().name().equalsIgnoreCase(event.getOption("team").getAsString()))
-                             .findFirst();
+        var teamCount = teams.teams().size();
+        var optVoteTeam = teams.byName(event.getOption("team").getAsString());
 
-        if (voteTeam.isEmpty()) {
+        if (optVoteTeam.isEmpty()) {
             event.getHook().editOriginal(context.localize("error.unkownteam")).queue();
             return;
         }
 
-        var team = teams.byMember(event.getMember());
+        var voteTeam = optVoteTeam.get();
 
-        if (team.isPresent() && team.get().meta().name().equalsIgnoreCase(event.getOption("team").getAsString())) {
+        if (voteTeam.member(event.getMember()).isPresent()) {
             event.getHook().editOriginal(context.localize("command.votes.vote.message.ownteam")).queue();
             return;
         }
 
-        JamUser user = jam.user(event.getMember());
+        var user = jam.user(event.getMember());
 
-        var pointsGiven = jam.user(event.getMember()).votes().stream()
-                             .mapToInt(VoteEntry::points)
-                             .sum();
+        var pointsGiven = user.votesGiven();
 
         //TODO: Max points and max points per team are currently hardcoded. should be configurable in the future.
         var points = Math.min(5, Math.max(0, event.getOption("points").getAsInt()));
 
-        if (pointsGiven + points > teamList.size()) {
+        var votes = voteTeam.votes(event.getMember());
+
+        if (votes < points && pointsGiven + points > teamCount) {
             event.getHook().editOriginal(context.localize("command.votes.vote.message.maxpointsreached",
-                         Replacement.create("REMAINING", teamList.size() - pointsGiven)
+                         Replacement.create("REMAINING", teamCount - pointsGiven)
                                  .addFormatting(Format.BOLD)))
                  .queue();
             return;
         }
 
-        voteTeam.get().vote(event.getMember(), points);
+        voteTeam.vote(event.getMember(), points);
 
         event.getHook().editOriginal(context.localize("command.votes.vote.message.done",
-                     Replacement.create("REMAINING", teamList.size() - user.votes()
-                                                                           .stream().mapToInt(VoteEntry::points)
-                                                                           .sum()).addFormatting(Format.BOLD),
+                     Replacement.create("REMAINING", teamCount - user.votesGiven()).addFormatting(Format.BOLD),
                      Replacement.create("POINTS", points).addFormatting(Format.BOLD),
-                     Replacement.create("TEAM", voteTeam.get().meta().name()).addFormatting(Format.BOLD)))
+                     Replacement.create("TEAM", voteTeam.meta().name()).addFormatting(Format.BOLD)))
              .queue();
     }
 

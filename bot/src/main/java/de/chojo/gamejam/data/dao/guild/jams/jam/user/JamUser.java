@@ -43,6 +43,22 @@ public class JamUser extends QueryFactory {
                 .allSync();
     }
 
+    public int votesGiven() {
+        return builder(Integer.class)
+                .query("""
+                       SELECT
+                           sum(points)
+                       FROM vote v
+                       LEFT JOIN team t ON t.id = v.team_id
+                       WHERE t.jam_id = ?
+                           AND voter_id = ?
+                       """)
+                .parameter(p -> p.setInt(jam.jamId()).setLong(member.getIdLong()))
+                .readRow(r -> r.getInt("points"))
+                .firstSync()
+                .orElse(0);
+    }
+
     public Optional<Team> team() {
         return jam.teams().byMember(member);
     }

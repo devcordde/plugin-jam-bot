@@ -24,7 +24,8 @@ public class Stop implements SlashHandler {
         if(optServer.isEmpty())return;
         var teamServer = optServer.get();
         if (teamServer.exists()) {
-            teamServer.stop(false).thenRun(() ->event.reply("Server stopped").queue());
+            event.reply("Stopping server").queue();
+            teamServer.stop(false).thenRun(() ->event.getHook().editOriginal("Server stopped").queue());
         }
     }
 }

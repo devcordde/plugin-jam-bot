@@ -11,6 +11,7 @@ import de.chojo.gamejam.server.TeamServer;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.modals.handler.ModalHandler;
 import de.chojo.jdautil.modals.handler.TextInputHandler;
+import de.chojo.jdautil.util.Futures;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
@@ -34,7 +35,7 @@ public class Message implements SlashHandler {
         var optServer = server.getServer(event, context);
         if (optServer.isEmpty()) return;
 
-        TeamServer teamServer = optServer.get();
+        var teamServer = optServer.get();
         context.registerModal(ModalHandler.builder("Define the welcome message")
                 .addInput(TextInputHandler.builder("message", "Welcome message", TextInputStyle.PARAGRAPH)
                         .withPlaceholder("Welcome message")
@@ -44,8 +45,9 @@ public class Message implements SlashHandler {
                     var request = teamServer.requestBuilder("v1/config/message")
                                             .POST(HttpRequest.BodyPublishers.ofString(content))
                                             .build();
-                    teamServer.http().sendAsync(request, HttpResponse.BodyHandlers.discarding());
-                    modalEvent.reply("Message set.").queue();
+                    teamServer.http().sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                              .whenComplete(Futures.whenComplete(res -> modalEvent.reply("Message set.").queue(),
+                                      err -> log.error("Failed to send request.", err)));
                 })
                 .build());
     }

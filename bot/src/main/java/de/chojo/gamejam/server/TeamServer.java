@@ -88,41 +88,17 @@ public class TeamServer {
         return serverDir().toFile().exists();
     }
 
+    /**
+     * Sets up the server if it doesn't exist yet.
+     *
+     * @return true if setup was successful.
+     * @throws IOException if data could not be written
+     */
     public boolean setup() throws IOException {
         if (exists()) return false;
         log.info("Setting up server of team {}", team);
         writeTemplate();
         return true;
-    }
-
-    private void writeTemplate() throws IOException {
-        var serverDir = serverDir();
-        Files.createDirectories(serverDir);
-
-        var sourceDir = Path.of(configuration.serverTemplate().templateDir());
-        var symlinks = configuration.serverTemplate().symLinks()
-                                    .stream()
-                                    .map(sourceDir::resolve)
-                                    .collect(Collectors.toSet());
-        try (var files = Files.walk(sourceDir)) {
-            for (var sourceTarget : files.toList()) {
-                // skip root dir
-                if (sourceTarget.getNameCount() == 1) continue;
-                var filePath = sourceTarget.subpath(1, sourceTarget.getNameCount());
-                var serverTarget = serverDir.resolve(filePath);
-                if (symlinks.contains(sourceTarget)) {
-                    if (serverTarget.toFile().isFile() && serverTarget.toFile().delete()) {
-                        log.debug("Deleted old version of file {}", serverTarget);
-                    }
-                    Files.createSymbolicLink(serverTarget, sourceTarget.toAbsolutePath());
-                } else {
-                    if (sourceTarget.toFile().isDirectory() && serverTarget.toFile().exists()) {
-                        continue;
-                    }
-                    Files.copy(sourceTarget, serverTarget, StandardCopyOption.REPLACE_EXISTING);
-                }
-            }
-        }
     }
 
     /**
@@ -143,6 +119,43 @@ public class TeamServer {
         return true;
     }
 
+    private void writeTemplate() throws IOException {
+        var serverDir = serverDir();
+        Files.createDirectories(serverDir);
+
+        var sourceDir = Path.of(configuration.serverTemplate().templateDir());
+        var symlinks = configuration.serverTemplate().symLinks()
+                                    .stream()
+                                    .map(sourceDir::resolve)
+                                    .collect(Collectors.toSet());
+        try (var files = Files.walk(sourceDir)) {
+            for (var sourceTarget : files.toList()) {
+                // skip root dir
+                if (sourceTarget.getNameCount() == 1) continue;
+                var filePath = sourceTarget.subpath(1, sourceTarget.getNameCount());
+                var serverTarget = serverDir.resolve(filePath);
+                if (symlinks.contains(sourceTarget)) {
+                    // Not really required since the current and new symlink are probably equal, but the creation will fail otherwise.
+                    if (serverTarget.toFile().isFile() && serverTarget.toFile().delete()) {
+                        log.debug("Deleted old version of file {}", serverTarget);
+                    }
+                    Files.createSymbolicLink(serverTarget, sourceTarget.toAbsolutePath());
+                } else {
+                    // ignore already existing directories
+                    if (sourceTarget.toFile().isDirectory() && serverTarget.toFile().exists()) {
+                        continue;
+                    }
+                    Files.copy(sourceTarget, serverTarget, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
+    }
+
+    /**
+     * Delete all the server data.
+     * @return true when server was deleted.
+     * @throws IOException
+     */
     public boolean purge() throws IOException {
         if (!exists()) return false;
         log.info("Purging server of team {}", team);
@@ -475,13 +488,16 @@ public class TeamServer {
         try {
             send = http().send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
+            log.error("Could not connect to server");
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
+            log.error("Could not connect to server", e);
             throw new RuntimeException(e);
         }
         try {
             return Optional.of(Mapper.MAPPER.readValue(send.body(), RequestsPayload.class));
         } catch (JsonProcessingException e) {
+            log.error("Could not parse response", e);
             throw new RuntimeException(e);
         }
     }

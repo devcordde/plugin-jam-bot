@@ -27,9 +27,12 @@ public final class JamEnd implements SlashHandler {
 
 
         guilds.guild(event).jams().activeJam()
-              .ifPresentOrElse(jam -> {
-                   jam.state().finish();
-                   event.reply(context.localize("command.jamadmin.jam.end.message.ended")).setEphemeral(true).queue();
-               }, () -> event.reply(context.localize("error.noactivejam")).setEphemeral(true).queue());
+              .ifPresentOrElse(
+                      jam -> {
+                          jam.state().finish();
+                          event.reply(context.localize("command.jamadmin.jam.end.message.ended")).setEphemeral(true)
+                               .queue();
+                      },
+                      () -> event.reply(context.localize("error.noactivejam")).setEphemeral(true).queue());
     }
 }

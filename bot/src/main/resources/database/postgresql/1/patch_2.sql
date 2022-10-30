@@ -12,3 +12,9 @@ ALTER TABLE gamejam.team_meta
 
 ALTER TABLE gamejam.team_meta
     RENAME COLUMN name TO team_name;
+
+ALTER TABLE gamejam.team_meta
+    ADD project_description TEXT DEFAULT '' NOT NULL;
+
+ALTER TABLE gamejam.team_meta
+    ADD project_url TEXT DEFAULT '' NOT NULL;

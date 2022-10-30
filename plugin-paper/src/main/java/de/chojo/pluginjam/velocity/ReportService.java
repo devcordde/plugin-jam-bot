@@ -40,7 +40,7 @@ public class ReportService implements Runnable {
 
     public static ReportService create(Plugin plugin, ScheduledExecutorService executor) {
         var service = new ReportService(plugin);
-        executor.scheduleAtFixedRate(service, 1, 1, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(service, 10, 10, TimeUnit.SECONDS);
         service.register();
         return service;
     }
