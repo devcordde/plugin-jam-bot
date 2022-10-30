@@ -9,6 +9,7 @@ package de.chojo.pluginjam;
 import de.chojo.pluginjam.api.Api;
 import de.chojo.pluginjam.greeting.Welcomer;
 import de.chojo.pluginjam.service.CommandBlocker;
+import de.chojo.pluginjam.service.JoinService;
 import de.chojo.pluginjam.service.ServerRequests;
 import de.chojo.pluginjam.velocity.ReportService;
 import de.eldoria.eldoutilities.plugin.EldoPlugin;
@@ -32,8 +33,7 @@ public class PluginJam extends EldoPlugin implements Listener {
         api = Api.create(this, serverRequests);
         service = ReportService.create(this, executor);
 
-        registerListener(new CommandBlocker(serverRequests));
-        registerListener(new Welcomer(this));
+        registerListener(new CommandBlocker(serverRequests), new Welcomer(this), new JoinService(this, serverRequests));
     }
 
     @Override

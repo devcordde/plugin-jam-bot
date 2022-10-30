@@ -36,6 +36,7 @@ public class JoinService implements Listener {
 
         if (isSpectatorOverflow()) {
             event.getPlayer().setGameMode(GameMode.SPECTATOR);
+            event.getPlayer().sendMessage("Server full. You were set into spectator mode.");
             return;
         }
 
