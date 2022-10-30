@@ -41,7 +41,6 @@ import org.slf4j.Logger;
 
 import javax.security.auth.login.LoginException;
 import javax.sql.DataSource;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -207,7 +206,12 @@ public class Bot {
         Files.createDirectories(pluginDir);
 
         Path wait = Path.of("wait.sh");
-        Files.copy(getClass().getClassLoader().getResourceAsStream("wait.sh"), wait, StandardCopyOption.REPLACE_EXISTING);
-//        Files.setPosixFilePermissions(wait, Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+        Files.copy(getClass().getClassLoader().getResourceAsStream("wait.sh"),
+                wait, StandardCopyOption.REPLACE_EXISTING);
+        try {
+            Files.setPosixFilePermissions(wait, Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+        } catch (UnsupportedOperationException e) {
+            log.error("Use linux...");
+        }
     }
 }
