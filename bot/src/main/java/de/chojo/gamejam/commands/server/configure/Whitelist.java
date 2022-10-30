@@ -43,7 +43,7 @@ public class Whitelist implements SlashHandler {
                                 .POST(HttpRequest.BodyPublishers.ofString(String.valueOf(event.getOption("state").getAsBoolean())))
                                 .build();
         teamServer.http().sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                  .whenComplete(Futures.whenComplete(res -> event.reply("Whitelist set.").queue(),
+                  .whenComplete(Futures.whenComplete(res -> event.reply(context.localize("command.server.configure.whitelist.message.success")).queue(),
                          err -> log.error("Failed to send request.", err)));;
     }
 }

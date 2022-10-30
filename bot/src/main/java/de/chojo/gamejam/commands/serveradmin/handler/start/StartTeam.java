@@ -10,6 +10,7 @@ import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.gamejam.server.TeamServer;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
+import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -43,9 +44,11 @@ public class StartTeam implements SlashHandler {
 
         var started = optTeam.map(serverService::get).map(TeamServer::start).orElse(false);
         if (started) {
-            event.reply("Server of team " + optTeam.get() + " started.").queue();
+            event.reply(context.localize("command.serveradmin.start.startteam.message.started",
+                    Replacement.create("TEAM", optTeam.get()))).queue();
         } else {
-            event.reply("Could not start server of team" + optTeam.get() + " servers.").queue();
+            event.reply(context.localize("command.serveradmin.start.startteam.message.failed",
+                    Replacement.create("TEAM", optTeam.get()))).queue();
         }
     }
 

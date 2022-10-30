@@ -55,7 +55,7 @@ public class DownloadPluginData implements SlashHandler {
         var path = event.getOption("path").getAsString();
 
         if (path.contains("..")) {
-            event.reply("Invalid path").queue();
+            event.reply(context.localize("error.invalidpath")).queue();
             return;
         }
 
@@ -64,14 +64,14 @@ public class DownloadPluginData implements SlashHandler {
         if (pluginFile.toFile().isFile()) {
             // No download from plugin root
             if (pluginFile.getParent().equals(teamServer.plugins())) {
-                event.reply("Invalid path").queue();
+                event.reply(context.localize("error.invalidpath")).queue();
                 return;
             }
             event.replyFiles(FileUpload.fromData(pluginFile, pluginFile.toFile().getName())).queue();
             return;
         }
 
-        event.reply("Zipping data.").queue();
+        event.reply(context.localize("command.server.download.downloadplugindata.message.zipping")).queue();
         Path tempFile;
         try {
             tempFile = TempFile.createPath("download", "zip");
@@ -81,19 +81,19 @@ public class DownloadPluginData implements SlashHandler {
             tempFile.toFile().deleteOnExit();
         } catch (ZipException e) {
             log.error("Failed to zip date", e);
-            event.getHook().editOriginal("Failed to zip data.").queue();
+            event.getHook().editOriginal(context.localize("command.server.download.downloadplugindata.message.fail.zip")).queue();
             return;
         } catch (IOException e) {
             log.error("Failed to create zip file", e);
-            event.getHook().editOriginal("Failed to create temp file").queue();
+            event.getHook().editOriginal(context.localize("command.server.download.downloadplugindata.message.fail.tempfile")).queue();
             return;
         }
-        event.getHook().editOriginal("Upload done")
+        event.getHook().editOriginal(context.localize("command.server.download.downloadplugindata.message.success"))
              .setFiles(FileUpload.fromData(tempFile, pluginFile.toFile().getName() + ".zip"))
              .queue(RestAction.getDefaultSuccess(), err -> {
                  if (err instanceof ErrorResponseException response) {
                      if (response.getErrorResponse() == ErrorResponse.FILE_UPLOAD_MAX_SIZE_EXCEEDED) {
-                         event.getHook().editOriginal("File is too large.").queue();
+                         event.getHook().editOriginal(context.localize("command.server.download.downloadplugindata.message.fail.filetolarge")).queue();
                      }
                  }
              });

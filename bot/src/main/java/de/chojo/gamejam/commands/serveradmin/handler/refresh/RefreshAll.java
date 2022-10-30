@@ -10,6 +10,7 @@ import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.gamejam.server.TeamServer;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
+import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
@@ -36,6 +37,7 @@ public class RefreshAll implements SlashHandler {
                        .map(TeamServer::refresh)
                        .filter(v -> v)
                        .count();
-        event.reply("Refreshed " + count + " servers.").queue();
+        event.reply(context.localize("command.serveradmin.refresh.refreshall.message.refreshed",
+                Replacement.create("AMOUNT", count))).queue();
     }
 }

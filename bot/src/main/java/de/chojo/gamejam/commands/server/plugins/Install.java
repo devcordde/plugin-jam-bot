@@ -9,6 +9,7 @@ package de.chojo.gamejam.commands.server.plugins;
 import de.chojo.gamejam.commands.server.Server;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
+import de.chojo.jdautil.localization.util.Replacement;
 import de.chojo.jdautil.util.Choice;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
@@ -39,7 +40,7 @@ public class Install implements SlashHandler {
         var pluginName = event.getOption("plugin").getAsString();
         var optPlugin = configuration.plugins().byName(pluginName);
         if (optPlugin.isEmpty()) {
-            event.reply("Plugin not found").queue();
+            event.reply(context.localize("error.pluginnotfound")).queue();
             return;
         }
         var plugin = optPlugin.get();
@@ -49,11 +50,11 @@ public class Install implements SlashHandler {
         try {
             Files.createSymbolicLink(pluginPath, plugin.toAbsolutePath());
         } catch (IOException e) {
-            event.reply("Could not install plugin").queue();
+            event.reply(context.localize("command.server.plugins.install.message.fail")).queue();
             log.error("Could not install plugin", e);
             return;
         }
-        event.reply("Installed " + pluginName + ". Restart to apply changes").queue();
+        event.reply(context.localize("command.server.plugins.install.message.success", Replacement.create("NAME", pluginName))).queue();
     }
 
     @Override

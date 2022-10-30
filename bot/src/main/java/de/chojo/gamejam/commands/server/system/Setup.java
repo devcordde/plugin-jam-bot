@@ -34,14 +34,14 @@ public class Setup implements SlashHandler {
             setup = teamServer.setup();
         } catch (IOException e) {
             log.error("Could not setup server", e);
-            event.reply("Something went wrong during server setup").queue();
+            event.reply(context.localize("command.server.system.setup.message.error")).queue();
             return;
         }
 
         if (setup) {
-            event.reply("Server was setup successfully.").queue();
+            event.reply(context.localize("command.server.system.setup.message.success")).queue();
         } else {
-            event.reply("Server was already created.").queue();
+            event.reply(context.localize("command.server.system.setup.message.alreadysetup")).queue();
         }
     }
 }

@@ -26,10 +26,10 @@ public class Console implements SlashHandler {
         var command = event.getOption("command").getAsString();
 
         if (command.startsWith("stop") || command.startsWith("restart")) {
-            event.reply("Those commands can not be executed").queue();
+            event.reply(context.localize("command.server.process.console.message.notexecutable")).queue();
             return;
         }
         teamServer.send(command);
-        event.reply("Executed").queue();
+        event.reply(context.localize("command.server.process.console.message.executed")).queue();
     }
 }

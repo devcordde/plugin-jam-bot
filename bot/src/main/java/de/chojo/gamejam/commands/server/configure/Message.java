@@ -42,9 +42,9 @@ public class Message implements SlashHandler {
             return;
         }
 
-        context.registerModal(ModalHandler.builder("Define the welcome message")
-                .addInput(TextInputHandler.builder("message", "Welcome message", TextInputStyle.PARAGRAPH)
-                        .withPlaceholder("Welcome message")
+        context.registerModal(ModalHandler.builder(context.localize("command.server.configure.message.message.modal.title"))
+                .addInput(TextInputHandler.builder("message", context.localize("command.server.configure.message.message.modal.input.message.label"), TextInputStyle.PARAGRAPH)
+                        .withPlaceholder(context.localize("command.server.configure.message.message.modal.input.message.placeholder"))
                         .build())
                 .withHandler(modalEvent -> {
                     var content = modalEvent.getValues().get(0).getAsString();
@@ -52,7 +52,7 @@ public class Message implements SlashHandler {
                                             .POST(HttpRequest.BodyPublishers.ofString(content))
                                             .build();
                     teamServer.http().sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                              .whenComplete(Futures.whenComplete(res -> modalEvent.reply("Message set.").queue(),
+                              .whenComplete(Futures.whenComplete(res -> modalEvent.reply(context.localize("command.server.configure.message.message.success")).queue(),
                                       err -> log.error("Failed to send request.", err)));
                 })
                 .build());

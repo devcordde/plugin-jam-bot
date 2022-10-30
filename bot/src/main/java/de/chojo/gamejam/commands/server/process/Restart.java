@@ -25,8 +25,8 @@ public class Restart implements SlashHandler {
         var teamServer = optServer.get();
         if (teamServer.exists()) {
             teamServer.stop(true)
-                      .thenRun(() -> event.getHook().editOriginal("Server restarted.").queue());
-            event.reply("Server restarting").queue();
+                      .thenRun(() -> event.getHook().editOriginal(context.localize("command.server.process.restart.message.restarted")).queue());
+            event.reply(context.localize("command.server.process.restart.message.restarting")).queue();
         }
     }
 }

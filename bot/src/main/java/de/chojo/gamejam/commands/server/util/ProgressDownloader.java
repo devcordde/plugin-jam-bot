@@ -29,33 +29,33 @@ public final class ProgressDownloader {
     }
 
     public static Optional<Path> download(SlashCommandInteractionEvent event, EventContext context, String downloadUrl) {
-        event.reply("Attempting to download file.").queue();
+        event.reply(context.localize("command.server.util.progressdownloader.message.attempting")).queue();
 
         Path path;
         try {
             path = TempFile.createFile("gamejam", ".file");
         } catch (IOException e) {
             log.error("Failed to create temp file", e);
-            event.getHook().editOriginal("Failed to create temp file").queue();
+            event.getHook().editOriginal(context.localize("command.server.util.progressdownloader.message.fail.tempfile")).queue();
             return Optional.empty();
         }
 
         var request = HttpRequest.newBuilder(URI.create(downloadUrl)).GET().build();
 
         try {
-            event.getHook().editOriginal("Downloading file.").queue();
+            event.getHook().editOriginal(context.localize("command.server.util.progressdownloader.message.downloading")).queue();
             HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofFile(path));
         } catch (IOException e) {
             log.error("Failed to write response", e);
-            event.getHook().editOriginal("Could not download file.").queue();
+            event.getHook().editOriginal(context.localize("command.server.util.progressdownloader.message.fail.download")).queue();
             return Optional.empty();
         } catch (InterruptedException e) {
             log.error("Failed to retrieve response", e);
-            event.getHook().editOriginal("Could not download file.").queue();
+            event.getHook().editOriginal(context.localize("command.server.util.progressdownloader.message.fail.download")).queue();
             return Optional.empty();
         }
 
-        event.getHook().editOriginal("Download done.").queue();
+        event.getHook().editOriginal(context.localize("command.server.util.progressdownloader.message.done")).queue();
         return Optional.of(path);
     }
 }
