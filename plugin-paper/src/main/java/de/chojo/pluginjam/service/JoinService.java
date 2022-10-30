@@ -6,6 +6,7 @@
 
 package de.chojo.pluginjam.service;
 
+import de.eldoria.eldoutilities.localization.ILocalizer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.event.EventHandler;
@@ -18,10 +19,12 @@ import org.bukkit.plugin.Plugin;
 public class JoinService implements Listener {
     private final Plugin plugin;
     private final ServerRequests requests;
+    private final ILocalizer localizer;
 
-    public JoinService(Plugin plugin, ServerRequests requests) {
+    public JoinService(Plugin plugin, ServerRequests requests, ILocalizer localizer) {
         this.plugin = plugin;
         this.requests = requests;
+        this.localizer = localizer;
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -36,11 +39,11 @@ public class JoinService implements Listener {
 
         if (isSpectatorOverflow()) {
             event.getPlayer().setGameMode(GameMode.SPECTATOR);
-            event.getPlayer().sendMessage("Server full. You were set into spectator mode.");
+            event.getPlayer().sendMessage(localizer.localize("joinservice.spectatoroverflow"));
             return;
         }
 
-        event.getPlayer().kick(Component.text("Server is full."));
+        event.getPlayer().kick(Component.text(localizer.localize("joinservice.kick")));
     }
 
     @EventHandler

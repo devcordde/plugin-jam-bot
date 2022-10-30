@@ -12,10 +12,12 @@ import de.chojo.pluginjam.service.CommandBlocker;
 import de.chojo.pluginjam.service.JoinService;
 import de.chojo.pluginjam.service.ServerRequests;
 import de.chojo.pluginjam.velocity.ReportService;
+import de.eldoria.eldoutilities.localization.ILocalizer;
 import de.eldoria.eldoutilities.plugin.EldoPlugin;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -28,12 +30,15 @@ public class PluginJam extends EldoPlugin implements Listener {
     public void onPluginEnable() {
         saveDefaultConfig();
 
+        var localizer = ILocalizer.create(this, "de_DE");
+        localizer.setLocale("de_DE");
+
         var serverRequests = new ServerRequests();
 
         api = Api.create(this, serverRequests);
         service = ReportService.create(this, executor);
 
-        registerListener(new CommandBlocker(serverRequests), new Welcomer(this), new JoinService(this, serverRequests));
+        registerListener(new CommandBlocker(serverRequests, localizer), new Welcomer(this), new JoinService(this, serverRequests, localizer));
     }
 
     @Override
