@@ -3,6 +3,10 @@
 !src/**/build/
 gradle.properties
 
+/server/
+/template/
+/plugins/
+
 # Ignore Gradle GUI configuration
 gradle-app.setting
 
@@ -30,3 +34,11 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+
+# Bot internal generated data
+/config/
+/logs/
+/out/
+*.db
+*.sqlite
+/wait.sh

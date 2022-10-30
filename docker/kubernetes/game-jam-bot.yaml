@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bot
+spec:
+  template:
+    metadata:
+      labels:
+        app: bot
+    spec:
+      containers:
+        - name: bot
+          image: game-jam-bot
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8888
+              name: jam-bot
+      initContainers:
+        - name: init-myservice
+          image: busybox:1.28
+          command: [ 'sh', '-c', "until nslookup database.default.svc.cluster.local; do echo waiting for myservice; sleep 2; done" ]
+
+  selector:
+    matchLabels:
+      app: bot
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bot-01
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: jam-bot
+      protocol: TCP
+  selector:
+    app: bot

@@ -1,0 +1,20 @@
+{
+  "baseSettings" : {
+    "token" : "NzY2Njg5NDMzNjQxNjgwODk3.X4nBLQ.02vjfG0dF0YWrH450JkayB6bsF4",
+    "botOwner" : [ ]
+  },
+  "database" : {
+    "host" : "database",
+    "port" : "5432",
+    "database" : "db",
+    "schema" : "public",
+    "user" : "postgres",
+    "password" : "changeme",
+    "poolSize" : 5
+  },
+  "api" : {
+    "host" : "0.0.0.0",
+    "port" : 8888,
+    "token" : "letmein"
+  }
+}

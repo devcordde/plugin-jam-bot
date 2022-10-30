@@ -1,5 +1,0 @@
-name: Devcord-Gamejam
-author: Taucher2003
-version: ${version}
-api-version: 1.18
-main: de.chojo.gamejam.WelcomePlugin
