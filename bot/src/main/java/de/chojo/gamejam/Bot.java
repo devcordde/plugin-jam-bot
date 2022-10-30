@@ -208,6 +208,6 @@ public class Bot {
 
         Path wait = Path.of("wait.sh");
         Files.copy(getClass().getClassLoader().getResourceAsStream("wait.sh"), wait, StandardCopyOption.REPLACE_EXISTING);
-        Files.setPosixFilePermissions(wait, Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+//        Files.setPosixFilePermissions(wait, Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
     }
 }
