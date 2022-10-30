@@ -45,7 +45,7 @@ public class JamAdmin extends SlashCommand {
                                 .handler(new JamStart(guilds)))
                         .subCommand(SubCommand.of("end", "command.jamadmin.jam.end.description")
                                 .handler(new JamEnd(guilds))
-                                .argument(Argument.bool("confirm", "command.jamadmin.jam.options.confirm.description"))))
+                                .argument(Argument.bool("confirm", "command.jamadmin.jam.end.options.confirm.description"))))
                 .group(Group.of("votes", "command.jamadmin.votes.description")
                         .subCommand(SubCommand.of("open", "command.jamadmin.votes.open.description")
                                 .handler(new ChangeVotes(guilds, true, "command.jamadmin.votes.message.opened")))
