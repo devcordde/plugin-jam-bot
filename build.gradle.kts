@@ -4,22 +4,30 @@ plugins {
 }
 
 group = "de.chojo"
-version = "1.0"
+version = "1.0.0"
 
 subprojects {
     apply {
         plugin<org.cadixdev.gradle.licenser.Licenser>()
-        plugin("java")
+        plugin<JavaPlugin>()
     }
 }
 
 allprojects {
+    repositories {
+        mavenCentral()
+        maven("https://eldonexus.de/repository/maven-public/")
+        maven("https://eldonexus.de/repository/maven-proxies/")
+    }
+
     license {
         header(rootProject.file("HEADER.txt"))
         include("**/*.java")
     }
 
     java {
+        withSourcesJar()
+        withJavadocJar()
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(17))
         }
@@ -27,6 +35,7 @@ allprojects {
 
     tasks {
         test {
+            dependsOn(licenseCheck)
             useJUnitPlatform()
             testLogging {
                 events("passed", "skipped", "failed")
@@ -38,7 +47,7 @@ allprojects {
         }
 
         javadoc {
-            options.encoding = "UTF08"
+            options.encoding = "UTF-8"
         }
     }
 }

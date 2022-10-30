@@ -6,13 +6,11 @@
 
 package de.chojo.gamejam.api.v1.wrapper;
 
-import de.chojo.gamejam.data.wrapper.team.JamTeam;
-
-import java.util.List;
+import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 
 public record TeamProfile(int id, String name, String description, long leaderId, String projectUrl) {
 
-    public static TeamProfile build(JamTeam team) {
-        return new TeamProfile(team.id(), team.name(), "Cool description", team.leader(), "https://github.com/devcordde/plugin-jam-bot");
+    public static TeamProfile build(Team team) {
+        return new TeamProfile(team.id(), team.meta().name(), "Cool description", team.meta().leader(), "https://github.com/devcordde/plugin-jam-bot");
     }
 }

@@ -6,7 +6,7 @@
 
 package de.chojo.gamejam.data.wrapper.votes;
 
-import de.chojo.gamejam.data.wrapper.team.JamTeam;
+import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 
-public record VoteEntry(JamTeam team, long voterId, int points) {
+public record VoteEntry(Team team, long voterId, int points) {
 }

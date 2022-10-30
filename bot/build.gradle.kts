@@ -10,30 +10,34 @@ repositories {
     maven("https://eldonexus.de/repository/maven-public")
     maven("https://eldonexus.de/repository/maven-proxies")
     maven("https://m2.dv8tion.net/releases")
+    mavenCentral()
 }
 
 dependencies {
+    implementation(project(":plugin-api"))
+
     // discord
-    implementation("net.dv8tion", "JDA", "5.0.0-alpha.9") {
+    implementation("de.chojo", "cjda-util", "2.7.8+alpha.22-DEV") {
         exclude(module = "opus-java")
     }
-
-    implementation("de.chojo", "cjda-util", "2.4.0+alpha.11")
     implementation("io.javalin", "javalin-bundle", "4.4.0")
-
+    implementation("net.lingala.zip4j", "zip4j", "2.11.2")
 
     // database
-    implementation("de.chojo", "sql-util", "1.2.1")
+    implementation("de.chojo.sadu", "sadu-queries", "1.2.0")
+    implementation("de.chojo.sadu", "sadu-updater", "1.2.0")
+    implementation("de.chojo.sadu", "sadu-datasource", "1.2.0")
+    implementation("de.chojo.sadu", "sadu-postgresql", "1.2.0")
     implementation("org.postgresql", "postgresql", "42.3.3")
 
     // Logging
-    implementation("org.slf4j", "slf4j-api", "1.7.36")
-    implementation("org.apache.logging.log4j", "log4j-core", "2.17.2")
-    implementation("org.apache.logging.log4j", "log4j-slf4j-impl", "2.17.2")
+    implementation("org.slf4j", "slf4j-api", "2.0.3")
+    implementation("org.apache.logging.log4j", "log4j-core", "2.19.0")
+    implementation("org.apache.logging.log4j", "log4j-slf4j2-impl", "2.19.0")
     implementation("club.minnced", "discord-webhooks", "0.7.5")
 
     // unit testing
-    testImplementation(platform("org.junit:junit-bom:5.8.2"))
+    testImplementation(platform("org.junit:junit-bom:5.9.0"))
     testImplementation("org.junit.jupiter", "junit-jupiter")
 }
 

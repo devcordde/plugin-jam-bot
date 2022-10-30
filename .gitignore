@@ -3,6 +3,10 @@
 !src/**/build/
 gradle.properties
 
+/server/
+/template/
+/plugins/
+
 # Ignore Gradle GUI configuration
 gradle-app.setting
 
@@ -37,4 +41,4 @@ buildNumber.properties
 /out/
 *.db
 *.sqlite
-/conf/dev/config.json
+/wait.sh

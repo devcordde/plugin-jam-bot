@@ -9,11 +9,16 @@ package de.chojo.gamejam.configuration;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import de.chojo.gamejam.configuration.elements.Api;
 import de.chojo.gamejam.configuration.elements.BaseSettings;
 import de.chojo.gamejam.configuration.elements.Database;
+import de.chojo.gamejam.configuration.elements.Plugins;
+import de.chojo.gamejam.configuration.elements.ServerManagement;
+import de.chojo.gamejam.configuration.elements.ServerTemplate;
 import de.chojo.gamejam.configuration.exception.ConfigurationException;
 import org.slf4j.Logger;
 
@@ -31,11 +36,13 @@ public class Configuration {
     private ConfigFile configFile;
 
     private Configuration() {
-        objectMapper = new ObjectMapper()
+        objectMapper = JsonMapper.builder()
+                .configure(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS, true)
+                .build()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
                 .setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE)
-                .setDefaultPrettyPrinter(new DefaultPrettyPrinter())
-                .configure(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS, true);
+                .setDefaultPrettyPrinter(new DefaultPrettyPrinter());
     }
 
     public static Configuration create() {
@@ -103,5 +110,17 @@ public class Configuration {
 
     public Api api() {
         return configFile.api();
+    }
+
+    public ServerManagement serverManagement() {
+        return configFile.serverManagement();
+    }
+
+    public Plugins plugins() {
+        return configFile.plugins();
+    }
+
+    public ServerTemplate serverTemplate() {
+        return configFile.serverTemplate();
     }
 }
