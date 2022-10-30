@@ -33,14 +33,13 @@ public class RestartAll implements SlashHandler {
 
         var count = jam.teams().teams().stream()
                        .map(serverService::get)
-                       .map(server -> {
+                       .filter(server -> {
                            var running = server.running();
                            if (running) {
                                server.stop(true);
                            }
                            return running;
                        })
-                       .filter(v -> v)
                        .count();
         event.reply(context.localize("command.serveradmin.restart.restartall.message.restarted",
                 Replacement.create("AMOUNT", count))).queue();

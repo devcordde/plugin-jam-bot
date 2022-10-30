@@ -36,6 +36,12 @@ public class Message implements SlashHandler {
         if (optServer.isEmpty()) return;
 
         var teamServer = optServer.get();
+
+        if (!teamServer.running()) {
+            event.reply(context.localize("error.servernotrunning")).queue();
+            return;
+        }
+
         context.registerModal(ModalHandler.builder(context.localize("command.server.configure.message.message.modal.title"))
                 .addInput(TextInputHandler.builder("message", context.localize("command.server.configure.message.message.modal.input.message.label"), TextInputStyle.PARAGRAPH)
                         .withPlaceholder(context.localize("command.server.configure.message.message.modal.input.message.placeholder"))

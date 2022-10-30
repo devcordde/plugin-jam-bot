@@ -7,6 +7,7 @@
 package de.chojo.gamejam.commands.server.configure;
 
 import de.chojo.gamejam.commands.server.Server;
+import de.chojo.gamejam.server.TeamServer;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.util.Futures;
 import de.chojo.jdautil.wrapper.EventContext;
@@ -31,11 +32,18 @@ public class SpectatorOverflow implements SlashHandler {
         var optServer = server.getServer(event, context);
         if (optServer.isEmpty()) return;
 
-        var request = optServer.get().requestBuilder("v1/config/spectatoroverflow")
-                               .POST(HttpRequest.BodyPublishers.ofString(String.valueOf(event.getOption("state").getAsBoolean())))
-                               .build();
-        optServer.get().http().sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                 .whenComplete(Futures.whenComplete(res -> event.reply(context.localize("command.server.configure.spectatoroverflow.message.success")).queue(),
+        var teamServer = optServer.get();
+
+        if (!teamServer.running()) {
+            event.reply(context.localize("error.servernotrunning")).queue();
+            return;
+        }
+
+        var request = teamServer.requestBuilder("v1/config/spectatoroverflow")
+                                .POST(HttpRequest.BodyPublishers.ofString(String.valueOf(event.getOption("state").getAsBoolean())))
+                                .build();
+        teamServer.http().sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                  .whenComplete(Futures.whenComplete(res -> event.reply(context.localize("command.server.configure.spectatoroverflow.message.success")).queue(),
                          err -> log.error("Failed to send request.", err)));;
     }
 }
