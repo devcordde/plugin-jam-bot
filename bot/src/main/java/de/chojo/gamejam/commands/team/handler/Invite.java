@@ -103,7 +103,7 @@ public final class Invite implements SlashHandler {
         var guild = manager.getGuildById(guildId);
         var user = manager.retrieveUserById(userId).complete();
         var member = guild.retrieveMember(user).complete();
-        var jamGuild = guilds.guild(button.event());
+        var jamGuild = guilds.guild(guild);
         var settings = jamGuild.jamSettings();
 
         if (members.size() >= settings.teamSize()) {
