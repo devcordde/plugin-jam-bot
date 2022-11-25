@@ -38,12 +38,12 @@ public class Edit implements SlashHandler {
 
         context.registerModal(ModalHandler.builder("Edit Profile")
                 .addInput(TextInputHandler.builder("descr", "Project Description", TextInputStyle.PARAGRAPH)
-                        .withValue(meta.projectDescription())
+                        .withValue(meta.projectDescription().isBlank() ? "None" : meta.projectDescription())
                         .withMaxLength(100)
                         .withHandler(mapping -> meta.projectDescription(mapping.getAsString())))
                 .addInput(TextInputHandler.builder("url", "Project url", TextInputStyle.SHORT)
                         .withMaxLength(200)
-                        .withValue(meta.projectUrl())
+                        .withValue(meta.projectUrl().isBlank() ? "none": meta.projectDescription())
                         .withHandler(mapping -> meta.projectUrl(mapping.getAsString())))
                 .withHandler(modalEvent -> {
                     modalEvent.reply("Updated").queue();
