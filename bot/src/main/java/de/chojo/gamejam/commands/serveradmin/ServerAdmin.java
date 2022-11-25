@@ -10,11 +10,13 @@ import de.chojo.gamejam.commands.serveradmin.handler.SyncVelocity;
 import de.chojo.gamejam.commands.serveradmin.handler.info.Detailed;
 import de.chojo.gamejam.commands.serveradmin.handler.info.Short;
 import de.chojo.gamejam.commands.serveradmin.handler.refresh.RefreshAll;
+import de.chojo.gamejam.commands.serveradmin.handler.refresh.RefreshTeam;
 import de.chojo.gamejam.commands.serveradmin.handler.restart.RestartAll;
 import de.chojo.gamejam.commands.serveradmin.handler.restart.RestartTeam;
 import de.chojo.gamejam.commands.serveradmin.handler.start.StartAll;
 import de.chojo.gamejam.commands.serveradmin.handler.start.StartTeam;
 import de.chojo.gamejam.commands.serveradmin.handler.stop.StopAll;
+import de.chojo.gamejam.commands.serveradmin.handler.stop.StopTeam;
 import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.jdautil.interactions.slash.Argument;
@@ -43,13 +45,13 @@ public class ServerAdmin extends SlashCommand {
                         .subCommand(SubCommand.of("all", "command.serveradmin.stop.all.description")
                                 .handler(new StopAll(serverService, guilds)))
                         .subCommand(SubCommand.of("team", "command.serveradmin.stop.team.description")
-                                .handler(new StopAll(serverService, guilds))
+                                .handler(new StopTeam(serverService, guilds))
                                 .argument(Argument.text("team", "command.serveradmin.stop.team.options.team.description").asRequired().withAutoComplete())))
                 .group(Group.of("refresh", "command.serveradmin.refresh.description")
                         .subCommand(SubCommand.of("all", "command.serveradmin.refresh.all.description")
                                 .handler(new RefreshAll(serverService, guilds)))
                         .subCommand(SubCommand.of("team", "command.serveradmin.refresh.team.description")
-                                .handler(new RefreshAll(serverService, guilds))
+                                .handler(new RefreshTeam(serverService, guilds))
                                 .argument(Argument.text("team", "command.serveradmin.refresh.team.options.team.description").asRequired().withAutoComplete())))
                 .group(Group.of("info", "command.serveradmin.info.description")
                         .subCommand(SubCommand.of("short", "command.serveradmin.info.short.description")

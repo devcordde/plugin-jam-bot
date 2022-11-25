@@ -46,7 +46,7 @@ public class Configuration {
             });
 
             post("whitelist", ctx -> {
-                plugin.getServer().setWhitelist(Boolean.parseBoolean(ctx.body()));
+                plugin.getServer().getScheduler().runTask(plugin, () -> plugin.getServer().setWhitelist(Boolean.parseBoolean(ctx.body())));
                 ctx.status(HttpCode.OK);
             });
         });
