@@ -47,7 +47,7 @@ public class JamUser extends QueryFactory {
         return builder(Integer.class)
                 .query("""
                        SELECT
-                           sum(points)
+                           sum(points) as points
                        FROM vote v
                        LEFT JOIN team t ON t.id = v.team_id
                        WHERE t.jam_id = ?

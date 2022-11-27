@@ -187,9 +187,9 @@ public class Team extends QueryFactory {
 
     public Integer votes(Member member) {
         return builder(Integer.class)
-                .query("SELECT points FROM vote WHERE team_id = ? AND voter_id = ?")
+                .query("SELECT sum(points) as points FROM vote WHERE team_id = ? AND voter_id = ?")
                 .parameter(stmt -> stmt.setInt(id()).setLong(member.getIdLong()))
-                .readRow(r -> r.getInt("vote"))
+                .readRow(r -> r.getInt("points"))
                 .firstSync()
                 .orElse(0);
     }
