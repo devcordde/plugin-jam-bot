@@ -43,7 +43,7 @@ public class Edit implements SlashHandler {
                         .withHandler(mapping -> meta.projectDescription(mapping.getAsString())))
                 .addInput(TextInputHandler.builder("url", "Project url", TextInputStyle.SHORT)
                         .withMaxLength(200)
-                        .withValue(meta.projectUrl().isBlank() ? "none": meta.projectDescription())
+                        .withValue(meta.projectUrl().isBlank() ? "none": meta.projectUrl())
                         .withHandler(mapping -> meta.projectUrl(mapping.getAsString())))
                 .withHandler(modalEvent -> {
                     modalEvent.reply("Updated").queue();
