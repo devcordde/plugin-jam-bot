@@ -77,7 +77,7 @@ public class ServerService implements Runnable {
         var req = HttpRequest.newBuilder(URI.create("http://%s:%d/v1/server".formatted(velocityHost, velocityPort)))
                 .GET()
                 .build();
-        HttpResponse<String> response;
+        HttpResponse<String> response = null;
         var retries = 0;
         while (retries < 5) {
             try {
@@ -95,6 +95,7 @@ public class ServerService implements Runnable {
                 throw new RuntimeException(e);
             }
         }
+        if(retries == 5) return;
         var collectionType = Mapper.MAPPER.getTypeFactory()
                 .constructCollectionType(List.class, Registration.class);
         List<Registration> registrations;
