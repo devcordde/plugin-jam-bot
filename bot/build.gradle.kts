@@ -21,7 +21,7 @@ dependencies {
         exclude(module = "opus-java")
     }
     implementation(libs.javalin.bundle)
-    implementation("net.lingala.zip4j", "zip4j", "2.11.2")
+    implementation("net.lingala.zip4j", "zip4j", "2.11.5")
 
     // database
     implementation(libs.bundles.sadu)
