@@ -6,6 +6,8 @@ services:
       - ./data/bot/plugins:/app/plugins
       - ./data/bot/servers:/app/servers
       - ./data/bot/template:/app/template
+    depends_on:
+      -
   velocity:
     image: itzg/mc-proxy:latest
     tty: true

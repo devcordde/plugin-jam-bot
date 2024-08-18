@@ -45,7 +45,7 @@ public class ServerService implements Runnable {
     private ServerService(Configuration configuration) {
         this.configuration = configuration;
         IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
-                 .forEach(freePorts::add);
+                .forEach(freePorts::add);
     }
 
     @Override
@@ -54,12 +54,12 @@ public class ServerService implements Runnable {
             if (!value.running()) continue;
             try {
                 value.serverRequests()
-                     .ifPresent(server -> {
-                         if (server.restart()) {
-                             log.info("Server of team {} requested restart", value.team());
-                             value.restart();
-                         }
-                     });
+                        .ifPresent(server -> {
+                            if (server.restart()) {
+                                log.info("Server of team {} requested restart", value.team());
+                                value.restart();
+                            }
+                        });
             } catch (RuntimeException e) {
                 log.error("Could not reach server {}", value);
             }
@@ -70,25 +70,31 @@ public class ServerService implements Runnable {
         log.info("Syncing server with velocity instance.");
         freePorts.clear();
         IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
-                 .forEach(freePorts::add);
+                .forEach(freePorts::add);
         var velocityPort = configuration.serverManagement().velocityPort();
         var velocityHost = configuration.serverManagement().getVelocityHost();
         var httpClient = HttpClient.newHttpClient();
         var req = HttpRequest.newBuilder(URI.create("http://%s:%d/v1/server".formatted(velocityHost, velocityPort)))
-                             .GET()
-                             .build();
+                .GET()
+                .build();
         HttpResponse<String> response;
-        try {
-            response = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException e) {
-            log.error("Could not reach velocity instance", e);
-            return;
-        } catch (InterruptedException e) {
-            log.error("Interrupted", e);
-            return;
+        while (true) {
+            try {
+                response = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+                break;
+            } catch (IOException e) {
+                log.error("Could not reach velocity instance", e);
+            } catch (InterruptedException e) {
+                log.error("Interrupted", e);
+            }
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         var collectionType = Mapper.MAPPER.getTypeFactory()
-                                          .constructCollectionType(List.class, Registration.class);
+                .constructCollectionType(List.class, Registration.class);
         List<Registration> registrations;
         try {
             registrations = Mapper.MAPPER.readValue(response.body(), collectionType);

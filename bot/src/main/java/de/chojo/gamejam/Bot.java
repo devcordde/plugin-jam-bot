@@ -91,7 +91,7 @@ public class Bot {
         try {
             instance.start();
         } catch (Exception e) {
-            log.error("Critical error occured during bot startup", e);
+            log.error("Critical error occurred during bot startup", e);
         }
     }
 
@@ -160,7 +160,7 @@ public class Bot {
                 .setMemberCachePolicy(MemberCachePolicy.DEFAULT)
                 .setEventPool(Executors.newScheduledThreadPool(5, createThreadFactory("Event Worker")))
                 .build();
-        RestAction.setDefaultFailure(throwable -> log.error("Unhandled exception occured: ", throwable));
+        RestAction.setDefaultFailure(throwable -> log.error("Unhandled exception occurred: ", throwable));
         serverService.inject(new Teams(guilds, shardManager));
         serverService.syncVelocity();
     }
