@@ -7,19 +7,20 @@
 package de.chojo.gamejam.data.dao.guild.jams.jam.teams.team;
 
 import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
-import de.chojo.sadu.base.QueryFactory;
-import de.chojo.sadu.exceptions.ThrowingConsumer;
-import de.chojo.sadu.wrapper.util.ParamBuilder;
+import de.chojo.sadu.queries.api.call.Call;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 
-import java.sql.SQLException;
 import java.util.Optional;
+import java.util.function.Function;
 
-public class TeamMeta extends QueryFactory {
+import static de.chojo.sadu.queries.api.call.Call.call;
+import static de.chojo.sadu.queries.api.query.Query.query;
+
+public class TeamMeta {
     private final Team team;
     private String name;
     private long leader;
@@ -31,7 +32,6 @@ public class TeamMeta extends QueryFactory {
 
 
     public TeamMeta(Team team, String name, long leader, long role, long textChannel, long voiceChannel, String projectDescription, String projectUrl) {
-        super(team);
         this.team = team;
         this.name = name;
         this.leader = leader;
@@ -112,13 +112,11 @@ public class TeamMeta extends QueryFactory {
     }
 
     public void rename(String name) {
-        var changed = builder()
-                .query("""
-                       UPDATE team_meta SET team_name = ? WHERE team_id = ?
-                       """)
-                .parameter(stmt -> stmt.setString(name).setInt(team.id()))
+        var changed = query("""
+                UPDATE team_meta SET team_name = ? WHERE team_id = ?
+                """)
+                .single(call().bind(name).bind(team.id()))
                 .update()
-                .sendSync()
                 .changed();
         if (changed) {
             this.name = name;
@@ -129,27 +127,22 @@ public class TeamMeta extends QueryFactory {
     }
 
     private boolean set(String column, long value) {
-        return set(column, p -> p.setLong(value));
+        return set(column, p -> p.bind(value));
     }
 
     private boolean set(String column, String value) {
-        return set(column, p -> p.setString(value));
+        return set(column, p -> p.bind(value));
     }
 
-    private boolean set(String column, ThrowingConsumer<ParamBuilder, SQLException> value) {
-        return builder()
-                .query("""
-                       INSERT INTO team_meta(team_id, team_name, %s) VALUES(?,'',?)
-                       ON CONFLICT(team_id)
-                           DO UPDATE
-                               SET %s = excluded.%s
-                       """, column, column, column)
-                .parameter(p -> {
-                    p.setInt(team.id());
-                    value.accept(p);
-                })
+    private boolean set(String column, Function<Call, Call> value) {
+        return query("""
+                INSERT INTO team_meta(team_id, team_name, %s) VALUES(?,'',?)
+                ON CONFLICT(team_id)
+                    DO UPDATE
+                        SET %s = excluded.%s
+                """, column, column, column)
+                .single(value.apply(call().bind(team.id())))
                 .update()
-                .sendSync()
                 .changed();
     }
 }

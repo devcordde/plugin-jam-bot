@@ -13,7 +13,6 @@ import de.chojo.gamejam.data.dao.guild.jams.jam.teams.team.TeamVote;
 import de.chojo.jdautil.localization.LocalizationContext;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.util.MentionUtil;
-import de.chojo.sadu.base.QueryFactory;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -24,13 +23,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class Team extends QueryFactory {
+import static de.chojo.sadu.queries.api.call.Call.call;
+import static de.chojo.sadu.queries.api.query.Query.query;
+
+public class Team {
     private final Jam jam;
     private final int id;
     private TeamMeta meta;
 
     public Team(Jam jam, int id) {
-        super(jam);
         this.jam = jam;
         this.id = id;
     }
@@ -45,8 +46,8 @@ public class Team extends QueryFactory {
     public MessageEmbed profileEmbed(LocalizationContext localizer) {
 
         var member = member().stream()
-                             .map(u -> u.member().getAsMention())
-                             .collect(Collectors.joining(", "));
+                .map(u -> u.member().getAsMention())
+                .collect(Collectors.joining(", "));
 
         var meta = meta();
         return new LocalizedEmbedBuilder(localizer)
@@ -60,10 +61,9 @@ public class Team extends QueryFactory {
     }
 
     public List<TeamMember> member() {
-        return builder(TeamMember.class)
-                .query("SELECT user_id FROM team_member WHERE team_id = ?")
-                .parameter(p -> p.setInt(id()))
-                .readRow(r -> {
+        return query("SELECT user_id FROM team_member WHERE team_id = ?")
+                .single(call().bind(id()))
+                .map(r -> {
                     try {
                         var member = jam.jamGuild().guild().retrieveMemberById(r.getLong("user_id")).complete();
                         return new TeamMember(this, member);
@@ -71,7 +71,7 @@ public class Team extends QueryFactory {
                         return null;
                     }
                 })
-                .allSync()
+                .all()
                 .stream()
                 .filter(Objects::nonNull)
                 .toList();
@@ -104,28 +104,25 @@ public class Team extends QueryFactory {
     }
 
     public List<TeamVote> votes() {
-        return builder(TeamVote.class)
-                .query("""
-                       SELECT
-                           rank, team_id, points, jam_id
-                       FROM team_ranking
-                       WHERE team_id = ?
-                       """)
-                .parameter(p -> p.setInt(id()))
-                .readRow(r -> new TeamVote(this, r.getInt("rank"), r.getInt("points")))
-                .allSync();
+        return query("""
+                SELECT
+                    rank, team_id, points, jam_id
+                FROM team_ranking
+                WHERE team_id = ?
+                """)
+                .single(call().bind(id()))
+                .map(r -> new TeamVote(this, r.getInt("rank"), r.getInt("points")))
+                .all();
     }
 
     public boolean vote(Member member, int points) {
-        return builder()
-                .query("""
-                       INSERT INTO vote(team_id, voter_id, points) VALUES (?,?,?)
-                       ON CONFLICT (team_id, voter_id)
-                           DO UPDATE SET points = excluded.points;
-                       """)
-                .parameter(p -> p.setInt(id()).setLong(member.getIdLong()).setInt(points))
+        return query("""
+                INSERT INTO vote(team_id, voter_id, points) VALUES (?,?,?)
+                ON CONFLICT (team_id, voter_id)
+                    DO UPDATE SET points = excluded.points;
+                """)
+                .single(call().bind(id()).bind(member.getIdLong()).bind(points))
                 .insert()
-                .sendSync()
                 .changed();
     }
 
@@ -136,29 +133,26 @@ public class Team extends QueryFactory {
 
     public boolean disband() {
         delete();
-        return builder()
-                .query("DELETE FROM team WHERE id = ?")
-                .parameter(p -> p.setInt(id()))
+        return query("DELETE FROM team WHERE id = ?")
+                .single(call().bind(id()))
                 .insert()
-                .sendSync()
                 .changed();
     }
 
     public TeamMeta meta() {
         if (meta == null) {
-            meta = builder(TeamMeta.class)
-                    .query("""
-                           SELECT team_name,
-                                  leader_id,
-                                  role_id,
-                                  text_channel_id,
-                                  voice_channel_id,
-                                  project_description,
-                                  project_url
-                           FROM team_meta WHERE team_id = ?
-                           """)
-                    .parameter(stmt -> stmt.setInt(id))
-                    .readRow(row -> new TeamMeta(this,
+            meta = query("""
+                    SELECT team_name,
+                           leader_id,
+                           role_id,
+                           text_channel_id,
+                           voice_channel_id,
+                           project_description,
+                           project_url
+                    FROM team_meta WHERE team_id = ?
+                    """)
+                    .single(call().bind(id))
+                    .map(row -> new TeamMeta(this,
                             row.getString("team_name"),
                             row.getLong("leader_id"),
                             row.getLong("role_id"),
@@ -166,18 +160,17 @@ public class Team extends QueryFactory {
                             row.getLong("voice_channel_id"),
                             row.getString("project_description"),
                             row.getString("project_url")))
-                    .firstSync()
+                    .first()
                     .orElseThrow();
         }
         return meta;
     }
 
     public Optional<TeamMember> member(Member member) {
-        return builder(TeamMember.class)
-                .query("SELECT user_id FROM team_member WHERE team_id = ? AND user_id = ?")
-                .parameter(p -> p.setInt(id()).setLong(member.getIdLong()))
-                .readRow(r -> new TeamMember(this, member))
-                .firstSync();
+        return query("SELECT user_id FROM team_member WHERE team_id = ? AND user_id = ?")
+                .single(call().bind(id()).bind(member.getIdLong()))
+                .map(r -> new TeamMember(this, member))
+                .first();
     }
 
     @Override
@@ -186,11 +179,10 @@ public class Team extends QueryFactory {
     }
 
     public Integer votes(Member member) {
-        return builder(Integer.class)
-                .query("SELECT sum(points) as points FROM vote WHERE team_id = ? AND voter_id = ?")
-                .parameter(stmt -> stmt.setInt(id()).setLong(member.getIdLong()))
-                .readRow(r -> r.getInt("points"))
-                .firstSync()
+        return query("SELECT sum(points) as points FROM vote WHERE team_id = ? AND voter_id = ?")
+                .single(call().bind(id()).bind(member.getIdLong()))
+                .map(r -> r.getInt("points"))
+                .first()
                 .orElse(0);
     }
 }

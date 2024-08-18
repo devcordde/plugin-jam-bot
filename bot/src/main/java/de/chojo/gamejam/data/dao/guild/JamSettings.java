@@ -7,14 +7,15 @@
 package de.chojo.gamejam.data.dao.guild;
 
 import de.chojo.gamejam.data.dao.JamGuild;
-import de.chojo.sadu.base.QueryFactory;
-import de.chojo.sadu.exceptions.ThrowingConsumer;
-import de.chojo.sadu.wrapper.util.ParamBuilder;
+import de.chojo.sadu.queries.api.call.Call;
 import net.dv8tion.jda.api.entities.Role;
 
-import java.sql.SQLException;
+import java.util.function.Function;
 
-public class JamSettings extends QueryFactory {
+import static de.chojo.sadu.queries.api.call.Call.call;
+import static de.chojo.sadu.queries.api.query.Query.query;
+
+public class JamSettings {
     private final JamGuild jamGuild;
     private int teamSize;
     private long jamRole;
@@ -24,7 +25,6 @@ public class JamSettings extends QueryFactory {
     }
 
     public JamSettings(JamGuild jamGuild, int teamSize, long jamRole) {
-        super(jamGuild);
         this.jamGuild = jamGuild;
         this.teamSize = teamSize;
         this.jamRole = jamRole;
@@ -39,31 +39,26 @@ public class JamSettings extends QueryFactory {
     }
 
     public void teamSize(int teamSize) {
-        if (set("team_size", stmt -> stmt.setInt(teamSize))) {
+        if (set("team_size", stmt -> stmt.bind(teamSize))) {
             this.teamSize = teamSize;
         }
     }
 
     public void jamRole(Role jamRole) {
-        if (set("jam_role", stmt -> stmt.setLong(jamRole.getIdLong()))) {
+        if (set("jam_role", stmt -> stmt.bind(jamRole.getIdLong()))) {
             this.jamRole = jamRole.getIdLong();
         }
     }
 
-    private boolean set(String column, ThrowingConsumer<ParamBuilder, SQLException> stmt) {
-        return builder()
-                .query("""
-                       INSERT INTO jam_settings(guild_id, %s) VALUES(?,?)
-                       ON CONFLICT(guild_id)
-                           DO UPDATE
-                               SET %s = excluded.%s
-                       """, column, column, column)
-                .parameter(p -> {
-                    p.setLong(jamGuild.guildId());
-                    stmt.accept(p);
-                })
+    private boolean set(String column, Function<Call, Call> stmt) {
+        return query("""
+                INSERT INTO jam_settings(guild_id, %s) VALUES(?,?)
+                ON CONFLICT(guild_id)
+                    DO UPDATE
+                        SET %s = excluded.%s
+                """, column, column, column)
+                .single(stmt.apply(call().bind(jamGuild.guildId())))
                 .update()
-                .sendSync()
                 .changed();
     }
 }

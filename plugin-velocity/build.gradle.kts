@@ -9,10 +9,10 @@ repositories {
 }
 
 dependencies{
-    implementation("io.javalin", "javalin", "4.6.8")
     implementation(project(":plugin-api"))
-    compileOnly("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
-    annotationProcessor("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
+    implementation(libs.javalin.core)
+    compileOnly(libs.velocity)
+    annotationProcessor(libs.velocity)
 }
 
 tasks {

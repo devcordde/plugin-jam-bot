@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Guilds {
     private final Cache<Long, JamGuild> cache = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.MINUTES)
-                                                            .build();
+            .build();
     private final DataSource dataSource;
 
     public Guilds(DataSource dataSource) {
@@ -31,15 +31,16 @@ public class Guilds {
 
     public JamGuild guild(Guild guild) {
         try {
-            return cache.get(guild.getIdLong(), () -> new JamGuild(dataSource, guild)).refresh(guild);
+            return cache.get(guild.getIdLong(), () -> new JamGuild(guild)).refresh(guild);
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
 
     }
+
     public JamGuild guild(long guild) {
         try {
-            return cache.get(guild, () -> new JamGuild(dataSource, guild));
+            return cache.get(guild, () -> new JamGuild(guild));
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }

@@ -23,14 +23,14 @@ import de.chojo.gamejam.util.LogNotify;
 import de.chojo.jdautil.interactions.dispatching.InteractionHub;
 import de.chojo.jdautil.localization.ILocalizer;
 import de.chojo.jdautil.localization.Localizer;
-import de.chojo.sadu.databases.PostgreSql;
+import de.chojo.sadu.core.exceptions.ExceptionTransformer;
 import de.chojo.sadu.datasource.DataSourceCreator;
-import de.chojo.sadu.exceptions.ExceptionTransformer;
-import de.chojo.sadu.mapper.PostgresqlMapper;
 import de.chojo.sadu.mapper.RowMapperRegistry;
+import de.chojo.sadu.postgresql.databases.PostgreSql;
+import de.chojo.sadu.postgresql.mapper.PostgresqlMapper;
+import de.chojo.sadu.queries.api.configuration.QueryConfiguration;
 import de.chojo.sadu.updater.QueryReplacement;
 import de.chojo.sadu.updater.SqlUpdater;
-import de.chojo.sadu.wrapper.QueryBuilderConfig;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.RestAction;
@@ -128,7 +128,7 @@ public class Bot {
         localizer = Localizer.builder(DiscordLocale.ENGLISH_US)
                 .addLanguage(DiscordLocale.GERMAN)
                 .withLanguageProvider(guild -> Optional.ofNullable(guilds.guild(guild).settings().locale())
-                                                       .map(DiscordLocale::from))
+                        .map(DiscordLocale::from))
                 .build();
     }
 
@@ -144,47 +144,47 @@ public class Bot {
                         new Server(guilds, serverService, configuration),
                         new ServerAdmin(guilds, serverService))
                 .withPagination(builder -> builder.withLocalizer(localizer)
-                                                  .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
+                        .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withMenuService(builder -> builder.withLocalizer(localizer)
-                                                   .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
+                        .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
                 .withModalService(builder -> builder.withLocalizer(localizer))
                 .build();
     }
 
     private void initBot() {
         shardManager = DefaultShardManagerBuilder.createDefault(configuration.baseSettings().token())
-                                                 .enableIntents(
-                                                         GatewayIntent.GUILD_MEMBERS,
-                                                         GatewayIntent.DIRECT_MESSAGES,
-                                                         GatewayIntent.GUILD_MESSAGES)
-                                                 .setMemberCachePolicy(MemberCachePolicy.DEFAULT)
-                                                 .setEventPool(Executors.newScheduledThreadPool(5, createThreadFactory("Event Worker")))
-                                                 .build();
+                .enableIntents(
+                        GatewayIntent.GUILD_MEMBERS,
+                        GatewayIntent.DIRECT_MESSAGES,
+                        GatewayIntent.GUILD_MESSAGES)
+                .setMemberCachePolicy(MemberCachePolicy.DEFAULT)
+                .setEventPool(Executors.newScheduledThreadPool(5, createThreadFactory("Event Worker")))
+                .build();
         RestAction.setDefaultFailure(throwable -> log.error("Unhandled exception occured: ", throwable));
-        serverService.inject(new Teams(dataSource, guilds, shardManager));
+        serverService.inject(new Teams(guilds, shardManager));
         serverService.syncVelocity();
     }
 
     private void initDb() throws IOException, SQLException {
         var mapperRegistry = new RowMapperRegistry();
         mapperRegistry.register(PostgresqlMapper.getDefaultMapper());
-        QueryBuilderConfig.setDefault(QueryBuilderConfig.builder()
-                .withExceptionHandler(err -> log.error(ExceptionTransformer.prettyException(err), err))
-                .withExecutor(createExecutor("DataWorker"))
-                .rowMappers(mapperRegistry)
-                .build());
-
         dataSource = DataSourceCreator.create(PostgreSql.get())
                 .configure(config -> {
                     config.host(configuration.database().host())
-                          .port(configuration.database().port())
-                          .database(configuration.database().database())
-                          .user(configuration.database().user())
-                          .password(configuration.database().password());
+                            .port(configuration.database().port())
+                            .database(configuration.database().database())
+                            .user(configuration.database().user())
+                            .password(configuration.database().password());
                 })
                 .create()
                 .forSchema(configuration.database().schema())
                 .build();
+
+        QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource)
+                .setExceptionHandler(err -> log.error(ExceptionTransformer.prettyException(err), err))
+                .setRowMapperRegistry(mapperRegistry)
+                .build());
+
 
         SqlUpdater.builder(dataSource, PostgreSql.get())
                 .setReplacements(new QueryReplacement("gamejam", configuration.database().schema()))

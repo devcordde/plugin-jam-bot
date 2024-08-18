@@ -27,7 +27,7 @@ public final class Locale implements SlashHandler {
                .ifPresentOrElse(language -> {
                    settings.locale(language.getLocale());
                    event.reply(context.localize("command.settings.locale.message.updated")).setEphemeral(true).queue();
-                   context.commandHub().refreshGuildCommands(event.getGuild());
+                   context.interactionHub().refreshGuildCommands(event.getGuild());
                }, () -> event.reply(context.localize("command.settings.locale.message.invalid")).setEphemeral(true).queue());
 
     }

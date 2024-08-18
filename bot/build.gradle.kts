@@ -17,23 +17,18 @@ dependencies {
     implementation(project(":plugin-api"))
 
     // discord
-    implementation("de.chojo", "cjda-util", "2.7.8+alpha.22-DEV") {
+    implementation("de.chojo", "cjda-util", "2.9.8+jda-5.0.0") {
         exclude(module = "opus-java")
     }
-    implementation("io.javalin", "javalin-bundle", "4.4.0")
+    implementation(libs.javalin.bundle)
     implementation("net.lingala.zip4j", "zip4j", "2.11.2")
 
     // database
-    implementation("de.chojo.sadu", "sadu-queries", "1.2.0")
-    implementation("de.chojo.sadu", "sadu-updater", "1.2.0")
-    implementation("de.chojo.sadu", "sadu-datasource", "1.2.0")
-    implementation("de.chojo.sadu", "sadu-postgresql", "1.2.0")
+    implementation(libs.bundles.sadu)
     implementation("org.postgresql", "postgresql", "42.3.3")
 
     // Logging
-    implementation("org.slf4j", "slf4j-api", "2.0.3")
-    implementation("org.apache.logging.log4j", "log4j-core", "2.19.0")
-    implementation("org.apache.logging.log4j", "log4j-slf4j2-impl", "2.19.0")
+    implementation(libs.bundles.logging)
     implementation("club.minnced", "discord-webhooks", "0.7.5")
 
     // unit testing

@@ -6,24 +6,23 @@
 
 package de.chojo.gamejam.data.dao.guild;
 
-import de.chojo.sadu.base.QueryFactory;
-import de.chojo.sadu.exceptions.ThrowingConsumer;
-import de.chojo.sadu.wrapper.util.ParamBuilder;
+import de.chojo.sadu.queries.api.call.Call;
 
-import java.sql.SQLException;
+import java.util.function.Function;
 
-public class Settings extends QueryFactory {
+import static de.chojo.sadu.queries.api.call.Call.call;
+import static de.chojo.sadu.queries.api.query.Query.query;
+
+public class Settings {
     private final long guildId;
     private String locale = "en_US";
     private long orgaRole = 0;
 
-    public Settings(QueryFactory queryFactory, long guildId) {
-        super(queryFactory);
+    public Settings(long guildId) {
         this.guildId = guildId;
     }
 
-    public Settings(QueryFactory queryFactory, long guildId, String locale, long orgaRole) {
-        super(queryFactory);
+    public Settings(long guildId, String locale, long orgaRole) {
         this.guildId = guildId;
         this.locale = locale;
         this.orgaRole = orgaRole;
@@ -38,13 +37,13 @@ public class Settings extends QueryFactory {
     }
 
     public void locale(String locale) {
-        if (set("locale", stmt -> stmt.setString(locale))) {
+        if (set("locale", stmt -> stmt.bind(locale))) {
             this.locale = locale;
         }
     }
 
     public void orgaRole(long orgaRole) {
-        if (set("manager_role", stmt -> stmt.setLong(orgaRole))) {
+        if (set("manager_role", stmt -> stmt.bind(orgaRole))) {
             this.orgaRole = orgaRole;
         }
     }
@@ -53,20 +52,15 @@ public class Settings extends QueryFactory {
         return guildId;
     }
 
-    private boolean set(String column, ThrowingConsumer<ParamBuilder, SQLException> stmt) {
-        return builder()
-                .query("""
-                       INSERT INTO settings(guild_id, %s) VALUES(?,?)
-                       ON CONFLICT(guild_id)
-                           DO UPDATE
-                               SET %s = excluded.%s
-                       """, column, column, column)
-                .parameter(p -> {
-                    p.setLong(guildId());
-                    stmt.accept(p);
-                })
+    private boolean set(String column, Function<Call, Call> stmt) {
+        return query("""
+                INSERT INTO settings(guild_id, %s) VALUES(?,?)
+                ON CONFLICT(guild_id)
+                    DO UPDATE
+                        SET %s = excluded.%s
+                """, column, column, column)
+                .single(stmt.apply(call().bind(guildId())))
                 .update()
-                .sendSync()
                 .changed();
     }
 }

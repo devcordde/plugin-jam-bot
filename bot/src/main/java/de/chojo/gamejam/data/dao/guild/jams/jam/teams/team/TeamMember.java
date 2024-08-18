@@ -7,15 +7,16 @@
 package de.chojo.gamejam.data.dao.guild.jams.jam.teams.team;
 
 import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
-import de.chojo.sadu.base.QueryFactory;
 import net.dv8tion.jda.api.entities.Member;
 
-public final class TeamMember extends QueryFactory {
+import static de.chojo.sadu.queries.api.call.Call.call;
+import static de.chojo.sadu.queries.api.query.Query.query;
+
+public final class TeamMember {
     private final Team team;
     private final Member member;
 
     public TeamMember(Team team, Member member) {
-        super(team);
         this.team = team;
         this.member = member;
     }
@@ -33,11 +34,9 @@ public final class TeamMember extends QueryFactory {
         var roleById = team.meta().role();
 
         roleById.ifPresent(role -> guild.removeRoleFromMember(member, role).queue());
-        return builder()
-                .query("DELETE FROM team_member WHERE team_id = ? AND user_id = ?")
-                .parameter(p -> p.setInt(team.id()).setLong(member.getIdLong()))
+        return query("DELETE FROM team_member WHERE team_id = ? AND user_id = ?")
+                .single(call().bind(team.id()).bind(member.getIdLong()))
                 .insert()
-                .sendSync()
                 .changed();
     }
 }

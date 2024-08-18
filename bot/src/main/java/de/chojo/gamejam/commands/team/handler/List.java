@@ -13,6 +13,7 @@ import de.chojo.jdautil.pagination.bag.PrivateListPageBag;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -35,8 +36,8 @@ public class List implements SlashHandler {
 
         context.registerPage(new PrivateListPageBag<>(jam.teams().teams(), event.getUser().getIdLong()) {
             @Override
-            public CompletableFuture<MessageEmbed> buildPage() {
-                return CompletableFuture.supplyAsync(() -> currentElement().profileEmbed(context.guildLocalizer()));
+            public CompletableFuture<MessageEditData> buildPage() {
+                return CompletableFuture.supplyAsync(() -> MessageEditData.fromEmbeds(currentElement().profileEmbed(context.guildLocalizer())));
             }
         }, true);
     }

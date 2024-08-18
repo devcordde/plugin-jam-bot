@@ -10,27 +10,25 @@ import de.chojo.gamejam.data.dao.guild.JamSettings;
 import de.chojo.gamejam.data.dao.guild.Jams;
 import de.chojo.gamejam.data.dao.guild.Settings;
 import de.chojo.gamejam.data.dao.guild.Teams;
-import de.chojo.sadu.base.QueryFactory;
 import net.dv8tion.jda.api.entities.Guild;
 
-import javax.sql.DataSource;
+import static de.chojo.sadu.queries.api.call.Call.call;
+import static de.chojo.sadu.queries.api.query.Query.query;
 
-public class JamGuild extends QueryFactory {
+public class JamGuild {
     private final long guildId;
     private Guild guild;
     private final Jams jams;
     private final Teams teams;
 
-    public JamGuild(DataSource dataSource, Guild guild) {
-        super(dataSource);
+    public JamGuild(Guild guild) {
         this.guild = guild;
         this.guildId = guild.getIdLong();
         jams = new Jams(this);
         teams = new Teams(this);
     }
 
-    public JamGuild(DataSource dataSource, long guild) {
-        super(dataSource);
+    public JamGuild(long guild) {
         this.guild = null;
         this.guildId = guild;
         jams = new Jams(this);
@@ -38,20 +36,18 @@ public class JamGuild extends QueryFactory {
     }
 
     public Settings settings() {
-        return builder(Settings.class)
-                .query("SELECT manager_role, locale FROM settings WHERE guild_id  = ?")
-                .parameter(p -> p.setLong(guild.getIdLong()))
-                .readRow(r -> new Settings(this, guild.getIdLong(), r.getString("locale"), r.getLong("manager_role")))
-                .firstSync()
-                .orElseGet(() -> new Settings(this, guild.getIdLong()));
+        return query("SELECT manager_role, locale FROM settings WHERE guild_id  = ?")
+                .single(call().bind(guild.getIdLong()))
+                .map(r -> new Settings(guild.getIdLong(), r.getString("locale"), r.getLong("manager_role")))
+                .first()
+                .orElseGet(() -> new Settings(guild.getIdLong()));
     }
 
     public JamSettings jamSettings() {
-        return builder(JamSettings.class)
-                .query("SELECT jam_role, team_size FROM jam_settings WHERE guild_id = ?")
-                .parameter(p -> p.setLong(guild.getIdLong()))
-                .readRow(r -> new JamSettings(this, r.getInt("team_size"), r.getLong("jam_role")))
-                .firstSync()
+        return query("SELECT jam_role, team_size FROM jam_settings WHERE guild_id = ?")
+                .single(call().bind(guild.getIdLong()))
+                .map(r -> new JamSettings(this, r.getInt("team_size"), r.getLong("jam_role")))
+                .first()
                 .orElseGet(() -> new JamSettings(this));
     }
 

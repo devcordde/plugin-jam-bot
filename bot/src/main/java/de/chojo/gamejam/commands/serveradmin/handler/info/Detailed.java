@@ -14,6 +14,7 @@ import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -55,8 +56,8 @@ public class Detailed implements SlashHandler {
 
         context.registerPage(new ListPageBag<>(servers) {
             @Override
-            public CompletableFuture<MessageEmbed> buildPage() {
-                return currentElement().detailStatus(context);
+            public CompletableFuture<MessageEditData> buildPage() {
+                return currentElement().detailStatus(context).thenApply(MessageEditData::fromEmbeds);
             }
         });
     }
