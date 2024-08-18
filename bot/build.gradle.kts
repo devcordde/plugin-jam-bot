@@ -29,7 +29,7 @@ dependencies {
 
     // Logging
     implementation(libs.bundles.logging)
-    implementation("club.minnced", "discord-webhooks", "0.7.5")
+    implementation("club.minnced", "discord-webhooks", "0.8.4")
 
     // unit testing
     testImplementation(platform("org.junit:junit-bom:5.9.0"))
