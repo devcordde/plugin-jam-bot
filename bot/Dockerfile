@@ -3,9 +3,11 @@ FROM gradle:jdk21-alpine as build
 COPY . .
 RUN gradle clean build --no-daemon
 
-FROM eclipse-temurin:21-alpine as runtime
+FROM eclipse-temurin:21-jammy as runtime
 
 WORKDIR /app
+RUN apt update
+RUN apt install -y screen
 
 COPY --from=build /home/gradle/bot/build/libs/bot-*-all.jar bot.jar
 
