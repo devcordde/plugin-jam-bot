@@ -38,7 +38,6 @@ jobs:
       - name: Push image
         uses: docker/build-push-action@v6
         with:
-          file: bot/Dockerfile
           context: .
           push: true
           tags: |
@@ -46,7 +45,6 @@ jobs:
       - name: Tag & Push branch image
         uses: docker/build-push-action@v6
         with:
-          file: bot/Dockerfile
           context: .
           push: true
           tags: |
@@ -57,7 +55,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: bot/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ github.sha }}

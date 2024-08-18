@@ -95,7 +95,7 @@ public class ServerService implements Runnable {
                 throw new RuntimeException(e);
             }
         }
-        if(retries == 5) return;
+        if (retries == 5) return;
         var collectionType = Mapper.MAPPER.getTypeFactory()
                 .constructCollectionType(List.class, Registration.class);
         List<Registration> registrations;
