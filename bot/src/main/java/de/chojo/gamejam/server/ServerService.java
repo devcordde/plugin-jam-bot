@@ -78,7 +78,8 @@ public class ServerService implements Runnable {
                 .GET()
                 .build();
         HttpResponse<String> response;
-        while (true) {
+        var retries = 0;
+        while (retries < 5) {
             try {
                 response = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
                 break;
@@ -87,6 +88,7 @@ public class ServerService implements Runnable {
             } catch (InterruptedException e) {
                 log.error("Interrupted", e);
             }
+            retries++;
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
