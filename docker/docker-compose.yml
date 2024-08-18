@@ -4,7 +4,7 @@ services:
   bot:
     image: game-jam-bot
     build:
-      dockerfile: docker/bot.DockerFile
+      dockerfile: ../bot/Dockerfile
       context: ..
     networks:
       - plugin-jam

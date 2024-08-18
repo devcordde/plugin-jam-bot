@@ -79,7 +79,7 @@ public class ServerRegistry implements Runnable {
         log.debug("Ping of server {} received.", registration.name());
         seen.put(registration, Instant.now());
         if (!ids.containsKey(registration.id()) && !ports.containsKey(registration.port())) {
-            log.info("Received ping of unkown server {} with id {}", registration.id(), registration.name());
+            log.info("Received ping of unknown server {} with id {}", registration.id(), registration.name());
             log.info("Attempting to register server.");
             register(registration);
         }

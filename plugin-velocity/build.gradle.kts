@@ -1,20 +1,21 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    alias(libs.plugins.shadow)
 }
 
-repositories{
-    maven("https://repo.velocitypowered.com/snapshots/")
+repositories {
+    mavenCentral()
+    maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies{
     implementation("io.javalin", "javalin", "4.6.8")
     implementation(project(":plugin-api"))
-    compileOnly("com.velocitypowered", "velocity-api", "1.0.0-SNAPSHOT")
-    annotationProcessor("com.velocitypowered", "velocity-api", "1.0.0-SNAPSHOT")
+    compileOnly("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
+    annotationProcessor("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
 }
 
-tasks{
+tasks {
     shadowJar {
         val shadebase = "de.chojo.pluginjam.libs"
         //relocate("io.javalin", "$shadebase.javalin")

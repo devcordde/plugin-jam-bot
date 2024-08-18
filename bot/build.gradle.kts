@@ -1,10 +1,10 @@
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    alias(libs.plugins.shadow)
     java
 }
 
 group = "de.chojo"
-version = "1.0"
+version = "1.0.0"
 
 repositories {
     maven("https://eldonexus.de/repository/maven-public")

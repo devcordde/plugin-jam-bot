@@ -1,10 +1,11 @@
 plugins {
     java
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.2"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    alias(libs.plugins.pluginyml)
+    alias(libs.plugins.shadow)
 }
 
 group = "de.chojo"
+version = "1.0.0"
 
 dependencies {
     implementation(project(":plugin-api"))
@@ -18,10 +19,8 @@ tasks {
     shadowJar {
         val shadebase = "de.chojo.pluginjam."
         relocate("de.eldoria.eldoutilities", shadebase + "eldoutilities")
-        //relocate("io.javalin", shadebase + "javalin")
         mergeServiceFiles()
         archiveFileName.set("pluginjam.jar")
-        //minimize()
     }
 
     register<Copy>("copyToServer") {
@@ -34,7 +33,7 @@ tasks {
         destinationDir = File(path.toString())
     }
 
-    build{
+    build {
         dependsOn(shadowJar)
     }
 }

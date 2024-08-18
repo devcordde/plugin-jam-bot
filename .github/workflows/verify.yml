@@ -1,6 +1,9 @@
 name: Verify state
 
 on:
+  release:
+    types:
+      - published
   push:
   pull_request:
     types: [ opened, ready_for_review, synchronize ]
@@ -8,14 +11,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    name: "Verify gradle"
 
     steps:
       - uses: actions/checkout@v2.3.4
-      - name: Set up JDK 17
+      - uses: gradle/wrapper-validation-action@v3
+      - name: Set up JDK
         uses: actions/setup-java@v2
         with:
           distribution: adopt
-          java-version: 17
+          java-version: 21
       - name: Check licence
         run: ./gradlew licenseCheck
       - name: Build with Gradle
