@@ -9,7 +9,7 @@ group = "de.chojo"
 dependencies {
     implementation(project(":plugin-api"))
     compileOnly("io.papermc.paper", "paper-api", "1.19.2-R0.1-SNAPSHOT")
-    implementation("io.javalin", "javalin", "4.6.5")
+    implementation("io.javalin", "javalin", "4.6.8")
     implementation("de.eldoria", "eldo-util", "1.14.0-DEV")
     implementation("org.slf4j", "slf4j-api", "1.7.36")
 }
