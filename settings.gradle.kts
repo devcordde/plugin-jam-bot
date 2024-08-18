@@ -23,7 +23,7 @@ dependencyResolutionManagement {
                 bundle("logging", listOf("slf4j","log4j-core","log4j-slf4j2"))
 
 
-            version("javalin", "4.6.8")
+            version("javalin", "6.2.0")
             library("javalin-core", "io.javalin","javalin").versionRef("javalin")
             library("javalin-bundle", "io.javalin","javalin-bundle").versionRef("javalin")
 
