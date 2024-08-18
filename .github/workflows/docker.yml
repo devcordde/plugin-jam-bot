@@ -22,7 +22,7 @@ jobs:
         uses: lewagon/wait-on-check-action@master
         with:
           ref: ${{ github.ref }}
-          check-name: 'Verify Docker Build'
+          check-name: 'Verify Gradle'
           running-workflow-name: 'Verify'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           allowed-conclusions: success
