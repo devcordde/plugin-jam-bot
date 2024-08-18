@@ -14,7 +14,7 @@ jobs:
     name: "Verify Gradle"
 
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.7.0
       - uses: gradle/wrapper-validation-action@v3
       - name: Set up JDK
         uses: actions/setup-java@v2
