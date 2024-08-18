@@ -8,7 +8,7 @@ repositories{
 }
 
 dependencies{
-    implementation("io.javalin", "javalin", "4.6.5")
+    implementation("io.javalin", "javalin", "4.6.8")
     implementation(project(":plugin-api"))
     compileOnly("com.velocitypowered", "velocity-api", "1.0.0-SNAPSHOT")
     annotationProcessor("com.velocitypowered", "velocity-api", "1.0.0-SNAPSHOT")
