@@ -71,16 +71,17 @@ public class ServerService implements Runnable {
         freePorts.clear();
         IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
                  .forEach(freePorts::add);
-        var velocityApi = configuration.serverManagement().velocityApi();
+        var velocityPort = configuration.serverManagement().velocityPort();
+        var velocityHost = configuration.serverManagement().getVelocityHost();
         var httpClient = HttpClient.newHttpClient();
-        var req = HttpRequest.newBuilder(URI.create("http://localhost:%d/v1/server".formatted(velocityApi)))
+        var req = HttpRequest.newBuilder(URI.create("http://%s:%d/v1/server".formatted(velocityHost, velocityPort)))
                              .GET()
                              .build();
         HttpResponse<String> response;
         try {
             response = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
-            log.error("Could not reach velocity inteance", e);
+            log.error("Could not reach velocity instance", e);
             return;
         } catch (InterruptedException e) {
             log.error("Interrupted", e);

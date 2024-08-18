@@ -20,7 +20,6 @@ tasks {
         val shadebase = "de.chojo.pluginjam."
         relocate("de.eldoria.eldoutilities", shadebase + "eldoutilities")
         mergeServiceFiles()
-        archiveFileName.set("pluginjam.jar")
     }
 
     register<Copy>("copyToServer") {

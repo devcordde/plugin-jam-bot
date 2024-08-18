@@ -14,7 +14,8 @@ public class ServerManagement {
     private String serverDir= "server";
     private int minPort = 30001;
     private int maxPort = 30500;
-    private int velocityApi = 30000;
+    private String velocityHost = "velocity";
+    private int velocityPort = 30000;
     private int maxPlayers = 50;
     private int memory = 1024;
 
@@ -28,8 +29,8 @@ public class ServerManagement {
         return maxPort;
     }
 
-    public int velocityApi() {
-        return velocityApi;
+    public int velocityPort() {
+        return velocityPort;
     }
 
     public List<String> parameter() {
@@ -46,5 +47,9 @@ public class ServerManagement {
 
     public String serverDir() {
         return serverDir;
+    }
+
+    public String getVelocityHost() {
+        return velocityHost;
     }
 }

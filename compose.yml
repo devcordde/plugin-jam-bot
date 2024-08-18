@@ -1,0 +1,28 @@
+services:
+  bot:
+    image: ghcr.io/devcordde/plugin-jam-bot:latest
+    volumes:
+      - ./data/bot/config:/app/config
+      - ./data/bot/plugins:/app/plugins
+      - ./data/bot/servers:/app/servers
+      - ./data/bot/template:/app/template
+  velocity:
+    image: itzg/mc-proxy:latest
+    tty: true
+    environment:
+      EULA: "TRUE"
+      TYPE: VELOCITY
+      JVM_DD_OPTS: javalin.port=30000
+    volumes:
+      - ./data/velocity/config:/config
+      - ./data/velocity/plugins:/plugins
+  lobby:
+    image: itzg/minecraft-server:latest
+    stdin_open: true
+    tty: true
+    environment:
+      VERSION: 1.21
+      TYPE: PAPER
+      MEMORY: 2G
+    volumes:
+      - ./data/lobby:/data

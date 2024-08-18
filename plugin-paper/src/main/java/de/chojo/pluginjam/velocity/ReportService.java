@@ -27,14 +27,16 @@ public class ReportService implements Runnable {
     private final int id;
     private final Gson gson = new Gson();
     private final String name;
-    private final int velocityApi;
+    private final int velocityPort;
     private final int apiPort;
+    private final String velocityHost;
 
     private ReportService(Plugin plugin) {
         this.plugin = plugin;
         id = Integer.parseInt(System.getProperty("pluginjam.team.id"));
         name = System.getProperty("pluginjam.team.name");
-        velocityApi = Integer.parseInt(System.getProperty("pluginjam.port"));
+        velocityPort = Integer.parseInt(System.getProperty("pluginjam.port"));
+        velocityHost = System.getProperty("pluginjam.host");
         apiPort = Integer.parseInt(System.getProperty("javalin.port", "30000"));
     }
 
@@ -103,10 +105,10 @@ public class ReportService implements Runnable {
     }
 
     private URI apiUrl(String... path) {
-        return URI.create("http://localhost:%d/%s".formatted(velocityApi, String.join("/", path)));
+        return URI.create("http://%s:%d/%s".formatted(velocityHost,velocityPort, String.join("/", path)));
     }
 
     private URI queryApiUrl(String query, String... path) {
-        return URI.create("http://localhost:%d/%s?%s".formatted(velocityApi, String.join("/", path), query));
+        return URI.create("http://%s:%d/%s?%s".formatted(velocityHost, velocityPort, String.join("/", path), query));
     }
 }

@@ -44,3 +44,4 @@ buildNumber.properties
 /wait.sh
 /conf/
 .direnv
+data

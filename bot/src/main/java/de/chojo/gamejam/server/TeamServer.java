@@ -174,7 +174,8 @@ public class TeamServer {
         command.add("-Xms%dM".formatted(server.memory()));
         command.addAll(AIKAR);
         command.addAll(server.parameter());
-        command.add("-Dpluginjam.port=" + server.velocityApi());
+        command.add("-Dpluginjam.port=" + server.velocityPort());
+        command.add("-Dpluginjam.host=" + server.getVelocityHost());
         command.add("-Dpluginjam.team.id=" + team.id());
         command.add("-Dpluginjam.team.name=" + teamName());
         command.add("-Djavalin.port=" + apiPort);

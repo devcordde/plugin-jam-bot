@@ -21,7 +21,10 @@ tasks {
         //relocate("io.javalin", "$shadebase.javalin")
         //relocate("org.eclipse", shadebase)
         mergeServiceFiles()
-        archiveFileName.set("PluginJam.jar")
+    }
+
+    build{
+        dependsOn(shadowJar)
     }
 
     register<Copy>("copyToServer") {
