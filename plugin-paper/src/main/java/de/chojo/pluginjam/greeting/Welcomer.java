@@ -22,7 +22,7 @@ public class Welcomer implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        var message = MiniMessage.miniMessage().deserialize(plugin.getConfig().getString("message", "Welcome!"));
-        event.getPlayer().sendMessage(message);
+        var message = plugin.getConfig().getString("message", "Welcome!");
+        event.getPlayer().sendRichMessage(message);
     }
 }

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.pluginyml)
     alias(libs.plugins.shadow)
     `maven-publish`
+    id("xyz.jpenilla.run-paper") version "1.0.6"
 }
 
 group = "de.chojo.pluginjam"
@@ -11,15 +12,13 @@ version = "1.0.1"
 dependencies {
     implementation(project(":plugin-api"))
     compileOnly(libs.paper)
-    implementation(libs.javalin.core)
-    implementation(libs.eldoutil)
-    implementation(libs.slf4j)
+    bukkitLibrary(libs.javalin.core)
+    bukkitLibrary(libs.bundles.eldoutil)
+    bukkitLibrary(libs.slf4j)
 }
 
 tasks {
     shadowJar {
-        val shadebase = "de.chojo.pluginjam."
-        relocate("de.eldoria.eldoutilities", shadebase + "eldoutilities")
         mergeServiceFiles()
     }
 
@@ -35,6 +34,10 @@ tasks {
 
     build {
         dependsOn(shadowJar)
+    }
+
+    runServer {
+        minecraftVersion("1.21.1")
     }
 }
 
@@ -60,7 +63,7 @@ bukkit {
     name = "PluginJam"
     main = "de.chojo.pluginjam.PluginJam"
     website = "https://github.com/devcordde/plugin-jam-bot"
-    apiVersion = "1.19"
+    apiVersion = "1.21"
     version = rootProject.version.toString()
     authors = listOf("Taucher2003", "RainbowdashLabs")
 }

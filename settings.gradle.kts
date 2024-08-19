@@ -27,9 +27,12 @@ dependencyResolutionManagement {
             library("javalin-core", "io.javalin","javalin").versionRef("javalin")
             library("javalin-bundle", "io.javalin","javalin-bundle").versionRef("javalin")
 
+            version("eldoutil", "2.1.4")
+            library("eldoutil-plugin", "de.eldoria.util","plugin").versionRef("eldoutil")
+            bundle("eldoutil", listOf("eldoutil-plugin"))
+
             library("velocity", "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
             library("paper", "io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT")
-            library("eldoutil", "de.eldoria:eldo-util:1.14.5")
             plugin("shadow", "com.gradleup.shadow").version("8.3.0")
             plugin("pluginyml", "net.minecrell.plugin-yml.bukkit").version("0.6.0")
         }

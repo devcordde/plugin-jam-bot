@@ -7,6 +7,7 @@
 package de.chojo.pluginjam.service;
 
 import de.eldoria.eldoutilities.localization.ILocalizer;
+import de.eldoria.eldoutilities.messages.MessageSender;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.event.EventHandler;
@@ -19,10 +20,12 @@ public class CommandBlocker implements Listener {
     private final List<String> blocked = List.of("/restart", "/stop", "/minecraft:stop");
     private final ServerRequests requests;
     private final ILocalizer localizer;
+    private final MessageSender messageSender;
 
     public CommandBlocker(ServerRequests requests, ILocalizer localizer) {
         this.requests = requests;
         this.localizer = localizer;
+        this.messageSender = MessageSender.getPluginMessageSender(localizer.plugin());
     }
 
     @EventHandler
@@ -30,7 +33,7 @@ public class CommandBlocker implements Listener {
         var cmd = event.getMessage();
 
         if ("/restart".equals(cmd) || "/spigot:restart".equals(cmd)) {
-            event.getPlayer().sendMessage(Component.text(localizer.localize("commandblocked.restartrequested")));
+            messageSender.sendMessage(event.getPlayer(), "commandblocked.restartrequested");
             requests.restartByUserOrServer(true);
             event.setCancelled(true);
             return;
@@ -38,7 +41,7 @@ public class CommandBlocker implements Listener {
 
         for (var block : blocked) {
             if (cmd.startsWith(block)) {
-                event.getPlayer().sendMessage(Component.text(localizer.localize("commandblocker.blocked"), NamedTextColor.RED));
+                messageSender.sendError(event.getPlayer(), "commandblocker.blocked");
                 event.setCancelled(true);
                 return;
             }

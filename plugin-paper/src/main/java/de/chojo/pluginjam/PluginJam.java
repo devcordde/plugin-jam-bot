@@ -13,12 +13,14 @@ import de.chojo.pluginjam.service.CommandBlocker;
 import de.chojo.pluginjam.service.JoinService;
 import de.chojo.pluginjam.service.ServerRequests;
 import de.chojo.pluginjam.velocity.ReportService;
-import de.eldoria.eldoutilities.localization.ILocalizer;
+import de.eldoria.eldoutilities.localization.Localizer;
+import de.eldoria.eldoutilities.messages.MessageSender;
 import de.eldoria.eldoutilities.plugin.EldoPlugin;
 import org.bukkit.event.Listener;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.logging.Level;
 
 public class PluginJam extends EldoPlugin implements Listener {
     private Api api;
@@ -27,11 +29,19 @@ public class PluginJam extends EldoPlugin implements Listener {
     private ServerApi serverApi;
 
     @Override
+    public Level getLogLevel() {
+        return Level.INFO;
+    }
+
+    @Override
     public void onPluginEnable() {
         saveDefaultConfig();
 
-        var localizer = ILocalizer.create(this, "de_DE");
-        localizer.setLocale("de_DE");
+        var localizer = Localizer.builder(this, "de_DE").build();
+        MessageSender.builder(this)
+                .localizer(localizer)
+                .prefix("<gold>[PJ]")
+                .register();
 
         var serverRequests = new ServerRequests();
 

@@ -8,6 +8,7 @@ package de.chojo.pluginjam.velocity;
 
 import com.google.gson.Gson;
 import de.chojo.pluginjam.payload.Registration;
+import de.eldoria.eldoutilities.utils.ArgumentUtils;
 import org.bukkit.plugin.Plugin;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
