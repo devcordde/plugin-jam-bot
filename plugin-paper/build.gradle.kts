@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.pluginyml)
     alias(libs.plugins.shadow)
     `maven-publish`
+    `java-library`
     id("xyz.jpenilla.run-paper") version "2.3.1"
 }
 
@@ -14,6 +15,7 @@ dependencies {
     compileOnly(libs.paper)
     bukkitLibrary(libs.javalin.core)
     bukkitLibrary(libs.bundles.eldoutil)
+    api(libs.bundles.eldoutil)
     bukkitLibrary(libs.slf4j)
 }
 
