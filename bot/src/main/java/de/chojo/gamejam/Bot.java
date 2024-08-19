@@ -30,6 +30,7 @@ import de.chojo.sadu.datasource.DataSourceCreator;
 import de.chojo.sadu.mapper.RowMapperRegistry;
 import de.chojo.sadu.postgresql.databases.PostgreSql;
 import de.chojo.sadu.postgresql.mapper.PostgresqlMapper;
+import de.chojo.sadu.queries.api.configuration.ConnectedQueryConfiguration;
 import de.chojo.sadu.queries.api.configuration.QueryConfiguration;
 import de.chojo.sadu.updater.QueryReplacement;
 import de.chojo.sadu.updater.SqlUpdater;
@@ -59,7 +60,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import static de.chojo.sadu.queries.api.call.Call.call;
-import static de.chojo.sadu.queries.api.query.Query.query;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class Bot {
@@ -115,17 +115,22 @@ public class Bot {
 
     public void start() throws IOException, SQLException, LoginException {
         configuration = Configuration.create();
-
+        log.info("Initializing server");
         initServer();
 
+        log.info("Initializing Shard Manager");
         initBot();
 
+        log.info("Initializing Database");
         initDb();
 
+        log.info("Initializing Localizer");
         buildLocale();
 
+        log.info("Initializing Commands");
         buildCommands();
 
+        log.info("Starting api");
         Api.create(configuration, shardManager, guilds, teams, serverService);
 
     }
@@ -184,6 +189,7 @@ public class Bot {
                 })
                 .create()
                 .forSchema(configuration.database().schema())
+                .withMaximumPoolSize(5)
                 .build();
 
         QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource)
@@ -196,11 +202,20 @@ public class Bot {
                 .setReplacements(new QueryReplacement("gamejam", configuration.database().schema()))
                 .setSchemas(configuration.database().schema())
                 .postUpdateHook(new SqlVersion(1, 3), connection -> {
-                    List<Integer> teamsWithNullToken = query("SELECT team_id FROM team_meta WHERE token IS NULL")
+                    log.info("Retrieving teams");
+                    // The table is currently locked, because it got modified. This causes a deadlock here.
+                    // We have to commit the update first or find a way to use the current connection
+                    ConnectedQueryConfiguration config = QueryConfiguration.getDefault()
+                            .edit()
+                            .setThrowExceptions(true)
+                            .build()
+                            .withConnection(connection);
+                    List<Integer> teamsWithNullToken = config.query("SELECT team_id FROM team_meta WHERE token IS NULL")
                             .single()
                             .mapAs(Integer.class)
                             .all();
-                    query("UPDATE team_meta SET token = ? WHERE team_id = ?")
+                    log.info("Updating {} teams", teamsWithNullToken.size());
+                    config.query("UPDATE team_meta SET token = ? WHERE team_id = ?")
                             .batch(teamsWithNullToken.stream().map(t -> call().bind(Token.generate(40)).bind(t)))
                             .update();
                 })
