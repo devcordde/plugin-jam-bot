@@ -26,6 +26,6 @@ COPY docker/resources/docker-entrypoint.sh .
 
 EXPOSE 8080
 
-HEALTHCHECK CMD curl --fail http://localhost:8080 || exit 1
+HEALTHCHECK CMD curl --fail http://localhost:8080/swagger-ui || exit 1
 
 ENTRYPOINT ["bash", "docker-entrypoint.sh"]
