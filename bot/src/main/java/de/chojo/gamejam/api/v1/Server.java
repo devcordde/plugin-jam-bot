@@ -36,7 +36,7 @@ public class Server {
                     return;
                 }
 
-                if(!ctx.contentType().equals("application/octet-stream")) {
+                if (!ctx.contentType().equals("application/octet-stream")) {
                     ctx.status(HttpCode.BAD_REQUEST);
                     ctx.result("Use Content-Type: application/octet-stream");
                     return;
@@ -56,7 +56,12 @@ public class Server {
                 }
 
                 ctx.status(HttpCode.ACCEPTED);
-                teamServer.restart();
+                String restart = ctx.queryParam("restart");
+                if ("true".equals(restart) && teamServer.running()) {
+                    teamServer.restart();
+                } else if (teamServer.running()) {
+                    teamServer.send("say Plugin Updated");
+                }
             });
         });
     }

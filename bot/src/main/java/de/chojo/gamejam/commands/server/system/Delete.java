@@ -27,8 +27,11 @@ public class Delete implements SlashHandler {
     @Override
     public void onSlashCommand(SlashCommandInteractionEvent event, EventContext context) {
         var optServer = server.getServer(event, context);
-        if(optServer.isEmpty())return;
+        if (optServer.isEmpty()) return;
         var teamServer = optServer.get();
+        if(teamServer.running()){
+            teamServer.stop().join();
+        }
         boolean deleted;
         try {
             deleted = teamServer.purge();
