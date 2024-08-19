@@ -125,9 +125,9 @@ public class TeamServer {
 
         var sourceDir = Path.of(configuration.serverTemplate().templateDir());
         var symlinks = configuration.serverTemplate().symLinks()
-                                    .stream()
-                                    .map(sourceDir::resolve)
-                                    .collect(Collectors.toSet());
+                .stream()
+                .map(sourceDir::resolve)
+                .collect(Collectors.toSet());
         try (var files = Files.walk(sourceDir)) {
             for (var sourceTarget : files.toList()) {
                 // skip root dir
@@ -153,6 +153,7 @@ public class TeamServer {
 
     /**
      * Delete all the server data.
+     *
      * @return true when server was deleted.
      * @throws IOException
      */
@@ -196,7 +197,8 @@ public class TeamServer {
                     .start();
             running = true;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("Could not start server", e);
+            return false;
         }
         return true;
     }
@@ -370,8 +372,8 @@ public class TeamServer {
     public boolean deleteDirectory(Path path) {
         try (var files = Files.walk(path)) {
             files.sorted(Comparator.reverseOrder())
-                 .map(Path::toFile)
-                 .forEach(File::delete);
+                    .map(Path::toFile)
+                    .forEach(File::delete);
         } catch (NoSuchFileException e) {
             return true;
         } catch (IOException e) {
@@ -411,18 +413,18 @@ public class TeamServer {
             } else {
                 if (running()) {
                     builder.setDescription("teamserver.message.detailstatus.existing.description")
-                           .addField("word.ports", "$word.server$: %d%n$word.api$: %d".formatted(port, apiPort), true);
+                            .addField("word.ports", "$word.server$: %d%n$word.api$: %d".formatted(port, apiPort), true);
                     stats().ifPresent(stats -> {
                         var memory = stats.memory();
                         builder.addField("word.memory", "$word.used$ %d%n$word.total$: %d%n$word.max$: %d".formatted(memory.usedMb(), memory.totalMb(), memory.maxMb()), true)
-                               .addField("word.tps", "1 $word.min$: %.2f%n5 $word.min$: %.2f%n 15 $word.min$: %.2f%n$word.averageticktime$ %.2f".formatted(
-                                       stats.tps()[0], stats.tps()[1], stats.tps()[2], stats.averageTickTime()), true)
-                               .addField("word.players", String.valueOf(stats.onlinePlayers()), true)
-                               .addField("word.system", "$word.activethreads$: %d".formatted(stats.activeThreads()), true);
+                                .addField("word.tps", "1 $word.min$: %.2f%n5 $word.min$: %.2f%n 15 $word.min$: %.2f%n$word.averageticktime$ %.2f".formatted(
+                                        stats.tps()[0], stats.tps()[1], stats.tps()[2], stats.averageTickTime()), true)
+                                .addField("word.players", String.valueOf(stats.onlinePlayers()), true)
+                                .addField("word.system", "$word.activethreads$: %d".formatted(stats.activeThreads()), true);
                     });
                 } else {
                     builder.setDescription("word.serversetup")
-                           .addField("word.ports", "word.notrunning", true);
+                            .addField("word.ports", "word.notrunning", true);
                 }
             }
 

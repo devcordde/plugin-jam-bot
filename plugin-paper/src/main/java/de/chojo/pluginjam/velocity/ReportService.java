@@ -9,6 +9,7 @@ package de.chojo.pluginjam.velocity;
 import com.google.gson.Gson;
 import de.chojo.pluginjam.payload.Registration;
 import org.bukkit.plugin.Plugin;
+import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 
 import java.net.URI;
@@ -30,6 +31,7 @@ public class ReportService implements Runnable {
     private final int velocityPort;
     private final int apiPort;
     private final String velocityHost;
+    private final String host = System.getenv("HOSTNAME");
 
     private ReportService(Plugin plugin) {
         this.plugin = plugin;
@@ -55,14 +57,15 @@ public class ReportService implements Runnable {
 
     private void register() {
         log.info("Registering server at velocity instance");
-        var registration = new Registration(id, name, plugin.getServer().getPort(), apiPort);
+        var registration = new Registration(id, name,  host, plugin.getServer().getPort(), apiPort);
         var builder = HttpRequest.newBuilder(apiUrl("v1", "server"))
                                  .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(registration)))
                                  .build();
+        log.info("Posting to {}", builder.uri().toString());
         client.sendAsync(builder, HttpResponse.BodyHandlers.discarding())
               .whenComplete((res, err) -> {
-                  if (err == null) {
-                      log.info("Registered server at velocity instance");
+                  if (err == null && res.statusCode() == HttpStatus.ACCEPTED_202) {
+                      log.info("Registered server at velocity instance.");
                   } else {
                       log.error("Could not register", err);
                   }
@@ -70,7 +73,7 @@ public class ReportService implements Runnable {
     }
 
     private void ping() {
-        var registration = new Registration(id, name, plugin.getServer().getPort(), apiPort);
+        var registration = new Registration(id, name, host, plugin.getServer().getPort(), apiPort);
         var builder = HttpRequest.newBuilder(apiUrl("v1", "server"))
                                  .method("PATCH", HttpRequest.BodyPublishers.ofString(gson.toJson(registration)))
                                  .build();
@@ -84,9 +87,9 @@ public class ReportService implements Runnable {
 
     private void unregister() {
         log.info("Unregistering server at velocity instance.");
-        var builder = HttpRequest.newBuilder(queryApiUrl("id=%s&port=%s".formatted(id,
+        var builder = HttpRequest.newBuilder(queryApiUrl("id=%s&port=%s&host=%s".formatted(id,
                                                  plugin.getServer()
-                                                       .getPort()),
+                                                       .getPort(), host),
                                          "v1", "server"))
                                  .DELETE()
                                  .build();

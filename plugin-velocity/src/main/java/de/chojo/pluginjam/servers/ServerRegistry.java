@@ -17,7 +17,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -71,7 +70,7 @@ public class ServerRegistry implements Runnable {
         ids.put(registration.id(), registration);
         ports.put(registration.port(), registration);
 
-        proxy.registerServer(new ServerInfo(registration.name(), new InetSocketAddress("localhost", registration.port())));
+        proxy.registerServer(new ServerInfo(registration.name(), new InetSocketAddress(registration.host(), registration.port())));
         ping(registration);
     }
 
@@ -87,7 +86,7 @@ public class ServerRegistry implements Runnable {
 
     public void unregister(Registration registration) {
         var removed = ids.remove(registration.id());
-        if(removed == null){
+        if (removed == null) {
             log.warn("Unregistered server {} from port {}, but this server is not known.", registration.id(), registration.port());
             return;
         }

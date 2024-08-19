@@ -38,10 +38,12 @@ public class Server {
             delete("", ctx -> {
                 var id = ctx.queryParam("id");
                 var port = ctx.queryParam("port");
-                var registration = new Registration(Integer.parseInt(id), "", Integer.parseInt(port), 0);
+                var host = ctx.queryParam("host");
+                var registration = new Registration(Integer.parseInt(id), "", host, Integer.parseInt(port), 0);
                 registry.unregister(registration);
                 ctx.status(HttpCode.ACCEPTED);
             });
+
             get("", ctx -> {
                 ctx.json(registry.server());
                 ctx.status(HttpCode.OK);

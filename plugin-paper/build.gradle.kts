@@ -2,6 +2,7 @@ plugins {
     java
     alias(libs.plugins.pluginyml)
     alias(libs.plugins.shadow)
+    `maven-publish`
 }
 
 group = "de.chojo"
@@ -34,6 +35,24 @@ tasks {
 
     build {
         dependsOn(shadowJar)
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "Eldonexus"
+            url = uri("https://eldonexus.de/repository/maven-releases")
+            credentials {
+                username = System.getenv("NEXUS_USERNAME")
+                password = System.getenv("NEXUS_PASSWORD")
+            }
+        }
+    }
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
     }
 }
 

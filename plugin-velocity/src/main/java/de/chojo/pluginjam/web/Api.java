@@ -32,7 +32,8 @@ public class Api {
         var classLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(PluginJam.class.getClassLoader());
         var javalin = Javalin.create();
-        javalin.start("0.0.0.0", Integer.parseInt(System.getProperty("javalin.port", "30000")));
+        int port = Integer.parseInt(System.getProperty("javalin.port", "30000"));
+        javalin.start("0.0.0.0", port);
         Thread.currentThread().setContextClassLoader(classLoader);
         var api = new Api(registry, javalin);
         api.ignite();
