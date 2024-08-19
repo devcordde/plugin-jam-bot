@@ -31,7 +31,7 @@ public class CommandBlocker implements Listener {
 
         if ("/restart".equals(cmd) || "/spigot:restart".equals(cmd)) {
             event.getPlayer().sendMessage(Component.text(localizer.localize("commandblocked.restartrequested")));
-            requests.restartByCommand(true);
+            requests.restartByUserOrServer(true);
             event.setCancelled(true);
             return;
         }
