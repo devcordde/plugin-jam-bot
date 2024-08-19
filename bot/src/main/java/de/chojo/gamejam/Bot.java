@@ -148,7 +148,6 @@ public class Bot {
             serverService.shutdown();
             dataSource.close();
             LogManager.shutdown();
-            System.exit(0);
         }));
     }
 
