@@ -1,16 +1,14 @@
+import com.diffplug.gradle.spotless.SpotlessPlugin
+
 plugins {
     java
-    id("org.cadixdev.licenser") version "0.6.1"
+    alias(libs.plugins.spotless)
 }
 
 group = "de.chojo"
 version = "1.0.0"
 
 subprojects {
-    apply {
-        plugin<org.cadixdev.gradle.licenser.Licenser>()
-        plugin<JavaPlugin>()
-    }
 }
 
 allprojects {
@@ -20,9 +18,17 @@ allprojects {
         maven("https://eldonexus.de/repository/maven-proxies/")
     }
 
-    license {
-        header(rootProject.file("HEADER.txt"))
-        include("**/*.java")
+    apply {
+        plugin<JavaPlugin>()
+        plugin<SpotlessPlugin>()
+    }
+
+
+    spotless {
+        java {
+            licenseHeaderFile(rootProject.file("HEADER.txt"))
+            target("**/*.java")
+        }
     }
 
     java {
@@ -35,7 +41,7 @@ allprojects {
 
     tasks {
         test {
-            dependsOn(licenseCheck)
+            dependsOn(spotlessCheck)
             useJUnitPlatform()
             testLogging {
                 events("passed", "skipped", "failed")

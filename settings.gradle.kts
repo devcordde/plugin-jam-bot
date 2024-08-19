@@ -35,6 +35,7 @@ dependencyResolutionManagement {
             library("paper", "io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT")
             plugin("shadow", "com.gradleup.shadow").version("8.3.0")
             plugin("pluginyml", "net.minecrell.plugin-yml.bukkit").version("0.6.0")
+            plugin("spotless", "com.diffplug.spotless").version("6.25.0")
         }
     }
 }
