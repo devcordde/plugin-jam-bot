@@ -10,7 +10,7 @@ on:
       - main
       - dev*
     paths:
-      - bot/*
+      - bot/**
 
 jobs:
   docker-build:
