@@ -12,6 +12,8 @@ on:
     paths:
       - bot/**
       - settings.gradle.kts
+      - Dockerfile
+      - .github/workflows/docker.yml
 
 jobs:
   docker-build:
