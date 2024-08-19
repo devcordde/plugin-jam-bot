@@ -23,4 +23,7 @@ COPY docker/resources/bot/wait.sh .
 COPY --from=build /home/gradle/plugin-paper/build/libs/plugin-paper-*-all.jar ./bot/template/plugins/pluginjam.jar
 
 COPY docker/resources/docker-entrypoint.sh .
+
+EXPOSE 8080
+
 ENTRYPOINT ["bash", "docker-entrypoint.sh"]
