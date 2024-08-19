@@ -22,7 +22,7 @@ jobs:
           distribution: adopt
           java-version: 21
       - name: Check licence
-        run: ./gradlew licenseCheck
+        run: ./gradlew spotlessCheck
       - name: Build with Gradle
         run: ./gradlew --build-cache build
       - name: Test with Gradle
