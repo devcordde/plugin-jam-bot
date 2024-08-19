@@ -159,6 +159,7 @@ public class TeamServer {
      */
     public boolean purge() throws IOException {
         if (!exists()) return false;
+        if(running()) stop().join();
         log.info("Purging server of team {}", team);
         return deleteDirectory(serverDir());
     }

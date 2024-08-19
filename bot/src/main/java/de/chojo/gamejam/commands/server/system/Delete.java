@@ -29,9 +29,6 @@ public class Delete implements SlashHandler {
         var optServer = server.getServer(event, context);
         if (optServer.isEmpty()) return;
         var teamServer = optServer.get();
-        if(teamServer.running()){
-            teamServer.stop().join();
-        }
         boolean deleted;
         try {
             deleted = teamServer.purge();
