@@ -2,7 +2,7 @@
 FROM gradle:jdk21-alpine as build
 
 COPY . .
-RUN gradle clean build --no-daemon
+RUN gradle clean :bot:build :plugin-paper:build --no-daemon
 
 # We use a jammy image because we need some more stuff than alpine provides
 FROM eclipse-temurin:21-jammy as runtime
@@ -25,5 +25,7 @@ COPY --from=build /home/gradle/plugin-paper/build/libs/plugin-paper-*-all.jar ./
 COPY docker/resources/docker-entrypoint.sh .
 
 EXPOSE 8080
+
+HEALTHCHECK CMD curl --fail http://localhost:8080 || exit 1
 
 ENTRYPOINT ["bash", "docker-entrypoint.sh"]

@@ -114,4 +114,8 @@ public class Api {
                 });
         return new OpenApiPlugin(options);
     }
+
+    public void shutdown() {
+        app.stop();
+    }
 }

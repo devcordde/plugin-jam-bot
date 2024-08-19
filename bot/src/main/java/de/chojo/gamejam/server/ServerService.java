@@ -49,6 +49,12 @@ public class ServerService implements Runnable {
                 .forEach(freePorts::add);
     }
 
+    public void shutdown() {
+        server.forEach((team, teamServer) -> {
+            teamServer.stop();
+        });
+    }
+
     @Override
     public void run() {
         for (var value : server.values()) {

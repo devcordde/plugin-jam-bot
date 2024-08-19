@@ -6,6 +6,7 @@
 
 package de.chojo.gamejam;
 
+import com.zaxxer.hikari.HikariDataSource;
 import de.chojo.gamejam.api.Api;
 import de.chojo.gamejam.commands.jamadmin.JamAdmin;
 import de.chojo.gamejam.commands.register.Register;
@@ -40,6 +41,7 @@ import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import org.apache.logging.log4j.LogManager;
 import org.slf4j.Logger;
 
 import javax.security.auth.login.LoginException;
@@ -74,12 +76,13 @@ public class Bot {
     }
 
     private Configuration configuration;
-    private DataSource dataSource;
+    private HikariDataSource dataSource;
     private ILocalizer localizer;
     private ShardManager shardManager;
     private Guilds guilds;
     private ServerService serverService;
     private Teams teams;
+    private Api api;
 
     private static ThreadFactory createThreadFactory(String name) {
         return createThreadFactory(new ThreadGroup(name));
@@ -130,9 +133,22 @@ public class Bot {
         log.info("Initializing Commands");
         buildCommands();
 
-        log.info("Starting api");
-        Api.create(configuration, shardManager, guilds, teams, serverService);
+        buildShutdownHook();
 
+        log.info("Starting api");
+        api = Api.create(configuration, shardManager, guilds, teams, serverService);
+
+    }
+
+    private void buildShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("Received SIGTERM. Shutdown hook activated.");
+            api.shutdown();
+            shardManager.shutdown();
+            serverService.shutdown();
+            dataSource.close();
+            LogManager.shutdown();
+        }));
     }
 
     private void buildLocale() {
@@ -164,6 +180,7 @@ public class Bot {
 
     private void initBot() {
         shardManager = DefaultShardManagerBuilder.createDefault(configuration.baseSettings().token())
+                .setEnableShutdownHook(false)
                 .enableIntents(
                         GatewayIntent.GUILD_MEMBERS,
                         GatewayIntent.DIRECT_MESSAGES,
