@@ -5,7 +5,7 @@ plugins {
     `maven-publish`
 }
 
-group = "de.chojo"
+group = "de.chojo.pluginjam"
 version = "1.0.1"
 
 dependencies {
