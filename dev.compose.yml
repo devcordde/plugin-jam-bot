@@ -10,6 +10,8 @@ services:
     image: postgres:16
     environment:
       POSTGRES_PASSWORD: postgres
+    ports:
+      - 5433:5432
   velocity:
     image: itzg/mc-proxy:latest
     tty: true

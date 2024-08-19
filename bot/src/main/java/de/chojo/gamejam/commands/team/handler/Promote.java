@@ -43,7 +43,6 @@ public class Promote implements SlashHandler {
 
                        targetTeam.meta().leader(user);
                        event.reply(context.localize("command.team.promote.message.done")).setEphemeral(true).queue();
-
                    },
                    () -> event.reply(context.localize("error.noteam")).setEphemeral(true).queue());
     }

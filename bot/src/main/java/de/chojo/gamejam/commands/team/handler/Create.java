@@ -8,7 +8,7 @@ package de.chojo.gamejam.commands.team.handler;
 
 
 import de.chojo.gamejam.data.access.Guilds;
-import de.chojo.gamejam.data.dao.guild.jams.jam.user.JamUser;
+import de.chojo.gamejam.util.Token;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.Permission;
@@ -71,28 +71,28 @@ public final class Create implements SlashHandler {
         var category = optCategory.orElseGet(() -> event.getGuild().createCategory("Team").complete());
 
         var role = event.getGuild()
-                        .createRole()
-                        .setPermissions(0L)
-                        .setMentionable(false)
-                        .setHoisted(false)
-                        .setName(teamName)
-                        .complete();
+                .createRole()
+                .setPermissions(0L)
+                .setMentionable(false)
+                .setHoisted(false)
+                .setName(teamName)
+                .complete();
 
         var text = event.getGuild().createTextChannel(teamName.replace(" ", "-"), category)
-                        .addRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
-                        .addMemberPermissionOverride(event.getJDA().getSelfUser()
-                                                          .getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), Collections.emptySet())
-                        .addRolePermissionOverride(event.getGuild().getPublicRole()
-                                                        .getIdLong(), Collections.emptySet(), EnumSet.of(Permission.VIEW_CHANNEL))
-                        .complete();
+                .addRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
+                .addMemberPermissionOverride(event.getJDA().getSelfUser()
+                        .getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), Collections.emptySet())
+                .addRolePermissionOverride(event.getGuild().getPublicRole()
+                        .getIdLong(), Collections.emptySet(), EnumSet.of(Permission.VIEW_CHANNEL))
+                .complete();
 
         var voice = event.getGuild().createVoiceChannel(teamName, category)
-                         .addRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
-                         .addMemberPermissionOverride(event.getJDA().getSelfUser()
-                                                           .getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), Collections.emptySet())
-                         .addRolePermissionOverride(event.getGuild().getPublicRole()
-                                                         .getIdLong(), Collections.emptySet(), EnumSet.of(Permission.VIEW_CHANNEL))
-                         .complete();
+                .addRolePermissionOverride(role.getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL), Collections.emptySet())
+                .addMemberPermissionOverride(event.getJDA().getSelfUser()
+                        .getIdLong(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MANAGE_CHANNEL), Collections.emptySet())
+                .addRolePermissionOverride(event.getGuild().getPublicRole()
+                        .getIdLong(), Collections.emptySet(), EnumSet.of(Permission.VIEW_CHANNEL))
+                .complete();
 
         var team = jam.teams()
                 .create(teamName);
@@ -101,6 +101,7 @@ public final class Create implements SlashHandler {
         meta.textChannel(text);
         meta.voiceChannel(voice);
         meta.role(role);
+        meta.token(Token.generate(40));
         jamUser.join(team);
 
         event.getHook().editOriginal(context.localize("command.team.create.message.created")).queue();

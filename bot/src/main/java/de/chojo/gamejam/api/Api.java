@@ -7,10 +7,12 @@
 package de.chojo.gamejam.api;
 
 import de.chojo.gamejam.api.exception.InterruptException;
+import de.chojo.gamejam.api.v1.Server;
 import de.chojo.gamejam.api.v1.Teams;
 import de.chojo.gamejam.api.v1.Users;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.server.ServerService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.plugin.openapi.OpenApiOptions;
@@ -31,32 +33,36 @@ public class Api {
     private Configuration configuration;
     private final ShardManager shardManager;
     private final Guilds guilds;
+    private final de.chojo.gamejam.data.access.Teams teams;
+    private final ServerService serverService;
     private Javalin app;
 
-    public static Api create(Configuration configuration, ShardManager shardManager, Guilds guilds) {
-        var api = new Api(configuration, shardManager, guilds);
+    public static Api create(Configuration configuration, ShardManager shardManager, Guilds guilds, de.chojo.gamejam.data.access.Teams teams, ServerService serverService) {
+        var api = new Api(configuration, shardManager, guilds, teams, serverService);
         api.build();
         return api;
     }
 
-    public Api(Configuration configuration, ShardManager shardManager, Guilds guilds) {
+    public Api(Configuration configuration, ShardManager shardManager, Guilds guilds, de.chojo.gamejam.data.access.Teams teams, ServerService serverService) {
         this.configuration = configuration;
         this.shardManager = shardManager;
         this.guilds = guilds;
+        this.teams = teams;
+        this.serverService = serverService;
     }
 
     private void build() {
         app = Javalin.create(config -> {
             config.registerPlugin(getConfiguredOpenApiPlugin());
             config.accessManager((handler, ctx, routeRoles) -> {
-                if(ctx.path().startsWith("/swagger") || ctx.path().startsWith("/redoc")){
+                if(ctx.path().startsWith("/swagger") || ctx.path().startsWith("/redoc") || ctx.path().startsWith("/api/v1/server/plugin")){
                     handler.handle(ctx);
                     return;
                 }
 
                 var token = ctx.req.getHeader("authorization");
                 if (token == null) {
-                    ctx.status(HttpServletResponse.SC_UNAUTHORIZED).result("Please provde a valid token in the authorization header.");
+                    ctx.status(HttpServletResponse.SC_UNAUTHORIZED).result("Please provide a valid token in the authorization header.");
                 } else if (!token.equals(configuration.api().token())) {
                     ctx.status(HttpServletResponse.SC_UNAUTHORIZED).result("Unauthorized");
                 } else {
@@ -81,6 +87,8 @@ public class Api {
                 users.routes();
                 var teams = new Teams(shardManager, guilds);
                 teams.routes();
+                Server server = new Server(serverService, this.teams);
+                server.routes();
             });
         });
     }

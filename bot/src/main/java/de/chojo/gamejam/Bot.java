@@ -20,10 +20,12 @@ import de.chojo.gamejam.data.access.Guilds;
 import de.chojo.gamejam.data.access.Teams;
 import de.chojo.gamejam.server.ServerService;
 import de.chojo.gamejam.util.LogNotify;
+import de.chojo.gamejam.util.Token;
 import de.chojo.jdautil.interactions.dispatching.InteractionHub;
 import de.chojo.jdautil.localization.ILocalizer;
 import de.chojo.jdautil.localization.Localizer;
 import de.chojo.sadu.core.exceptions.ExceptionTransformer;
+import de.chojo.sadu.core.updater.SqlVersion;
 import de.chojo.sadu.datasource.DataSourceCreator;
 import de.chojo.sadu.mapper.RowMapperRegistry;
 import de.chojo.sadu.postgresql.databases.PostgreSql;
@@ -47,6 +49,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -55,12 +58,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import static de.chojo.sadu.queries.api.call.Call.call;
+import static de.chojo.sadu.queries.api.query.Query.query;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class Bot {
     private static final Logger log = getLogger(Bot.class);
     private static final Thread.UncaughtExceptionHandler EXCEPTION_HANDLER =
-            (t, e) -> log.error(LogNotify.NOTIFY_ADMIN, "An uncaught exception occured in " + t.getName() + "-" + t.getId() + ".", e);
+            (t, e) -> log.error(LogNotify.NOTIFY_ADMIN, "An uncaught exception occurred in " + t.getName() + "-" + t.getId() + ".", e);
 
     private static final Bot instance;
 
@@ -74,6 +79,7 @@ public class Bot {
     private ShardManager shardManager;
     private Guilds guilds;
     private ServerService serverService;
+    private Teams teams;
 
     private static ThreadFactory createThreadFactory(String name) {
         return createThreadFactory(new ThreadGroup(name));
@@ -110,17 +116,17 @@ public class Bot {
     public void start() throws IOException, SQLException, LoginException {
         configuration = Configuration.create();
 
-        initDb();
-
         initServer();
 
         initBot();
+
+        initDb();
 
         buildLocale();
 
         buildCommands();
 
-        Api.create(configuration, shardManager, guilds);
+        Api.create(configuration, shardManager, guilds, teams, serverService);
 
     }
 
@@ -138,7 +144,7 @@ public class Bot {
                 .withCommands(new JamAdmin(guilds),
                         new Register(guilds),
                         new Settings(guilds),
-                        new Team(guilds),
+                        new Team(guilds, configuration),
                         new Unregister(guilds),
                         new Votes(guilds),
                         new Server(guilds, serverService, configuration),
@@ -161,7 +167,7 @@ public class Bot {
                 .setEventPool(Executors.newScheduledThreadPool(5, createThreadFactory("Event Worker")))
                 .build();
         RestAction.setDefaultFailure(throwable -> log.error("Unhandled exception occurred: ", throwable));
-        serverService.inject(new Teams(guilds, shardManager));
+        serverService.inject(teams);
         serverService.syncVelocity();
     }
 
@@ -189,9 +195,19 @@ public class Bot {
         SqlUpdater.builder(dataSource, PostgreSql.get())
                 .setReplacements(new QueryReplacement("gamejam", configuration.database().schema()))
                 .setSchemas(configuration.database().schema())
+                .postUpdateHook(new SqlVersion(1, 3), connection -> {
+                    List<Integer> teamsWithNullToken = query("SELECT team_id FROM team_meta WHERE token IS NULL")
+                            .single()
+                            .mapAs(Integer.class)
+                            .all();
+                    query("UPDATE team_meta SET token = ? WHERE team_id = ?")
+                            .batch(teamsWithNullToken.stream().map(t -> call().bind(Token.generate(40)).bind(t)))
+                            .update();
+                })
                 .execute();
 
         guilds = new Guilds(dataSource);
+        teams = new Teams(guilds, shardManager);
     }
 
     private void initServer() throws IOException {

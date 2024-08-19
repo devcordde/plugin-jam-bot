@@ -44,4 +44,12 @@ public class Teams {
                     return guilds.guild(guildById).teams().byId(id).orElse(null);
                 }).first();
     }
+
+    public Optional<Team> byToken(String token) {
+        return query("SELECT team_id FROM team_meta WHERE token = ?")
+                .single(call().bind(token))
+                .mapAs(Integer.class)
+                .first()
+                .flatMap(this::byId);
+    }
 }

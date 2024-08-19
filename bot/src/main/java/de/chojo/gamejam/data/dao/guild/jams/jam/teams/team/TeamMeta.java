@@ -29,9 +29,10 @@ public class TeamMeta {
     private long voiceChannel;
     private String projectDescription;
     private String projectUrl;
+    private String token;
 
 
-    public TeamMeta(Team team, String name, long leader, long role, long textChannel, long voiceChannel, String projectDescription, String projectUrl) {
+    public TeamMeta(Team team, String name, long leader, long role, long textChannel, long voiceChannel, String projectDescription, String projectUrl, String token) {
         this.team = team;
         this.name = name;
         this.leader = leader;
@@ -40,6 +41,7 @@ public class TeamMeta {
         this.voiceChannel = voiceChannel;
         this.projectDescription = projectDescription;
         this.projectUrl = projectUrl;
+        this.token = token;
     }
 
     public long leader() {
@@ -86,6 +88,15 @@ public class TeamMeta {
         }
     }
 
+    public void token(String token) {
+        if (set("token", token)) {
+            this.token = token;
+        }
+    }
+
+    public String token() {
+        return token;
+    }
 
     public String projectDescription() {
         return projectDescription;

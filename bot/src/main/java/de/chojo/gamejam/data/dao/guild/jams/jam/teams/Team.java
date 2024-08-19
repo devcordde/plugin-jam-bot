@@ -148,7 +148,8 @@ public class Team {
                            text_channel_id,
                            voice_channel_id,
                            project_description,
-                           project_url
+                           project_url,
+                           token
                     FROM team_meta WHERE team_id = ?
                     """)
                     .single(call().bind(id))
@@ -159,7 +160,8 @@ public class Team {
                             row.getLong("text_channel_id"),
                             row.getLong("voice_channel_id"),
                             row.getString("project_description"),
-                            row.getString("project_url")))
+                            row.getString("project_url"),
+                            row.getString("token")))
                     .first()
                     .orElseThrow();
         }

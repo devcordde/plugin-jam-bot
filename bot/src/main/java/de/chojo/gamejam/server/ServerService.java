@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
@@ -66,61 +67,64 @@ public class ServerService implements Runnable {
         }
     }
 
-    public void syncVelocity() {
-        log.info("Syncing server with velocity instance.");
-        freePorts.clear();
-        IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
-                .forEach(freePorts::add);
-        var velocityPort = configuration.serverManagement().velocityPort();
-        var velocityHost = configuration.serverManagement().getVelocityHost();
-        var httpClient = HttpClient.newHttpClient();
-        var req = HttpRequest.newBuilder(URI.create("http://%s:%d/v1/server".formatted(velocityHost, velocityPort)))
-                .GET()
-                .build();
-        HttpResponse<String> response = null;
-        var retries = 0;
-        while (retries < 5) {
-            try {
-                response = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
-                break;
-            } catch (IOException e) {
-                log.error("Could not reach velocity instance", e);
-            } catch (InterruptedException e) {
-                log.error("Interrupted", e);
+    public CompletableFuture<Boolean> syncVelocity() {
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("Syncing server with velocity instance.");
+            freePorts.clear();
+            IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
+                    .forEach(freePorts::add);
+            var velocityPort = configuration.serverManagement().velocityPort();
+            var velocityHost = configuration.serverManagement().getVelocityHost();
+            var httpClient = HttpClient.newHttpClient();
+            var req = HttpRequest.newBuilder(URI.create("http://%s:%d/v1/server".formatted(velocityHost, velocityPort)))
+                    .GET()
+                    .build();
+            HttpResponse<String> response = null;
+            var retries = 0;
+            while (retries < 5) {
+                try {
+                    response = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+                    break;
+                } catch (IOException e) {
+                    log.error("Could not reach velocity instance");
+                } catch (InterruptedException e) {
+                    log.error("Interrupted", e);
+                }
+                retries++;
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    return false;
+                }
             }
-            retries++;
+            if (retries == 5) return false;
+            var collectionType = Mapper.MAPPER.getTypeFactory()
+                    .constructCollectionType(List.class, Registration.class);
+            List<Registration> registrations;
             try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                registrations = Mapper.MAPPER.readValue(response.body(), collectionType);
+            } catch (JsonProcessingException e) {
+                log.error("Could not map response");
+                return false;
             }
-        }
-        if (retries == 5) return;
-        var collectionType = Mapper.MAPPER.getTypeFactory()
-                .constructCollectionType(List.class, Registration.class);
-        List<Registration> registrations;
-        try {
-            registrations = Mapper.MAPPER.readValue(response.body(), collectionType);
-        } catch (JsonProcessingException e) {
-            log.error("Could not map response");
-            throw new RuntimeException(e);
-        }
 
-        server.clear();
-        for (var registration : registrations) {
-            var optTeam = teams.byId(registration.id());
-            if (optTeam.isEmpty()) {
-                log.warn("Could not find a matching team for id {} of team {}", registration.id(), registration.name());
-                return;
+            server.clear();
+            for (var registration : registrations) {
+                var optTeam = teams.byId(registration.id());
+                if (optTeam.isEmpty()) {
+                    log.warn("Could not find a matching team for id {} of team {}", registration.id(), registration.name());
+                    continue;
+                }
+                var team = optTeam.get();
+                log.info("Registered server for team {} with id {}", team.meta().name(), team.id());
+                var teamServer = new TeamServer(this, team, configuration, registration.port(), registration.apiPort());
+                teamServer.running(true);
+                server.put(team, teamServer);
+                freePorts.removeElement(registration.apiPort());
+                freePorts.removeElement(registration.port());
             }
-            var team = optTeam.get();
-            log.info("Registered server for team {} with id {}", team.meta().name(), team.id());
-            var teamServer = new TeamServer(this, team, configuration, registration.port(), registration.apiPort());
-            teamServer.running(true);
-            server.put(team, teamServer);
-            freePorts.removeElement(registration.apiPort());
-            freePorts.removeElement(registration.port());
-        }
+            return true;
+        });
     }
 
     public TeamServer get(Team team) {

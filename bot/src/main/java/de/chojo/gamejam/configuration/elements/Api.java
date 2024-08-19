@@ -11,6 +11,7 @@ public class Api {
     private String host = "localhost";
     private int port = 8888;
     private String token = "letmein";
+    private String url = "http://localhost:8888";
 
     public String host() {
         return host;
@@ -22,5 +23,9 @@ public class Api {
 
     public String token() {
         return token;
+    }
+
+    public String url() {
+        return url;
     }
 }
