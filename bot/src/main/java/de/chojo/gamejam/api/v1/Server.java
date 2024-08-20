@@ -51,6 +51,12 @@ public class Server {
                 log.info("Received plugin upload request for {}", team.get());
 
                 TeamServer teamServer = serverService.get(team.get());
+
+                if(!teamServer.exists()){
+                    ctx.result("Server does not exist");
+                    ctx.status(HttpCode.NOT_ACCEPTABLE);
+                    return;
+                }
                 var pluginFile = teamServer.plugins().resolve("plugin.jar");
                 try (var in = ctx.bodyAsInputStream()) {
                     log.info("Writing plugin to {}", pluginFile);
