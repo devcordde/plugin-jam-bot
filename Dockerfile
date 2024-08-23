@@ -5,7 +5,7 @@ COPY . .
 RUN gradle clean :bot:build :plugin-paper:build --no-daemon
 
 # We use a jammy image because we need some more stuff than alpine provides
-FROM eclipse-temurin:21-jammy as runtime
+FROM eclipse-temurin:22-jammy as runtime
 
 WORKDIR /app
 RUN apt update
