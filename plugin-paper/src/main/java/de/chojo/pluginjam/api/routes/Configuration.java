@@ -6,7 +6,7 @@
 
 package de.chojo.pluginjam.api.routes;
 
-import io.javalin.http.HttpCode;
+import io.javalin.http.HttpStatus;
 import org.bukkit.plugin.Plugin;
 
 import static io.javalin.apibuilder.ApiBuilder.path;
@@ -24,30 +24,30 @@ public class Configuration {
             post("message", ctx -> {
                 plugin.getConfig().set("message", ctx.body());
                 plugin.saveConfig();
-                ctx.status(HttpCode.OK);
+                ctx.status(HttpStatus.OK);
             });
 
             post("maxplayers", ctx -> {
                 plugin.getConfig().set("maxplayers", Integer.parseInt(ctx.body()));
                 plugin.saveConfig();
-                ctx.status(HttpCode.OK);
+                ctx.status(HttpStatus.OK);
             });
 
             post("spectatoroverflow", ctx -> {
                 plugin.getConfig().set("spectatoroverflow", Boolean.parseBoolean(ctx.body()));
                 plugin.saveConfig();
-                ctx.status(HttpCode.OK);
+                ctx.status(HttpStatus.OK);
             });
 
             post("reviewmode", ctx -> {
                 plugin.getConfig().set("spectatoroverflow", Boolean.parseBoolean(ctx.body()));
                 plugin.saveConfig();
-                ctx.status(HttpCode.OK);
+                ctx.status(HttpStatus.OK);
             });
 
             post("whitelist", ctx -> {
                 plugin.getServer().getScheduler().runTask(plugin, () -> plugin.getServer().setWhitelist(Boolean.parseBoolean(ctx.body())));
-                ctx.status(HttpCode.OK);
+                ctx.status(HttpStatus.OK);
             });
         });
     }

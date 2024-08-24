@@ -21,35 +21,38 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 public class Api {
     private static final Logger log = getLogger(Api.class);
-    private final Javalin javalin;
     private final Configuration configuration;
     private final Stats stats;
     private final Requests requests;
+    private Javalin javalin;
 
-    private Api(Javalin javalin, Plugin plugin, ServerRequests serverRequests) {
-        this.javalin = javalin;
+    private Api(Plugin plugin, ServerRequests serverRequests) {
         configuration = new Configuration(plugin);
         stats = new Stats(plugin);
         requests = new Requests(serverRequests);
     }
 
     public static Api create(Plugin plugin, ServerRequests serverRequests) {
-        var classLoader = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(PluginJam.class.getClassLoader());
-        var javalin = Javalin.create();
-        javalin.start("0.0.0.0", Integer.parseInt(System.getProperty("javalin.port", "30000")));
-        Thread.currentThread().setContextClassLoader(classLoader);
-        var api = new Api(javalin, plugin, serverRequests);
+        var api = new Api(plugin, serverRequests);
         api.ignite();
         return api;
     }
 
     private void ignite() {
-        javalin.routes(() -> {
-            before(ctx -> log.debug("Received request on {}.", ctx.path()));
-            path("v1", configuration::buildRoutes);
-            path("v1", stats::buildRoutes);
-            path("v1", requests::buildRoutes);
+        var classLoader = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(PluginJam.class.getClassLoader());
+        javalin = Javalin.create(config -> {
+            config.useVirtualThreads = true;
+            config.router.apiBuilder(this::routes);
         });
+        javalin.start("0.0.0.0", Integer.parseInt(System.getProperty("javalin.port", "30000")));
+        Thread.currentThread().setContextClassLoader(classLoader);
+    }
+
+    private void routes() {
+        before(ctx -> log.debug("Received request on {}.", ctx.path()));
+        path("v1", configuration::buildRoutes);
+        path("v1", stats::buildRoutes);
+        path("v1", requests::buildRoutes);
     }
 }

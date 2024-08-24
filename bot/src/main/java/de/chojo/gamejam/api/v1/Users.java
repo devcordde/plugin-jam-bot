@@ -12,14 +12,12 @@ import de.chojo.gamejam.api.v1.wrapper.GuildProfile;
 import de.chojo.gamejam.api.v1.wrapper.TeamProfile;
 import de.chojo.gamejam.api.v1.wrapper.UserProfile;
 import de.chojo.gamejam.data.access.Guilds;
-import de.chojo.gamejam.data.dao.JamGuild;
 import io.javalin.http.Context;
-import io.javalin.http.HttpCode;
-import io.javalin.plugin.openapi.annotations.HttpMethod;
-import io.javalin.plugin.openapi.annotations.OpenApi;
-import io.javalin.plugin.openapi.annotations.OpenApiContent;
-import io.javalin.plugin.openapi.annotations.OpenApiResponse;
-import io.javalin.plugin.openapi.dsl.OpenApiBuilder;
+import io.javalin.http.HttpStatus;
+import io.javalin.openapi.HttpMethod;
+import io.javalin.openapi.OpenApi;
+import io.javalin.openapi.OpenApiContent;
+import io.javalin.openapi.OpenApiResponse;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -42,25 +40,11 @@ public class Users {
     public void routes() {
         path("users", () -> {
             path("{user-id}", () -> {
-                path("guilds", () -> {
-                    get(OpenApiBuilder.documented(OpenApiBuilder.document()
-                            .operation(operation -> {
-                                operation.summary("Get the mututal guilds with the user");
-                            }).json("200", GuildProfile[].class),
-                            this::getMututalGuilds));
-                });
+                path("guilds", () ->
+                        get(this::getMutualGuilds));
                 path("{guild-id}", () -> {
-                    get("team", OpenApiBuilder.documented(OpenApiBuilder.document()
-                            .operation(operation -> {
-                                operation.summary("Get the team of a user on a guild");
-                            }).json("200", TeamProfile.class),
-                            this::getUserTeam));
-
-                    get("profile", OpenApiBuilder.documented(OpenApiBuilder.document()
-                            .operation(operation -> {
-                                operation.summary("Get the user profile of a user on a guild");
-                            }).json("200", UserProfile.class),
-                            this::getUserProfile));
+                    get("team", this::getUserTeam);
+                    get("profile", this::getUserProfile);
                 });
             });
         });
@@ -93,17 +77,23 @@ public class Users {
         }
     }
 
-    private void getMututalGuilds(Context ctx) throws InterruptException {
+    @OpenApi(path = "/api/v1/users/{user-id}/{guild-id}/guild",
+            summary = "Get the user profile of a user on a guild",
+            methods = HttpMethod.GET,
+            responses = {
+                    @OpenApiResponse(status = "200", content = {@OpenApiContent(from = GuildProfile[].class)})
+            })
+    private void getMutualGuilds(Context ctx) throws InterruptException {
         var user = getUser(ctx.pathParamAsClass("user-id", Long.class).get());
 
         var guildProfiles = shardManager.getMutualGuilds(user).stream().map(GuildProfile::build).toList();
-        ctx.status(HttpCode.OK).json(guildProfiles);
+        ctx.status(HttpStatus.OK).json(guildProfiles);
     }
 
     @OpenApi(path = "/api/v1/users/{user-id}/{guild-id}/team",
-            method = HttpMethod.GET,
+            methods = HttpMethod.GET,
             responses = {
-                    @OpenApiResponse(status = "200", content = @OpenApiContent(from = TeamProfile.class))
+                    @OpenApiResponse(status = "200", content = {@OpenApiContent(from = TeamProfile.class)})
             })
     private void getUserTeam(Context ctx) throws InterruptException {
         var guildPath = resolveGuildPath(ctx);
@@ -116,16 +106,16 @@ public class Users {
 
         Interrupt.assertNotFound(team.isEmpty(), "Team");
 
-        ctx.status(HttpCode.OK).json(TeamProfile.build(team.get()));
+        ctx.status(HttpStatus.OK).json(TeamProfile.build(team.get()));
     }
 
     @OpenApi(path = "/api/v1/users/{user-id}/{guild-id}/profile",
-            method = HttpMethod.GET,
+            methods = HttpMethod.GET,
             responses = {
                     @OpenApiResponse(status = "200", content = @OpenApiContent(from = UserProfile.class))
             })
     private void getUserProfile(Context ctx) throws InterruptException {
-        ctx.status(HttpCode.OK).json(UserProfile.build(resolveGuildPath(ctx).member()));
+        ctx.status(HttpStatus.OK).json(UserProfile.build(resolveGuildPath(ctx).member()));
     }
 
     private record GuildPath(Member member, Guild guild) {
