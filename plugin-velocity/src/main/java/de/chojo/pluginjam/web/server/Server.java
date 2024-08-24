@@ -8,7 +8,7 @@ package de.chojo.pluginjam.web.server;
 
 import de.chojo.pluginjam.payload.Registration;
 import de.chojo.pluginjam.servers.ServerRegistry;
-import io.javalin.http.HttpCode;
+import io.javalin.http.HttpStatus;
 
 import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
@@ -27,12 +27,12 @@ public class Server {
         path("server", () -> {
             post("", ctx -> {
                 registry.register(ctx.bodyAsClass(Registration.class));
-                ctx.status(HttpCode.ACCEPTED);
+                ctx.status(HttpStatus.ACCEPTED);
             });
 
             patch("", ctx -> {
                 registry.ping(ctx.bodyAsClass(Registration.class));
-                ctx.status(HttpCode.ACCEPTED);
+                ctx.status(HttpStatus.ACCEPTED);
             });
 
             delete("", ctx -> {
@@ -41,12 +41,12 @@ public class Server {
                 var host = ctx.queryParam("host");
                 var registration = new Registration(Integer.parseInt(id), "", host, Integer.parseInt(port), 0);
                 registry.unregister(registration);
-                ctx.status(HttpCode.ACCEPTED);
+                ctx.status(HttpStatus.ACCEPTED);
             });
 
             get("", ctx -> {
                 ctx.json(registry.server());
-                ctx.status(HttpCode.OK);
+                ctx.status(HttpStatus.OK);
             });
         });
     }
