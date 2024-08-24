@@ -182,6 +182,7 @@ public class TeamServer {
         command.add("-Dpluginjam.team.name=" + teamName());
         command.add("-Djavalin.port=" + apiPort);
         command.add("-Dcom.mojang.eula.agree=true");
+        command.add("--enable-preview");
         command.add("-jar");
         command.add("server.jar");
         command.add("--max-players");
