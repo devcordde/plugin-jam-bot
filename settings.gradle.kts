@@ -23,9 +23,12 @@ dependencyResolutionManagement {
             bundle("logging", listOf("slf4j", "log4j-core", "log4j-slf4j2"))
 
 
-            version("javalin", "4.6.8")
+            version("javalin", "6.3.0")
             library("javalin-core", "io.javalin", "javalin").versionRef("javalin")
             library("javalin-bundle", "io.javalin", "javalin-bundle").versionRef("javalin")
+            library("javalin-annotation", "io.javalin.community.openapi", "openapi-annotation-processor").versionRef("javalin")
+            library("javalin-openapi", "io.javalin.community.openapi", "javalin-openapi-plugin").versionRef("javalin")
+            library("javalin-swagger", "io.javalin.community.openapi", "javalin-swagger-plugin").versionRef("javalin")
 
             version("eldoutil", "2.1.5")
             library("eldoutil-plugin", "de.eldoria.util", "plugin").versionRef("eldoutil")

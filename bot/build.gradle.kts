@@ -17,10 +17,13 @@ dependencies {
     implementation(project(":plugin-api"))
 
     // discord
-    implementation("de.chojo", "cjda-util", "2.10.2+jda-5.1.0") {
+    implementation("de.chojo", "cjda-util", "2.10.3+jda-5.1.0") {
         exclude(module = "opus-java")
     }
     implementation(libs.javalin.bundle)
+    implementation(libs.javalin.openapi)
+    implementation(libs.javalin.swagger)
+    annotationProcessor(libs.javalin.annotation)
     implementation("net.lingala.zip4j", "zip4j", "2.11.5")
 
     // database
