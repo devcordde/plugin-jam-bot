@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "de.chojo.pluginjam"
-version = "1.0.3"
+version = "1.0.4"
 
 dependencies {
     implementation(project(":plugin-api"))

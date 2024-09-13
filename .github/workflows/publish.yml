@@ -22,8 +22,13 @@ jobs:
           java-version: 21
       - name: Build with Gradle
         run: ./gradlew --build-cache test build
-      - name: Publish
+      - name: Publish plugin
         run: ./gradlew :plugin-paper:publishMavenPublicationToEldonexusRepository
+        env:
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+      - name: Publish api
+        run: ./gradlew :plugin-api:publishMavenPublicationToEldonexusRepository
         env:
           NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
