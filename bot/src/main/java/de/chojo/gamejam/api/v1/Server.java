@@ -38,6 +38,7 @@ public class Server {
                 String token = ctx.pathParam("token");
                 Optional<Team> team = teams.byToken(token);
                 if (team.isEmpty()) {
+                    ctx.result("Team token not found");
                     ctx.status(HttpCode.NOT_FOUND);
                     return;
                 }

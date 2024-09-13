@@ -10,7 +10,7 @@ FROM eclipse-temurin:22-jammy as runtime
 WORKDIR /app
 RUN apt update
 # Make sure screen exists.
-RUN apt install -y screen
+RUN apt install -y screen curl
 
 # Setting up the bot
 COPY --from=build /home/gradle/bot/build/libs/bot-*-all.jar ./bot.jar
