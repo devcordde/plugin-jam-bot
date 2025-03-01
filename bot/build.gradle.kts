@@ -33,6 +33,7 @@ dependencies {
 
     // unit testing
     testImplementation(platform("org.junit:junit-bom:5.12.0"))
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.junit.jupiter", "junit-jupiter")
 }
 
