@@ -32,7 +32,7 @@ dependencies {
     implementation("club.minnced", "discord-webhooks", "0.8.4")
 
     // unit testing
-    testImplementation(platform("org.junit:junit-bom:5.12.1"))
+    testImplementation(platform("org.junit:junit-bom:5.12.2"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.junit.jupiter", "junit-jupiter")
 }
