@@ -27,7 +27,7 @@ dependencyResolutionManagement {
             library("javalin-core", "io.javalin", "javalin").versionRef("javalin")
             library("javalin-bundle", "io.javalin", "javalin-bundle").versionRef("javalin")
 
-            version("eldoutil", "2.1.10")
+            version("eldoutil", "2.1.11")
             library("eldoutil-plugin", "de.eldoria.util", "plugin").versionRef("eldoutil")
             bundle("eldoutil", listOf("eldoutil-plugin"))
 
