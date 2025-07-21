@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     api("com.fasterxml.jackson.core", "jackson-databind", "2.19.2")
-    testImplementation("org.junit.jupiter", "junit-jupiter-api", "5.13.3")
+    testImplementation("org.junit.jupiter", "junit-jupiter-api", "5.13.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine")
 }
