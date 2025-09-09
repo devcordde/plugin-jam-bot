@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.shadow)
     `maven-publish`
     `java-library`
-    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("xyz.jpenilla.run-paper") version "3.0.0"
 }
 
 group = "de.chojo.pluginjam"
