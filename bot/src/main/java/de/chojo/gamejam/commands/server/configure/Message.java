@@ -7,14 +7,14 @@
 package de.chojo.gamejam.commands.server.configure;
 
 import de.chojo.gamejam.commands.server.Server;
-import de.chojo.gamejam.server.TeamServer;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.modals.handler.ModalHandler;
 import de.chojo.jdautil.modals.handler.TextInputHandler;
 import de.chojo.jdautil.util.Futures;
 import de.chojo.jdautil.wrapper.EventContext;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+
 import org.slf4j.Logger;
 
 import java.net.http.HttpRequest;

@@ -17,10 +17,10 @@ import de.chojo.jdautil.menus.EntryContext;
 import de.chojo.jdautil.menus.MenuAction;
 import de.chojo.jdautil.menus.entries.ButtonEntry;
 import de.chojo.jdautil.wrapper.EventContext;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public final class Invite implements SlashHandler {
     private final Guilds guilds;
