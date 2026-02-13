@@ -24,18 +24,19 @@ dependencies {
     implementation(libs.javalin.openapi)
     implementation(libs.javalin.swagger)
     annotationProcessor(libs.javalin.annotation)
-    implementation("net.lingala.zip4j", "zip4j", "2.11.5")
+    implementation("net.lingala.zip4j", "zip4j", "2.11.6")
 
     // database
     implementation(libs.bundles.sadu)
-    implementation("org.postgresql", "postgresql", "42.7.4")
+    implementation("org.postgresql", "postgresql", "42.7.10")
 
     // Logging
     implementation(libs.bundles.logging)
     implementation("club.minnced", "discord-webhooks", "0.8.4")
 
     // unit testing
-    testImplementation(platform("org.junit:junit-bom:5.11.0"))
+    testImplementation(platform("org.junit:junit-bom:6.0.2"))
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.junit.jupiter", "junit-jupiter")
 }
 

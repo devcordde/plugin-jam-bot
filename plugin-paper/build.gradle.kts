@@ -4,17 +4,18 @@ plugins {
     alias(libs.plugins.shadow)
     `maven-publish`
     `java-library`
-    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("xyz.jpenilla.run-paper") version "3.0.2"
 }
 
 group = "de.chojo.pluginjam"
-version = "1.0.3"
+version = "1.0.4"
 
 dependencies {
     implementation(project(":plugin-api"))
     compileOnly(libs.paper)
     bukkitLibrary(libs.javalin.core)
     bukkitLibrary(libs.bundles.eldoutil)
+    bukkitLibrary("com.fasterxml.jackson.core", "jackson-databind", "2.21.0")
     api(libs.bundles.eldoutil)
     bukkitLibrary(libs.slf4j)
 }
