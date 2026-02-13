@@ -6,24 +6,25 @@
 
 package de.chojo.gamejam.api.exception;
 
-import io.javalin.http.HttpCode;
+import io.javalin.http.HttpStatus;
 import org.jetbrains.annotations.Contract;
 
 public final class Interrupt {
     private Interrupt() {
     }
 
-    public static InterruptException create(String message, HttpCode httpCode) {
+    public static InterruptException create(String message, HttpStatus httpCode) {
         return new InterruptException(message, httpCode);
     }
 
     @Contract("_ -> fail")
     public static InterruptException notFound(String entity) {
-        return create(String.format("%s not found.", entity), HttpCode.NOT_FOUND);
+        return create(String.format("%s not found.", entity), HttpStatus.NOT_FOUND);
     }
+
     @Contract(" -> fail")
     public static InterruptException forbidden() {
-        return create("Endpoint forbidden", HttpCode.FORBIDDEN);
+        return create("Endpoint forbidden", HttpStatus.FORBIDDEN);
     }
 
     @Contract("null,_ -> fail")
@@ -43,7 +44,7 @@ public final class Interrupt {
 
     @Contract(" -> fail")
     public static InterruptException noJam() {
-        return create("No current or upcoming jam", HttpCode.NOT_FOUND);
+        return create("No current or upcoming jam", HttpStatus.NOT_FOUND);
     }
 
     @Contract("true -> fail")
