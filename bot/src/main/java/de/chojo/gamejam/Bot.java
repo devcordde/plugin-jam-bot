@@ -45,7 +45,6 @@ import org.apache.logging.log4j.LogManager;
 import org.slf4j.Logger;
 
 import javax.security.auth.login.LoginException;
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

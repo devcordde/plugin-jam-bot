@@ -11,13 +11,12 @@ import de.chojo.gamejam.server.ServerService;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.pagination.bag.ListPageBag;
 import de.chojo.jdautil.wrapper.EventContext;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class Detailed implements SlashHandler {
     private final ServerService serverService;
@@ -56,8 +55,14 @@ public class Detailed implements SlashHandler {
 
         context.registerPage(new ListPageBag<>(servers) {
             @Override
-            public CompletableFuture<MessageEditData> buildPage() {
-                return currentElement().detailStatus(context).thenApply(MessageEditData::fromEmbeds);
+            public MessageEditData buildPage() {
+                try {
+                    return currentElement().detailStatus(context).thenApply(MessageEditData::fromEmbeds).get();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }

@@ -11,12 +11,8 @@ import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.pagination.bag.ListPageBag;
 import de.chojo.jdautil.wrapper.EventContext;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
-
-import java.util.concurrent.CompletableFuture;
 
 public class Ranking implements SlashHandler {
     private final Guilds guilds;
@@ -45,13 +41,13 @@ public class Ranking implements SlashHandler {
 
         var pageBag = new ListPageBag<>(ranking) {
             @Override
-            public CompletableFuture<MessageEditData> buildPage() {
+            public MessageEditData buildPage() {
                 var teamVote = currentElement();
                 var embed = new LocalizedEmbedBuilder(context.guildLocalizer())
                         .setTitle(teamVote.rank() + " | " + teamVote.team().meta().name())
                         .addField("command.votes.ranking.embed.votes", String.valueOf(teamVote.votes()), true)
                         .build();
-                return CompletableFuture.completedFuture(MessageEditData.fromEmbeds(embed));
+                return MessageEditData.fromEmbeds(embed);
             }
         };
         context.registerPage(pageBag, true);
