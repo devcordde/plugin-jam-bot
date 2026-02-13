@@ -15,7 +15,7 @@ dependencies {
     compileOnly(libs.paper)
     bukkitLibrary(libs.javalin.core)
     bukkitLibrary(libs.bundles.eldoutil)
-    bukkitLibrary("com.fasterxml.jackson.core", "jackson-databind", "2.19.2")
+    bukkitLibrary("com.fasterxml.jackson.core", "jackson-databind", "2.21.0")
     api(libs.bundles.eldoutil)
     bukkitLibrary(libs.slf4j)
 }
