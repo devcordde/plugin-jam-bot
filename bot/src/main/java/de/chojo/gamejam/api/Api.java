@@ -57,34 +57,36 @@ public class Api {
 
     private void build() {
         app = Javalin.create(config -> {
-            config.useVirtualThreads = true;
+            config.concurrency.useVirtualThreads = true;
             config.requestLogger.http((ctx, executionTimeMs) -> {
                 log.debug("{}: {} in {}ms\nHeaders:\n{}\nBody:\n{}",
                         ctx.method(), ctx.path(), executionTimeMs,
                         headers(ctx),
                         ctx.body().substring(0, Math.min(100, ctx.body().length())));
             });
-            config.router.apiBuilder(this::routes);
+            config.routes.apiBuilder(this::routes);
             config.registerPlugin(openApi());
             config.registerPlugin(swagger());
+
+
+            config.routes.exception(InterruptException.class, (exception, ctx) -> {
+                ctx.status(exception.status()).result(exception.getMessage());
+            });
+
+            config.routes.beforeMatched(ctx -> {
+                for (String path : unauthorized) {
+                    if(ctx.path().startsWith(path)) return;
+                }
+
+                var token = ctx.req().getHeader("authorization");
+                if (token == null) {
+                    throw new UnauthorizedResponse();
+                } else if (!token.equals(configuration.api().token())) {
+                    throw new UnauthorizedResponse();
+                }
+            });
+
         }).start(configuration.api().host(), configuration.api().port());
-
-        app.exception(InterruptException.class, (exception, ctx) -> {
-            ctx.status(exception.status()).result(exception.getMessage());
-        });
-
-        app.beforeMatched(ctx -> {
-            for (String path : unauthorized) {
-                if(ctx.path().startsWith(path)) return;
-            }
-
-            var token = ctx.req().getHeader("authorization");
-            if (token == null) {
-                throw new UnauthorizedResponse();
-            } else if (!token.equals(configuration.api().token())) {
-                throw new UnauthorizedResponse();
-            }
-        });
     }
 
     private void routes() {
@@ -111,23 +113,22 @@ public class Api {
         return new OpenApiPlugin(config ->
                 config.withDocumentationPath("/api/openapi.json")
                         .withDefinitionConfiguration((version, definition) ->
-                                definition.withInfo(info ->
+                                definition.info(info ->
                                                 info.description("Plugin Jam Bot")
                                                         .license("AGPL-3.0")
                                         )
-                                        .withServer(server ->
+                                        .server(server ->
                                                 server.description("Lyna Backend")
                                                         .url(configuration.api().url()))
-                                        .withSecurity(security ->
-                                                security.withApiKeyAuth("Authorization", "Authorization"))
+                                        .withApiKeyAuth("Authorization", "Authorization")
                         )
         );
     }
 
     private SwaggerPlugin swagger() {
         return new SwaggerPlugin(conf -> {
-            conf.setUiPath("/api/swagger");
-            conf.setDocumentationPath("/api/openapi.json");
+            conf.withUiPath("/api/swagger");
+            conf.withDocumentationPath("/api/openapi.json");
         });
     }
 
