@@ -42,8 +42,8 @@ public class Api {
         var classLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(PluginJam.class.getClassLoader());
         javalin = Javalin.create(config -> {
-            config.useVirtualThreads = true;
-            config.router.apiBuilder(this::routes);
+            config.concurrency.useVirtualThreads = true;
+            config.routes.apiBuilder(this::routes);
         });
         javalin.start("0.0.0.0", Integer.parseInt(System.getProperty("javalin.port", "30000")));
         Thread.currentThread().setContextClassLoader(classLoader);
