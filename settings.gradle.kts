@@ -23,7 +23,7 @@ dependencyResolutionManagement {
             bundle("logging", listOf("slf4j", "log4j-core", "log4j-slf4j2"))
 
 
-            version("javalin", "7.0.0")
+            version("javalin", "7.0.1")
             library("javalin-core", "io.javalin", "javalin").versionRef("javalin")
             library("javalin-bundle", "io.javalin", "javalin-bundle").versionRef("javalin")
             library("javalin-annotation", "io.javalin.community.openapi", "openapi-annotation-processor").versionRef("javalin")
