@@ -9,7 +9,7 @@ findProject(":plugin-paper:Readme.md")?.name = "Readme.md"
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            version("sadu", "2.3.6")
+            version("sadu", "2.3.7")
             library("sadu-queries", "de.chojo.sadu", "sadu-queries").versionRef("sadu")
             library("sadu-updater", "de.chojo.sadu", "sadu-updater").versionRef("sadu")
             library("sadu-datasource", "de.chojo.sadu", "sadu-datasource").versionRef("sadu")
