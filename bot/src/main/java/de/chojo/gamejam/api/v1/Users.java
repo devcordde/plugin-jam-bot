@@ -14,10 +14,7 @@ import de.chojo.gamejam.api.v1.wrapper.UserProfile;
 import de.chojo.gamejam.data.access.Guilds;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
-import io.javalin.openapi.HttpMethod;
-import io.javalin.openapi.OpenApi;
-import io.javalin.openapi.OpenApiContent;
-import io.javalin.openapi.OpenApiResponse;
+import io.javalin.openapi.*;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -80,6 +77,16 @@ public class Users {
     @OpenApi(path = "/api/v1/users/{user-id}/{guild-id}/guild",
             summary = "Get the user profile of a user on a guild",
             methods = HttpMethod.GET,
+            pathParams = {
+                    @OpenApiParam(
+                            name = "user-id",
+                            description = "The the user id",
+                            required = true),
+                    @OpenApiParam(
+                            name = "guild-id",
+                            description = "The the guild id",
+                            required = true)
+            },
             responses = {
                     @OpenApiResponse(status = "200", content = {@OpenApiContent(from = GuildProfile[].class)})
             })
@@ -92,6 +99,16 @@ public class Users {
 
     @OpenApi(path = "/api/v1/users/{user-id}/{guild-id}/team",
             methods = HttpMethod.GET,
+            pathParams = {
+                    @OpenApiParam(
+                            name = "user-id",
+                            description = "The the user id",
+                            required = true),
+                    @OpenApiParam(
+                            name = "guild-id",
+                            description = "The the guild id",
+                            required = true)
+            },
             responses = {
                     @OpenApiResponse(status = "200", content = {@OpenApiContent(from = TeamProfile.class)})
             })
@@ -111,6 +128,16 @@ public class Users {
 
     @OpenApi(path = "/api/v1/users/{user-id}/{guild-id}/profile",
             methods = HttpMethod.GET,
+            pathParams = {
+                    @OpenApiParam(
+                            name = "user-id",
+                            description = "The the user id",
+                            required = true),
+                    @OpenApiParam(
+                            name = "guild-id",
+                            description = "The the guild id",
+                            required = true)
+            },
             responses = {
                     @OpenApiResponse(status = "200", content = @OpenApiContent(from = UserProfile.class))
             })
