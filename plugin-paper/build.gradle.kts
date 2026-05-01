@@ -40,7 +40,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.21.11")
+        minecraftVersion("26.1.2")
     }
 }
 
@@ -66,7 +66,7 @@ bukkit {
     name = "PluginJam"
     main = "de.chojo.pluginjam.PluginJam"
     website = "https://github.com/devcordde/plugin-jam-bot"
-    apiVersion = "1.21"
+    apiVersion = "26.1"
     version = rootProject.version.toString()
     authors = listOf("Taucher2003", "RainbowdashLabs")
 }
