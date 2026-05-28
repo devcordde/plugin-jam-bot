@@ -36,7 +36,7 @@ dependencyResolutionManagement {
 
             library("velocity", "com.velocitypowered:velocity-api:3.4.0")
             library("paper", "io.papermc.paper:paper-api:26.1.2.build.60-stable")
-            plugin("shadow", "com.gradleup.shadow").version("9.4.1")
+            plugin("shadow", "com.gradleup.shadow").version("9.4.2")
             plugin("pluginyml", "net.minecrell.plugin-yml.bukkit").version("0.6.0")
             plugin("spotless", "com.diffplug.spotless").version("8.6.0")
         }
