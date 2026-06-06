@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: dev.Dockerfile
     volumes:
-      - ./data/bot/config:/app/config
+      - ./data/bot/config/config.yml:/app/config/config.yml
       - ./data/bot/plugins:/app/plugins
       - ./data/bot/servers:/app/servers
       - ./data/bot/template:/app/template

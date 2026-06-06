@@ -29,6 +29,9 @@ COPY docker/resources/docker-entrypoint.sh .
 
 EXPOSE 8080
 
+COPY bot/src/main/resources/log4j2.xml config/log4j2.xml
+RUN touch config/config.yml
+
 HEALTHCHECK CMD curl --fail http://localhost:8080/swagger-ui || exit 1
 
 ENTRYPOINT ["bash", "docker-entrypoint.sh"]

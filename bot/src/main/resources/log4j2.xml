@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" shutdownHook="disable">
+<Configuration status="CONFIG" shutdownHook="disable">
     <Appenders>
         <!-- Console logger for debugging (prints stacktrace) -->
         <Console name="ConsoleDebug" target="SYSTEM_OUT">
             <PatternLayout
-                    pattern="%highlight{[%d{HH:mm:ss]}[%p{length=3}][%c] %m%n}{FATAL=black, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue, TRACE=white}"
+                    pattern="%highlight{[%d{HH:mm:ss]}[%p{length=3}][%c] %m%n}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue, TRACE=white}"
                     disableAnsi="false"/>
         </Console>
 
