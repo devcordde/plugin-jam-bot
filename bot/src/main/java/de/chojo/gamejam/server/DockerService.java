@@ -114,9 +114,11 @@ public class DockerService {
     public boolean exists(int teamId) {
         return dockerClient.listContainersCmd()
                 .withShowAll(true)
+                .withNameFilter(List.of(containerName(teamId)))
                 .exec()
                 .stream()
-                .anyMatch(container -> container.getId().startsWith(containerName(teamId)));
+                .findAny()
+                .isPresent();
     }
 
     public Optional<Container> container(int teamId) {
