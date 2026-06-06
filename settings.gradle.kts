@@ -22,6 +22,11 @@ dependencyResolutionManagement {
             library("log4j-slf4j2", "org.apache.logging.log4j", "log4j-slf4j2-impl").versionRef("log4j")
             bundle("logging", listOf("slf4j", "log4j-core", "log4j-slf4j2"))
 
+            version("docker", "3.7.1")
+            library("docker-api", "com.github.docker-java", "docker-java-core").versionRef("docker")
+            library("docker-transport", "com.github.docker-java", "docker-java-transport-httpclient5").versionRef("docker")
+            bundle("docker", listOf("docker-api", "docker-transport"))
+
 
             version("javalin", "7.2.2")
             library("javalin-core", "io.javalin", "javalin").versionRef("javalin")

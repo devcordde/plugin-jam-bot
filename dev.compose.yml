@@ -1,17 +1,22 @@
 services:
   bot:
-    build: .
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
     volumes:
       - ./data/bot/config:/app/config
       - ./data/bot/plugins:/app/plugins
       - ./data/bot/servers:/app/servers
       - ./data/bot/template:/app/template
+      - /var/run/docker.sock:/var/run/docker.sock
+    group_add:
+      - 131
   database:
     image: postgres:16
     environment:
       POSTGRES_PASSWORD: postgres
     ports:
-      - 5433:5432
+      - "127.0.0.1:5433:5432"
   velocity:
     image: itzg/mc-proxy:latest
     tty: true

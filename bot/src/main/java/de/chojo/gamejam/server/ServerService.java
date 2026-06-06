@@ -36,6 +36,7 @@ public class ServerService implements Runnable {
     private Teams teams;
     private final Configuration configuration;
     private final Stack<Integer> freePorts = new Stack<>();
+    private final DockerService dockerService;
 
     public static ServerService create(ScheduledExecutorService executorService, Configuration configuration) {
         var serverService = new ServerService(configuration);
@@ -47,6 +48,8 @@ public class ServerService implements Runnable {
         this.configuration = configuration;
         IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
                 .forEach(freePorts::add);
+        this.dockerService = new DockerService(configuration.docker());
+        this.dockerService.initDockerClient();
     }
 
     public void shutdown() {
@@ -123,7 +126,7 @@ public class ServerService implements Runnable {
                 }
                 var team = optTeam.get();
                 log.info("Registered server for team {} with id {}", team.meta().name(), team.id());
-                var teamServer = new TeamServer(this, team, configuration, registration.port(), registration.apiPort());
+                var teamServer = new TeamServer(this, dockerService, team, configuration, registration.port(), registration.apiPort());
                 teamServer.running(true);
                 server.put(team, teamServer);
                 freePorts.removeElement(registration.apiPort());
@@ -134,7 +137,7 @@ public class ServerService implements Runnable {
     }
 
     public TeamServer get(Team team) {
-        return server.computeIfAbsent(team, key -> new TeamServer(this, key, configuration, nextPort(), nextPort()));
+        return server.computeIfAbsent(team, key -> new TeamServer(this, dockerService, key, configuration, nextPort(), nextPort()));
     }
 
     private int nextPort() {

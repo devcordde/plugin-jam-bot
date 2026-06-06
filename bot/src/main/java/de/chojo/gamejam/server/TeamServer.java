@@ -11,12 +11,10 @@ import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
 import de.chojo.gamejam.util.Mapper;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
-import de.chojo.jdautil.util.Futures;
 import de.chojo.jdautil.wrapper.EventContext;
 import de.chojo.pluginjam.payload.RequestsPayload;
 import de.chojo.pluginjam.payload.StatsPayload;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.lingala.zip4j.ZipFile;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -31,7 +29,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +42,7 @@ public class TeamServer {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss.SSSS");
     private static final Logger log = getLogger(TeamServer.class);
     private final ServerService serverService;
+    private final DockerService dockerService;
     private final Team team;
     private final Configuration configuration;
     private final int port;
@@ -72,8 +70,9 @@ public class TeamServer {
     private boolean running;
 
 
-    public TeamServer(ServerService serverService, Team team, Configuration configuration, int port, int apiPort) {
+    public TeamServer(ServerService serverService, DockerService dockerService, Team team, Configuration configuration, int port, int apiPort) {
         this.serverService = serverService;
+        this.dockerService = dockerService;
         this.team = team;
         this.configuration = configuration;
         this.port = port;
@@ -85,7 +84,7 @@ public class TeamServer {
     }
 
     public boolean exists() {
-        return serverDir().toFile().exists();
+        return dockerService.exists(team.id());
     }
 
     /**
@@ -96,6 +95,7 @@ public class TeamServer {
      */
     public boolean setup() throws IOException {
         if (exists()) return false;
+        dockerService.provisionServer(team.id());
         log.info("Setting up server of team {}", team);
         writeTemplate();
         return true;
@@ -159,49 +159,20 @@ public class TeamServer {
      */
     public boolean purge() throws IOException {
         if (!exists()) return false;
-        if(running()) stop().join();
+        if(running()) {
+            log.info("Stopping server for team {}", team);
+            stop().join();
+        }
         log.info("Purging server of team {}", team);
-        return deleteDirectory(serverDir());
+        dockerService.destroyServer(team.id());
+        return true;
     }
 
     public boolean start() {
         if (!exists() || running()) return false;
-        var server = configuration.serverManagement();
-        var command = new ArrayList<String>();
-        command.add("screen");
-        command.add("-dmS");
-        command.add(screenName());
-        command.add("java");
-        command.add("-Xmx%dM".formatted(server.memory()));
-        command.add("-Xms%dM".formatted(server.memory()));
-        command.addAll(AIKAR);
-        command.addAll(server.parameter());
-        command.add("-Dpluginjam.port=" + server.velocityPort());
-        command.add("-Dpluginjam.host=" + server.getVelocityHost());
-        command.add("-Dpluginjam.team.id=" + team.id());
-        command.add("-Dpluginjam.team.name=" + teamName());
-        command.add("-Djavalin.port=" + apiPort);
-        command.add("-Dcom.mojang.eula.agree=true");
-        command.add("--enable-preview");
-        command.add("-jar");
-        command.add("server.jar");
-        command.add("--max-players");
-        command.add(String.valueOf(server.maxPlayers()));
-        command.add("--nogui");
-        command.add("--port");
-        command.add(String.valueOf(port));
         log.info("Starting server server of team {}", team);
-        try {
-            new ProcessBuilder()
-                    .directory(serverDir().toFile())
-                    .command(command)
-                    .redirectOutput(ProcessBuilder.Redirect.to(processLogFile("start")))
-                    .start();
-            running = true;
-        } catch (IOException e) {
-            log.error("Could not start server", e);
-            return false;
-        }
+        dockerService.startServer(team.id());
+        running = true;
         return true;
     }
 
@@ -218,50 +189,16 @@ public class TeamServer {
             return CompletableFuture.completedFuture(null);
         }
         running = false;
-        try {
-            CompletableFuture<Void> future = new ProcessBuilder()
-                    .directory(new File("").toPath().toAbsolutePath().toFile())
-                    .command("./wait.sh", screenName())
-                    .redirectOutput(ProcessBuilder.Redirect.to(processLogFile("stop")))
-                    .start()
-                    .onExit()
-                    .whenComplete(Futures.whenComplete(
-                            exit -> {
-                                log.info("Stopped server of team {}", team);
-                                serverService.stopped(this, restart);
-                            },
-                            err -> log.error("Could not stop server {}", team))
-                    )
-                    .thenApply(r -> null);
-            send("stop");
-            log.info("Stopping server of team {}", team);
-            return future;
-        } catch (IOException e) {
-            log.error("Failed to build process builder", e);
-            throw new RuntimeException(e);
-        }
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+            dockerService.stopServer(team.id());
+        });
+        log.info("Stopping server of team {}", team);
+        return future;
     }
 
     public void send(String command) {
         log.info("Sending command \"{}\" to server of team {}.", command, team);
-        try {
-            new ProcessBuilder()
-                    .directory(serverDir().toFile())
-                    .redirectOutput(ProcessBuilder.Redirect.to(processLogFile("send")))
-                    .command(List.of(
-                            "screen",
-                            "-S",
-                            screenName(),
-                            "-p",
-                            "0",
-                            "-X",
-                            "stuff",
-                            "%s^M".formatted(command)
-                    ))
-                    .start();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        dockerService.sendCommand(team.id(), command);
     }
 
     private File processLogFile(String type) {
@@ -282,10 +219,6 @@ public class TeamServer {
 
     private String teamName() {
         return team.meta().name().toLowerCase().replace(" ", "_");
-    }
-
-    private String screenName() {
-        return "team_%d_%d".formatted(team.id(), port);
     }
 
     public Team team() {
@@ -315,60 +248,8 @@ public class TeamServer {
 
     public boolean replaceWorld(Path newWorld) {
         log.info("Replacing world");
-        var worldDir = serverDir().resolve("world");
-        var tempWorld = serverDir().resolve("t_world");
-
-        try (var zip = new ZipFile(newWorld.toFile())) {
-            log.info("Extracting zip file");
-            zip.extractAll(tempWorld.toAbsolutePath().toString());
-        } catch (IOException e) {
-            log.info("Failed to extract zip file", e);
-            return false;
-        }
-
-        var copyWorld = tempWorld;
-        var dirFiles = List.of(tempWorld.toFile().listFiles());
-
-        var dirOffstet = 3;
-
-        if (dirFiles.size() == 1) {
-            log.info("No world data found");
-            copyWorld = tempWorld.resolve(dirFiles.get(0).getName());
-            dirOffstet++;
-        }
-
-        if (!copyWorld.resolve("region").toFile().exists()) {
-            log.warn("No region directory.");
-            return false;
-        }
-
-        log.info("Deleting old world");
-        if (!deleteDirectory(worldDir)) {
-            return false;
-        }
-
-        if (copyWorld.resolve("session.lock").toFile().exists()) {
-            log.info("Found session lock. Deleting.");
-            copyWorld.resolve("session.lock").toFile().delete();
-        }
-
-        log.info("Copy new world data.");
-        try (var files = Files.walk(copyWorld)) {
-            Files.createDirectories(worldDir);
-            for (var sourceTarget : files.toList()) {
-                // skip root dir
-                if (sourceTarget.getNameCount() == dirOffstet) continue;
-                var filePath = sourceTarget.subpath(dirOffstet, sourceTarget.getNameCount());
-                var serverTarget = worldDir.resolve(filePath);
-                Files.copy(sourceTarget, serverTarget, StandardCopyOption.REPLACE_EXISTING);
-            }
-        } catch (IOException e) {
-            log.error("Could not copy world", e);
-            return false;
-        }
-
-        log.info("Cleaning up temp world");
-        return deleteDirectory(tempWorld);
+        dockerService.copyArchiveToContainer(team.id(), newWorld, serverDir());
+        return true;
     }
 
     public boolean deleteDirectory(Path path) {

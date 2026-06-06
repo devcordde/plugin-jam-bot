@@ -155,6 +155,7 @@ public class Bot {
                 .addLanguage(DiscordLocale.GERMAN)
                 .withLanguageProvider(guild -> Optional.ofNullable(guilds.guild(guild).settings().locale())
                         .map(DiscordLocale::from))
+                .withGuildLocaleCodeProvider((guild, s) -> Optional.empty())
                 .build();
     }
 
