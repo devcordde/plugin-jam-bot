@@ -16,9 +16,14 @@ import java.util.Optional;
 @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 public class Plugins {
     private String pluginDir = "plugins";
+    private List<String> defaultPlugins = List.of();
 
     public String pluginDir() {
         return pluginDir;
+    }
+
+    public List<String> defaultPlugins() {
+        return defaultPlugins;
     }
 
     private Path pluginPath() {

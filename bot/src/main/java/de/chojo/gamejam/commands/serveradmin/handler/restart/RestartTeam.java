@@ -42,7 +42,7 @@ public class RestartTeam implements SlashHandler {
         }
 
         var started = optTeam.map(serverService::get).map(server -> {
-            var running = server.running();
+            var running = server.isRunning();
             server.restart();
             return running;
         }).orElse(false);

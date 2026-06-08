@@ -37,7 +37,7 @@ public class Message implements SlashHandler {
 
         var teamServer = optServer.get();
 
-        if (!teamServer.running()) {
+        if (!teamServer.isRunning()) {
             event.reply(context.localize("error.servernotrunning")).queue();
             return;
         }

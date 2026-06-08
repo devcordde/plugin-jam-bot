@@ -6,7 +6,6 @@
 
 package de.chojo.gamejam.configuration.elements;
 
-
 @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 public class Docker {
     private String host = "unix:///var/run/docker.sock";
@@ -16,6 +15,7 @@ public class Docker {
     private String registryPassword;
     private String registryEmail;
     private String registryUrl;
+    private String networkName = "plugin-jam-network";
 
     public String getHost() {
         return host;
@@ -44,4 +44,9 @@ public class Docker {
     public String getRegistryUrl() {
         return registryUrl;
     }
+
+    public String getNetworkName() {
+        return networkName;
+    }
+
 }

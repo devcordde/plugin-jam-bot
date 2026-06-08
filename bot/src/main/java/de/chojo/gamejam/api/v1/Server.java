@@ -107,9 +107,9 @@ public class Server {
 
         ctx.status(HttpStatus.ACCEPTED);
         String restart = ctx.queryParam("restart");
-        if ("true".equals(restart) && teamServer.running()) {
+        if ("true".equals(restart) && teamServer.isRunning()) {
             teamServer.restart();
-        } else if (teamServer.running()) {
+        } else if (teamServer.isRunning()) {
             teamServer.send("say Plugin Updated");
         }
     }

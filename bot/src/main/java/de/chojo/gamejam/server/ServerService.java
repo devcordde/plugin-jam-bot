@@ -48,7 +48,7 @@ public class ServerService implements Runnable {
         this.configuration = configuration;
         IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
                 .forEach(freePorts::add);
-        this.dockerService = new DockerService(configuration.docker());
+        this.dockerService = new DockerService(configuration.docker(), configuration.plugins());
         this.dockerService.initDockerClient();
     }
 
@@ -61,7 +61,7 @@ public class ServerService implements Runnable {
     @Override
     public void run() {
         for (var value : server.values()) {
-            if (!value.running()) continue;
+            if (!value.isRunning()) continue;
             try {
                 value.serverRequests()
                         .ifPresent(server -> {
@@ -127,7 +127,7 @@ public class ServerService implements Runnable {
                 var team = optTeam.get();
                 log.info("Registered server for team {} with id {}", team.meta().name(), team.id());
                 var teamServer = new TeamServer(this, dockerService, team, configuration, registration.port(), registration.apiPort());
-                teamServer.running(true);
+                //teamServer.running(true);
                 server.put(team, teamServer);
                 freePorts.removeElement(registration.apiPort());
                 freePorts.removeElement(registration.port());

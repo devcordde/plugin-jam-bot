@@ -34,8 +34,8 @@ public class StopAll implements SlashHandler {
         var count = jam.teams().teams().stream()
                        .map(serverService::get)
                        .map(server -> {
-                           var running = server.running();
-                           server.stop(false);
+                           var running = server.isRunning();
+                           server.stop();
                            return running;
                        })
                        .filter(v -> v)

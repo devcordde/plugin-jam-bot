@@ -30,7 +30,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -41,34 +40,13 @@ public class TeamServer {
     private static final HttpClient http = HttpClient.newHttpClient();
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss.SSSS");
     private static final Logger log = getLogger(TeamServer.class);
+    private static final int DEFAULT_API_PORT = 30000;
     private final ServerService serverService;
     private final DockerService dockerService;
     private final Team team;
     private final Configuration configuration;
     private final int port;
     private final int apiPort;
-    private static final List<String> AIKAR = List.of(
-            "-XX:+ParallelRefProcEnabled",
-            "-XX:MaxGCPauseMillis=200",
-            "-XX:+UnlockExperimentalVMOptions",
-            "-XX:+DisableExplicitGC",
-            "-XX:+AlwaysPreTouch",
-            "-XX:G1NewSizePercent=30",
-            "-XX:G1MaxNewSizePercent=40", "-XX:G1HeapRegionSize=8M",
-            "-XX:G1ReservePercent=20",
-            "-XX:G1HeapWastePercent=5",
-            "-XX:G1MixedGCCountTarget=4",
-            "-XX:InitiatingHeapOccupancyPercent=15",
-            "-XX:G1MixedGCLiveThresholdPercent=90",
-            "-XX:G1RSetUpdatingPauseTimePercent=5",
-            "-XX:SurvivorRatio=32",
-            "-XX:+PerfDisableSharedMem",
-            "-XX:MaxTenuringThreshold=1",
-            "-Dusing.aikars.flags=https://mcflags.emc.gs",
-            "-Daikars.new.flags=true"
-    );
-    private boolean running;
-
 
     public TeamServer(ServerService serverService, DockerService dockerService, Team team, Configuration configuration, int port, int apiPort) {
         this.serverService = serverService;
@@ -79,8 +57,8 @@ public class TeamServer {
         this.apiPort = apiPort;
     }
 
-    public boolean running() {
-        return running;
+    public boolean isRunning() {
+        return dockerService.isRunning(team.id());
     }
 
     public boolean exists() {
@@ -159,9 +137,9 @@ public class TeamServer {
      */
     public boolean purge() throws IOException {
         if (!exists()) return false;
-        if(running()) {
+        if (isRunning()) {
             log.info("Stopping server for team {}", team);
-            stop().join();
+            stop();
         }
         log.info("Purging server of team {}", team);
         dockerService.destroyServer(team.id());
@@ -169,31 +147,24 @@ public class TeamServer {
     }
 
     public boolean start() {
-        if (!exists() || running()) return false;
+        if (!exists() || isRunning()) return false;
         log.info("Starting server server of team {}", team);
         dockerService.startServer(team.id());
-        running = true;
         return true;
     }
 
-    public CompletableFuture<Void> stop() {
-        return stop(false);
-    }
-
-    public CompletableFuture<Void> restart() {
-        return stop(true);
-    }
-
-    public CompletableFuture<Void> stop(boolean restart) {
-        if (!running) {
-            return CompletableFuture.completedFuture(null);
-        }
-        running = false;
-        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-            dockerService.stopServer(team.id());
+    public CompletableFuture restart() {
+        return CompletableFuture.runAsync(() -> {
+            dockerService.restartServer(team.id());
+            log.info("Starting server of team {}", team);
         });
-        log.info("Stopping server of team {}", team);
-        return future;
+    }
+
+    public CompletableFuture<Void> stop() {
+        return CompletableFuture.runAsync(() -> {
+            dockerService.stopServer(team.id());
+            log.info("Stopping server of team {}", team);
+        });
     }
 
     public void send(String command) {
@@ -236,14 +207,15 @@ public class TeamServer {
     @Override
     public String toString() {
         return "TeamServer{" +
-               "team=" + team +
-               ", port=" + port +
-               ", apiPort=" + apiPort +
-               '}';
+                "team=" + team +
+                ", port=" + port +
+                ", apiPort=" + apiPort +
+                '}';
     }
 
-    public Path logFile() {
-        return serverDir().resolve("logs").resolve("latest.log");
+    public String logs(int tail) {
+
+        return dockerService.logs(team.id(), tail);
     }
 
     public boolean replaceWorld(Path newWorld) {
@@ -252,6 +224,7 @@ public class TeamServer {
         return true;
     }
 
+    //TODO: replace with docker version
     public boolean deleteDirectory(Path path) {
         try (var files = Files.walk(path)) {
             files.sorted(Comparator.reverseOrder())
@@ -294,7 +267,7 @@ public class TeamServer {
             if (!exists()) {
                 builder.setDescription("teamserver.message.detailstatus.nonexisting.description");
             } else {
-                if (running()) {
+                if (isRunning()) {
                     builder.setDescription("teamserver.message.detailstatus.existing.description")
                             .addField("word.ports", "$word.server$: %d%n$word.api$: %d".formatted(port, apiPort), true);
                     stats().ifPresent(stats -> {
@@ -318,7 +291,7 @@ public class TeamServer {
     public String status() {
         var status = statusEmoji();
         var ports = "";
-        if (exists() && running()) {
+        if (exists() && isRunning()) {
             ports = "Server: %s Api: %s".formatted(port, apiPort);
         }
         return "%s %s %s".formatted(status, team, ports);
@@ -347,23 +320,23 @@ public class TeamServer {
     }
 
     public HttpRequest.Builder requestBuilder(String path) {
-        return HttpRequest.newBuilder(URI.create("http://localhost:%d/%s".formatted(apiPort(), path)));
+        return HttpRequest.newBuilder(URI.create("http://%s:%d/%s".formatted(containerName(), DEFAULT_API_PORT, path)));
     }
 
     public HttpRequest.Builder requestBuilder(String path, String query) {
-        return HttpRequest.newBuilder(URI.create("http://localhost:%d/%s?%s".formatted(apiPort(), path, query)));
+        return HttpRequest.newBuilder(URI.create("http://%s:%d/%s?%s".formatted(containerName(), DEFAULT_API_PORT, path, query)));
+    }
+
+    public String containerName() {
+        return dockerService.containerName(team.id());
     }
 
     public HttpClient http() {
         return http;
     }
 
-    public void running(boolean running) {
-        this.running = running;
-    }
-
     private String statusEmoji() {
-        if (exists() && running()) return "🟢";
+        if (exists() && isRunning()) return "🟢";
         if (exists()) return "🟡";
         return "🔴";
     }

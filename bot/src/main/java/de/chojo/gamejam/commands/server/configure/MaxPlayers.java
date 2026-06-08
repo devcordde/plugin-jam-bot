@@ -7,7 +7,6 @@
 package de.chojo.gamejam.commands.server.configure;
 
 import de.chojo.gamejam.commands.server.Server;
-import de.chojo.gamejam.server.TeamServer;
 import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
 import de.chojo.jdautil.util.Futures;
 import de.chojo.jdautil.wrapper.EventContext;
@@ -37,7 +36,7 @@ public class MaxPlayers implements SlashHandler {
                                 .POST(HttpRequest.BodyPublishers.ofString(String.valueOf(event.getOption("amount").getAsInt())))
                                 .build();
 
-        if (!teamServer.running()) {
+        if (!teamServer.isRunning()) {
             event.reply(context.localize("error.servernotrunning")).queue();
             return;
         }

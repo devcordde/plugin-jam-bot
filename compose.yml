@@ -6,8 +6,11 @@ services:
       - ./data/bot/plugins:/app/plugins
       - ./data/bot/servers:/app/servers
       - ./data/bot/template:/app/template
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       -
+    networks:
+      - plugin-jam-network
   velocity:
     image: itzg/mc-proxy:latest
     tty: true
@@ -18,6 +21,8 @@ services:
     volumes:
       - ./data/velocity/config:/config
       - ./data/velocity/plugins:/plugins
+    networks:
+      - plugin-jam-network
   lobby:
     image: itzg/minecraft-server:latest
     stdin_open: true
@@ -28,3 +33,10 @@ services:
       MEMORY: 2G
     volumes:
       - ./data/lobby:/data
+    networks:
+      - plugin-jam-network
+
+networks:
+  plugin-jam-network:
+    name: plugin-jam-network
+    driver: bridge

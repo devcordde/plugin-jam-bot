@@ -12,7 +12,10 @@ import de.chojo.jdautil.wrapper.EventContext;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class Log implements SlashHandler {
@@ -27,16 +30,13 @@ public class Log implements SlashHandler {
         var optServer = server.getServer(event, context);
         if(optServer.isEmpty())return;
         var teamServer = optServer.get();
-        var logFile = teamServer.logFile();
-        String content;
-        try {
-            content = Files.readString(logFile);
-        } catch (IOException e) {
-            content = "";
+        var logs = teamServer.logs(0);
+        var content = logs.substring(Math.max(logs.length() - 1950, 0));
+        try(InputStream inputStream = new ByteArrayInputStream(logs.getBytes(StandardCharsets.UTF_8))) {
+            event.reply("```log%n%s%n```".formatted(content))
+                    .addFiles(FileUpload.fromData(inputStream, "latest.log"))
+                    .queue();
+        } catch (IOException _) {
         }
-        content = content.substring(Math.max(content.length() - 1950, 0));
-        event.reply("```log%n%s%n```".formatted(content))
-             .addFiles(FileUpload.fromData(logFile, "latest.log"))
-             .queue();
     }
 }

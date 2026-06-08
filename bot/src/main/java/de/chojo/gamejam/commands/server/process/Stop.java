@@ -25,7 +25,7 @@ public class Stop implements SlashHandler {
         var teamServer = optServer.get();
         if (teamServer.exists()) {
             event.reply(context.localize("command.server.process.stop.message.stopping")).queue();
-            teamServer.stop(false).thenRun(() -> event.getHook().editOriginal(
+            teamServer.stop().thenRun(() -> event.getHook().editOriginal(
                     context.localize("command.server.process.stop.message.stopped")).queue());
         }
     }

@@ -42,7 +42,7 @@ public class StopTeam implements SlashHandler {
         }
 
         var started = optTeam.map(serverService::get).map(server -> {
-            var running = server.running();
+            var running = server.isRunning();
             server.stop();
             return running;
         }).orElse(false);

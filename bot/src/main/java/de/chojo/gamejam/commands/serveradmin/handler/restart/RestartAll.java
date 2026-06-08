@@ -34,9 +34,9 @@ public class RestartAll implements SlashHandler {
         var count = jam.teams().teams().stream()
                        .map(serverService::get)
                        .filter(server -> {
-                           var running = server.running();
+                           var running = server.isRunning();
                            if (running) {
-                               server.stop(true);
+                               server.stop();
                            }
                            return running;
                        })

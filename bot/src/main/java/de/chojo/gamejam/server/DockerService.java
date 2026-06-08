@@ -11,9 +11,11 @@ import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
+import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import de.chojo.gamejam.configuration.elements.Docker;
+import de.chojo.gamejam.configuration.elements.Plugins;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -30,8 +32,12 @@ public class DockerService {
     private static final Logger log = getLogger(DockerService.class);
     private static final String DOCKER_IMAGE = "itzg/minecraft-server:latest";
     private static final String DOCKER_VOLUME_DATA_DIR = "/data";
+    private final String networkName;
+    private final String pluginUrls;
 
-    public DockerService(Docker dockerConfig) {
+    public DockerService(Docker dockerConfig, Plugins pluginsConfig) {
+        this.networkName = dockerConfig.getNetworkName();
+        this.pluginUrls = String.join(",", pluginsConfig.defaultPlugins());
         this.dockerClientConfig = DefaultDockerClientConfig
                 .createDefaultConfigBuilder()
                 .withDockerHost(dockerConfig.getHost())
@@ -54,6 +60,20 @@ public class DockerService {
                 .build();
 
         dockerClient = DockerClientImpl.getInstance(dockerClientConfig, httpClient);
+        ensureNetwork();
+    }
+
+    private void ensureNetwork() {
+        var networks = dockerClient.listNetworksCmd()
+                .withNameFilter(networkName)
+                .exec();
+        if (networks.stream().noneMatch(n -> n.getName().equals(networkName))) {
+            dockerClient.createNetworkCmd()
+                    .withName(networkName)
+                    .withDriver("bridge")
+                    .exec();
+            log.info("Created docker network {}", networkName);
+        }
     }
 
     public void shutdown() throws IOException {
@@ -69,8 +89,11 @@ public class DockerService {
         HostConfig hostConfig = HostConfig.newHostConfig()
                 .withBinds(new Bind(volumeName(teamId), new Volume(DOCKER_VOLUME_DATA_DIR)));
 
+        hostConfig.withNetworkMode(networkName);
+
         dockerClient.createContainerCmd(DOCKER_IMAGE)
                 .withName(containerName(teamId))
+                .withEnv("EULA=TRUE", "TYPE=PAPER", "VERSION=26.1.2", String.format("PLUGINS=%s", pluginUrls))
                 .withHostConfig(hostConfig)
                 .exec();
         log.info("Server provisioned for team with container name {} and volume name {}", containerName(teamId), volumeName(teamId));
@@ -96,7 +119,7 @@ public class DockerService {
         dockerClient.restartContainerCmd(containerName(teamId)).exec();
     }
 
-    public boolean running(int teamId) {
+    public boolean isRunning(int teamId) {
         return dockerClient.listContainersCmd()
                 .withShowAll(true)
                 .withNameFilter(List.of(containerName(teamId)))
@@ -106,11 +129,31 @@ public class DockerService {
     }
 
     public void sendCommand(int teamId, String command) {
-        dockerClient.execCreateCmd(containerName(teamId))
-                .withCmd(String.format("mc rcon-cli %s", command))
-                .exec();
+        var container = container(teamId);
+        if (container.isEmpty()) {
+            log.error("Container not found for team {}", teamId);
+            return;
+        }
+        var execId = dockerClient.execCreateCmd(container.get().getId())
+                .withAttachStdout(true)
+                .withAttachStderr(true)
+                .withCmd("rcon-cli", command)
+                .exec()
+                .getId();
+        try {
+            dockerClient.execStartCmd(execId)
+                    .exec(new ResultCallback.Adapter<Frame>() {
+                        @Override
+                        public void onNext(Frame frame) {
+                            log.info("rcon-cli response for team {}: {}", teamId, new String(frame.getPayload()));
+                        }
+                    })
+                    .awaitCompletion();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Interrupted while sending command to team {}", teamId, e);
+        }
     }
-
     public boolean exists(int teamId) {
         return dockerClient.listContainersCmd()
                 .withShowAll(true)
@@ -128,6 +171,35 @@ public class DockerService {
                 .exec()
                 .stream()
                 .findFirst();
+    }
+
+    public String logs(int teamId, int tail) {
+        var callback = new ResultCallback.Adapter<Frame>() {
+            private final StringBuilder logs = new StringBuilder();
+
+            @Override
+            public void onNext(Frame frame) {
+                logs.append(new String(frame.getPayload()));
+            }
+
+            public String getLogs() {
+                return logs.toString();
+            }
+        };
+
+        try {
+            dockerClient.logContainerCmd(containerName(teamId))
+                    .withStdOut(true)
+                    .withStdErr(true)
+                    .withTail(tail)
+                    .exec(callback)
+                    .awaitCompletion();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Interrupted while retrieving logs for team {}", teamId, e);
+        }
+
+        return callback.getLogs();
     }
 
     public void copyArchiveToContainer(int teamId, Path source, Path destination) {
