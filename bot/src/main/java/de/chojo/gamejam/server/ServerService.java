@@ -22,7 +22,6 @@ import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -30,24 +29,19 @@ import java.util.stream.IntStream;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class ServerService implements Runnable {
+public class ServerService {
     private static final Logger log = getLogger(ServerService.class);
     private final Map<Team, TeamServer> server = new HashMap<>();
     private Teams teams;
     private final Configuration configuration;
-    private final Stack<Integer> freePorts = new Stack<>();
     private final DockerService dockerService;
 
-    public static ServerService create(ScheduledExecutorService executorService, Configuration configuration) {
-        var serverService = new ServerService(configuration);
-        executorService.scheduleAtFixedRate(serverService, 10, 10, TimeUnit.SECONDS);
-        return serverService;
+    public static ServerService create(Configuration configuration) {
+        return new ServerService(configuration);
     }
 
     private ServerService(Configuration configuration) {
         this.configuration = configuration;
-        IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
-                .forEach(freePorts::add);
         this.dockerService = new DockerService(configuration.docker(), configuration.plugins());
         this.dockerService.initDockerClient();
     }
@@ -58,30 +52,10 @@ public class ServerService implements Runnable {
         });
     }
 
-    @Override
-    public void run() {
-        for (var value : server.values()) {
-            if (!value.isRunning()) continue;
-            try {
-                value.serverRequests()
-                        .ifPresent(server -> {
-                            if (server.restart()) {
-                                log.info("Server of team {} requested restart", value.team());
-                                value.restart();
-                            }
-                        });
-            } catch (RuntimeException e) {
-                log.error("Could not reach server {}", value);
-            }
-        }
-    }
-
     public CompletableFuture<Boolean> syncVelocity() {
         return CompletableFuture.supplyAsync(() -> {
             log.info("Syncing server with velocity instance.");
-            freePorts.clear();
-            IntStream.rangeClosed(configuration.serverManagement().minPort(), configuration.serverManagement().maxPort())
-                    .forEach(freePorts::add);
+
             var velocityPort = configuration.serverManagement().velocityPort();
             var velocityHost = configuration.serverManagement().getVelocityHost();
             var httpClient = HttpClient.newHttpClient();
@@ -126,34 +100,15 @@ public class ServerService implements Runnable {
                 }
                 var team = optTeam.get();
                 log.info("Registered server for team {} with id {}", team.meta().name(), team.id());
-                var teamServer = new TeamServer(this, dockerService, team, configuration, registration.port(), registration.apiPort());
-                //teamServer.running(true);
+                var teamServer = new TeamServer(dockerService, team, configuration);
                 server.put(team, teamServer);
-                freePorts.removeElement(registration.apiPort());
-                freePorts.removeElement(registration.port());
             }
             return true;
         });
     }
 
     public TeamServer get(Team team) {
-        return server.computeIfAbsent(team, key -> new TeamServer(this, dockerService, key, configuration, nextPort(), nextPort()));
-    }
-
-    private int nextPort() {
-        if (!freePorts.isEmpty()) {
-            return freePorts.pop();
-        }
-        throw new RuntimeException("Ports exhausted");
-    }
-
-    void stopped(TeamServer server, boolean restart) {
-        this.server.remove(server.team());
-        freePorts.push(server.port());
-        freePorts.push(server.apiPort());
-        if (restart) {
-            get(server.team()).start();
-        }
+        return server.computeIfAbsent(team, key -> new TeamServer(dockerService, key, configuration));
     }
 
     public void inject(Teams teams) {

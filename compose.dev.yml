@@ -1,10 +1,19 @@
 services:
+  mc-server-image:
+    build:
+      context: .
+      dockerfile: Dockerfile.mc
+    image: plugin-jam-mc-server
+    entrypoint: ["echo", "image built"]
   bot:
     build:
       context: .
-      dockerfile: dev.Dockerfile
+      dockerfile: Dockerfile.bot.dev
+    depends_on:
+      mc-server-image:
+        condition: service_completed_successfully
     volumes:
-      - ./data/bot/config/config.yml:/app/config/config.yml
+      - ./data/bot/config:/app/config
       - ./data/bot/plugins:/app/plugins
       - ./data/bot/servers:/app/servers
       - ./data/bot/template:/app/template
@@ -21,8 +30,12 @@ services:
       - "127.0.0.1:5433:5432"
     networks:
       - plugin-jam-network
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
   velocity:
-    image: itzg/mc-proxy:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.velocity
     tty: true
     environment:
       EULA: "TRUE"
@@ -30,7 +43,6 @@ services:
       JVM_DD_OPTS: javalin.port=30000
     volumes:
       - ./data/velocity/config:/config
-      - ./data/velocity/plugins:/plugins
     networks:
       - plugin-jam-network
   lobby:
@@ -38,8 +50,9 @@ services:
     stdin_open: true
     tty: true
     environment:
-      VERSION: 1.21
+      VERSION: 26.1.2
       TYPE: PAPER
+      EULA: "TRUE"
       MEMORY: 2G
     volumes:
       - ./data/lobby:/data

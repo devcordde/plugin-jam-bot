@@ -9,6 +9,8 @@ package de.chojo.gamejam.server;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
+import de.chojo.gamejam.data.dao.guild.jams.jam.user.JamUser;
+import de.chojo.gamejam.message.EmbedHelper;
 import de.chojo.gamejam.util.Mapper;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.wrapper.EventContext;
@@ -41,20 +43,14 @@ public class TeamServer {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss.SSSS");
     private static final Logger log = getLogger(TeamServer.class);
     private static final int DEFAULT_API_PORT = 30000;
-    private final ServerService serverService;
     private final DockerService dockerService;
     private final Team team;
     private final Configuration configuration;
-    private final int port;
-    private final int apiPort;
 
-    public TeamServer(ServerService serverService, DockerService dockerService, Team team, Configuration configuration, int port, int apiPort) {
-        this.serverService = serverService;
+    public TeamServer(DockerService dockerService, Team team, Configuration configuration) {
         this.dockerService = dockerService;
         this.team = team;
         this.configuration = configuration;
-        this.port = port;
-        this.apiPort = apiPort;
     }
 
     public boolean isRunning() {
@@ -75,58 +71,7 @@ public class TeamServer {
         if (exists()) return false;
         dockerService.provisionServer(team.id());
         log.info("Setting up server of team {}", team);
-        writeTemplate();
         return true;
-    }
-
-    /**
-     * Refresh the files of the server present in the template. This is basically a new setup without purging the data beforehand.
-     * <p>
-     * Files with the same name will be overridden
-     *
-     * @return true when the refresh was successful
-     */
-    public boolean refresh() {
-        log.info("Refreshing template files of server {}", team);
-        try {
-            writeTemplate();
-        } catch (IOException e) {
-            log.error("Could not refresh template", e);
-            return false;
-        }
-        return true;
-    }
-
-    private void writeTemplate() throws IOException {
-        var serverDir = serverDir();
-        Files.createDirectories(serverDir);
-
-        var sourceDir = Path.of(configuration.serverTemplate().templateDir());
-        var symlinks = configuration.serverTemplate().symLinks()
-                .stream()
-                .map(sourceDir::resolve)
-                .collect(Collectors.toSet());
-        try (var files = Files.walk(sourceDir)) {
-            for (var sourceTarget : files.toList()) {
-                // skip root dir
-                if (sourceTarget.getNameCount() == 1) continue;
-                var filePath = sourceTarget.subpath(1, sourceTarget.getNameCount());
-                var serverTarget = serverDir.resolve(filePath);
-                if (symlinks.contains(sourceTarget)) {
-                    // Not really required since the current and new symlink are probably equal, but the creation will fail otherwise.
-                    if (serverTarget.toFile().isFile() && serverTarget.toFile().delete()) {
-                        log.debug("Deleted old version of file {}", serverTarget);
-                    }
-                    Files.createSymbolicLink(serverTarget, sourceTarget.toAbsolutePath());
-                } else {
-                    // ignore already existing directories
-                    if (sourceTarget.toFile().isDirectory() && serverTarget.toFile().exists()) {
-                        continue;
-                    }
-                    Files.copy(sourceTarget, serverTarget, StandardCopyOption.REPLACE_EXISTING);
-                }
-            }
-        }
     }
 
     /**
@@ -196,26 +141,16 @@ public class TeamServer {
         return team;
     }
 
-    public int port() {
-        return port;
-    }
-
-    public int apiPort() {
-        return apiPort;
-    }
-
     @Override
     public String toString() {
         return "TeamServer{" +
                 "team=" + team +
-                ", port=" + port +
-                ", apiPort=" + apiPort +
                 '}';
     }
 
-    public String logs(int tail) {
+    public String logs() {
 
-        return dockerService.logs(team.id(), tail);
+        return dockerService.logs(team.id());
     }
 
     public boolean replaceWorld(Path newWorld) {
@@ -259,41 +194,9 @@ public class TeamServer {
         return plugins;
     }
 
-    public CompletableFuture<MessageEmbed> detailStatus(EventContext context) {
-        return CompletableFuture.supplyAsync(() -> {
-
-            var builder = new LocalizedEmbedBuilder(context.guildLocalizer())
-                    .setTitle("%s #%d | %s".formatted(statusEmoji(), team.id(), team.meta().name()));
-            if (!exists()) {
-                builder.setDescription("teamserver.message.detailstatus.nonexisting.description");
-            } else {
-                if (isRunning()) {
-                    builder.setDescription("teamserver.message.detailstatus.existing.description")
-                            .addField("word.ports", "$word.server$: %d%n$word.api$: %d".formatted(port, apiPort), true);
-                    stats().ifPresent(stats -> {
-                        var memory = stats.memory();
-                        builder.addField("word.memory", "$word.used$ %d%n$word.total$: %d%n$word.max$: %d".formatted(memory.usedMb(), memory.totalMb(), memory.maxMb()), true)
-                                .addField("word.tps", "1 $word.min$: %.2f%n5 $word.min$: %.2f%n 15 $word.min$: %.2f%n$word.averageticktime$ %.2f".formatted(
-                                        stats.tps()[0], stats.tps()[1], stats.tps()[2], stats.averageTickTime()), true)
-                                .addField("word.players", String.valueOf(stats.onlinePlayers()), true)
-                                .addField("word.system", "$word.activethreads$: %d".formatted(stats.activeThreads()), true);
-                    });
-                } else {
-                    builder.setDescription("word.serversetup")
-                            .addField("word.ports", "word.notrunning", true);
-                }
-            }
-
-            return builder.build();
-        });
-    }
-
     public String status() {
         var status = statusEmoji();
         var ports = "";
-        if (exists() && isRunning()) {
-            ports = "Server: %s Api: %s".formatted(port, apiPort);
-        }
         return "%s %s %s".formatted(status, team, ports);
     }
 
@@ -335,7 +238,7 @@ public class TeamServer {
         return http;
     }
 
-    private String statusEmoji() {
+    public String statusEmoji() {
         if (exists() && isRunning()) return "🟢";
         if (exists()) return "🟡";
         return "🔴";
@@ -359,5 +262,9 @@ public class TeamServer {
             log.error("Could not parse response", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public CompletableFuture<MessageEmbed> detailStatus(EventContext context) {
+        return EmbedHelper.embedDetailedStatus(this, context);
     }
 }

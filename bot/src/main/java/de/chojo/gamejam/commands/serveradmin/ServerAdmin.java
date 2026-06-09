@@ -9,8 +9,6 @@ package de.chojo.gamejam.commands.serveradmin;
 import de.chojo.gamejam.commands.serveradmin.handler.SyncVelocity;
 import de.chojo.gamejam.commands.serveradmin.handler.info.Detailed;
 import de.chojo.gamejam.commands.serveradmin.handler.info.Short;
-import de.chojo.gamejam.commands.serveradmin.handler.refresh.RefreshAll;
-import de.chojo.gamejam.commands.serveradmin.handler.refresh.RefreshTeam;
 import de.chojo.gamejam.commands.serveradmin.handler.restart.RestartAll;
 import de.chojo.gamejam.commands.serveradmin.handler.restart.RestartTeam;
 import de.chojo.gamejam.commands.serveradmin.handler.start.StartAll;
@@ -47,12 +45,6 @@ public class ServerAdmin extends SlashCommand {
                         .subCommand(SubCommand.of("team", "command.serveradmin.stop.team.description")
                                 .handler(new StopTeam(serverService, guilds))
                                 .argument(Argument.text("team", "command.serveradmin.stop.team.options.team.description").asRequired().withAutoComplete())))
-                .group(Group.of("refresh", "command.serveradmin.refresh.description")
-                        .subCommand(SubCommand.of("all", "command.serveradmin.refresh.all.description")
-                                .handler(new RefreshAll(serverService, guilds)))
-                        .subCommand(SubCommand.of("team", "command.serveradmin.refresh.team.description")
-                                .handler(new RefreshTeam(serverService, guilds))
-                                .argument(Argument.text("team", "command.serveradmin.refresh.team.options.team.description").asRequired().withAutoComplete())))
                 .group(Group.of("info", "command.serveradmin.info.description")
                         .subCommand(SubCommand.of("short", "command.serveradmin.info.short.description")
                                 .handler(new Short(serverService, guilds)))

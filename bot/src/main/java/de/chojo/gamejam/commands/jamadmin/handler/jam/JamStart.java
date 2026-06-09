@@ -32,7 +32,7 @@ public final class JamStart implements SlashHandler {
             event.reply(context.localize("command.start.message.activated"))
                  .setEphemeral(true)
                  .queue();
-
+            return;
         }
         event.reply(context.localize("error.noupcomingjam")).setEphemeral(true)
              .queue();

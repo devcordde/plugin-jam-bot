@@ -243,7 +243,7 @@ public class Bot {
     }
 
     private void initServer() throws IOException {
-        serverService = ServerService.create(createScheduledExecutor("Server ping", 1), configuration);
+        serverService = ServerService.create(configuration);
 
         var templateDir = Path.of(configuration.serverTemplate().templateDir());
         var serverDir = Path.of(configuration.serverManagement().serverDir());

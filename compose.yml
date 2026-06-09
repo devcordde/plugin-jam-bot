@@ -1,18 +1,27 @@
 services:
+  mc-server-image:
+    build:
+      context: .
+      dockerfile: Dockerfile.mc
+    image: plugin-jam-mc-server
+    entrypoint: ["echo", "image built"]
   bot:
     image: ghcr.io/devcordde/plugin-jam-bot:latest
+    depends_on:
+      mc-server-image:
+        condition: service_completed_successfully
     volumes:
       - ./data/bot/config:/app/config
       - ./data/bot/plugins:/app/plugins
       - ./data/bot/servers:/app/servers
       - ./data/bot/template:/app/template
       - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      -
     networks:
       - plugin-jam-network
   velocity:
-    image: itzg/mc-proxy:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.velocity
     tty: true
     environment:
       EULA: "TRUE"
@@ -20,7 +29,6 @@ services:
       JVM_DD_OPTS: javalin.port=30000
     volumes:
       - ./data/velocity/config:/config
-      - ./data/velocity/plugins:/plugins
     networks:
       - plugin-jam-network
   lobby:

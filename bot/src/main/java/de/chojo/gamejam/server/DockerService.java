@@ -27,26 +27,25 @@ import java.util.Optional;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class DockerService {
-    private DockerClientConfig dockerClientConfig;
+    private final Docker dockerConfig;
+    private final DockerClientConfig dockerClientConfig;
     private DockerClient dockerClient;
     private static final Logger log = getLogger(DockerService.class);
-    private static final String DOCKER_IMAGE = "itzg/minecraft-server:latest";
     private static final String DOCKER_VOLUME_DATA_DIR = "/data";
-    private final String networkName;
     private final String pluginUrls;
 
     public DockerService(Docker dockerConfig, Plugins pluginsConfig) {
-        this.networkName = dockerConfig.getNetworkName();
+        this.dockerConfig = dockerConfig;
         this.pluginUrls = String.join(",", pluginsConfig.defaultPlugins());
         this.dockerClientConfig = DefaultDockerClientConfig
                 .createDefaultConfigBuilder()
                 .withDockerHost(dockerConfig.getHost())
                 .withDockerCertPath(dockerConfig.getCertPath())
                 .withDockerTlsVerify(dockerConfig.isTlsVerify())
-                .withRegistryUsername(dockerConfig.getRegistryUsername())
-                .withRegistryPassword(dockerConfig.getRegistryPassword())
-                .withRegistryEmail(dockerConfig.getRegistryEmail())
-                .withRegistryUrl(dockerConfig.getRegistryUrl())
+                .withRegistryUsername(dockerConfig.registryUsername())
+                .withRegistryPassword(dockerConfig.registryPassword())
+                .withRegistryEmail(dockerConfig.registryEmail())
+                .withRegistryUrl(dockerConfig.registryUrl())
                 .build();
     }
 
@@ -65,14 +64,14 @@ public class DockerService {
 
     private void ensureNetwork() {
         var networks = dockerClient.listNetworksCmd()
-                .withNameFilter(networkName)
+                .withNameFilter(dockerConfig.networkName())
                 .exec();
-        if (networks.stream().noneMatch(n -> n.getName().equals(networkName))) {
+        if (networks.stream().noneMatch(n -> n.getName().equals(dockerConfig.networkName()))) {
             dockerClient.createNetworkCmd()
-                    .withName(networkName)
+                    .withName(dockerConfig.networkName())
                     .withDriver("bridge")
                     .exec();
-            log.info("Created docker network {}", networkName);
+            log.info("Created docker network {}", dockerConfig.networkName());
         }
     }
 
@@ -89,9 +88,9 @@ public class DockerService {
         HostConfig hostConfig = HostConfig.newHostConfig()
                 .withBinds(new Bind(volumeName(teamId), new Volume(DOCKER_VOLUME_DATA_DIR)));
 
-        hostConfig.withNetworkMode(networkName);
+        hostConfig.withNetworkMode(dockerConfig.networkName());
 
-        dockerClient.createContainerCmd(DOCKER_IMAGE)
+        dockerClient.createContainerCmd(dockerConfig.teamServerImage())
                 .withName(containerName(teamId))
                 .withEnv("EULA=TRUE", "TYPE=PAPER", "VERSION=26.1.2", String.format("PLUGINS=%s", pluginUrls))
                 .withHostConfig(hostConfig)
@@ -173,7 +172,7 @@ public class DockerService {
                 .findFirst();
     }
 
-    public String logs(int teamId, int tail) {
+    public String logs(int teamId) {
         var callback = new ResultCallback.Adapter<Frame>() {
             private final StringBuilder logs = new StringBuilder();
 
@@ -191,7 +190,6 @@ public class DockerService {
             dockerClient.logContainerCmd(containerName(teamId))
                     .withStdOut(true)
                     .withStdErr(true)
-                    .withTail(tail)
                     .exec(callback)
                     .awaitCompletion();
         } catch (InterruptedException e) {

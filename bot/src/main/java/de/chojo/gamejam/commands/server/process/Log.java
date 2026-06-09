@@ -30,7 +30,7 @@ public class Log implements SlashHandler {
         var optServer = server.getServer(event, context);
         if(optServer.isEmpty())return;
         var teamServer = optServer.get();
-        var logs = teamServer.logs(0);
+        var logs = teamServer.logs();
         var content = logs.substring(Math.max(logs.length() - 1950, 0));
         try(InputStream inputStream = new ByteArrayInputStream(logs.getBytes(StandardCharsets.UTF_8))) {
             event.reply("```log%n%s%n```".formatted(content))

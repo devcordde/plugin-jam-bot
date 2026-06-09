@@ -10,12 +10,13 @@ package de.chojo.gamejam.configuration.elements;
 public class Docker {
     private String host = "unix:///var/run/docker.sock";
     private String certPath = "/home/user/.docker";
-    private boolean tlsVerify = true;
+    private boolean tlsVerify = false;
     private String registryUsername;
     private String registryPassword;
     private String registryEmail;
     private String registryUrl;
     private String networkName = "plugin-jam-network";
+    private String teamServerImage = "plugin-jam-mc-server:latest";
 
     public String getHost() {
         return host;
@@ -29,24 +30,39 @@ public class Docker {
         return tlsVerify;
     }
 
-    public String getRegistryUsername() {
+    public String host() {
+        return host;
+    }
+
+    public String certPath() {
+        return certPath;
+    }
+
+    public boolean tlsVerify() {
+        return tlsVerify;
+    }
+
+    public String registryUsername() {
         return registryUsername;
     }
 
-    public String getRegistryPassword() {
+    public String registryPassword() {
         return registryPassword;
     }
 
-    public String getRegistryEmail() {
+    public String registryEmail() {
         return registryEmail;
     }
 
-    public String getRegistryUrl() {
+    public String registryUrl() {
         return registryUrl;
     }
 
-    public String getNetworkName() {
+    public String networkName() {
         return networkName;
     }
 
+    public String teamServerImage() {
+        return teamServerImage;
+    }
 }
