@@ -7,9 +7,9 @@
 package de.chojo.pluginjam.api;
 
 import de.chojo.pluginjam.PluginJam;
-import de.chojo.pluginjam.api.routes.Configuration;
-import de.chojo.pluginjam.api.routes.Requests;
-import de.chojo.pluginjam.api.routes.Stats;
+import de.chojo.pluginjam.api.routes.ConfigurationRoute;
+import de.chojo.pluginjam.api.routes.OnlineRoute;
+import de.chojo.pluginjam.api.routes.StatsRoute;
 import de.chojo.pluginjam.service.ServerRequests;
 import io.javalin.Javalin;
 import org.bukkit.plugin.Plugin;
@@ -21,15 +21,14 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 public class Api {
     private static final Logger log = getLogger(Api.class);
-    private final Configuration configuration;
-    private final Stats stats;
-    private final Requests requests;
-    private Javalin javalin;
+    private final ConfigurationRoute configurationRoute;
+    private final StatsRoute statsRoute;
+    private final OnlineRoute onlineRoute;
 
     private Api(Plugin plugin, ServerRequests serverRequests) {
-        configuration = new Configuration(plugin);
-        stats = new Stats(plugin);
-        requests = new Requests(serverRequests);
+        configurationRoute = new ConfigurationRoute(plugin);
+        statsRoute = new StatsRoute(plugin);
+        onlineRoute = new OnlineRoute();
     }
 
     public static Api create(Plugin plugin, ServerRequests serverRequests) {
@@ -41,7 +40,7 @@ public class Api {
     private void ignite() {
         var classLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(PluginJam.class.getClassLoader());
-        javalin = Javalin.create(config -> {
+        Javalin javalin = Javalin.create(config -> {
             config.concurrency.useVirtualThreads = true;
             config.routes.apiBuilder(this::routes);
         });
@@ -51,8 +50,8 @@ public class Api {
 
     private void routes() {
         before(ctx -> log.debug("Received request on {}.", ctx.path()));
-        path("v1", configuration::buildRoutes);
-        path("v1", stats::buildRoutes);
-        path("v1", requests::buildRoutes);
+        path("v1", configurationRoute::buildRoutes);
+        path("v1", statsRoute::buildRoutes);
+        path("v1", onlineRoute::buildRoutes);
     }
 }

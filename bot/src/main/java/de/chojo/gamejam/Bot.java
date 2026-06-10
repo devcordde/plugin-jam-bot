@@ -6,23 +6,18 @@
 
 package de.chojo.gamejam;
 
+import com.google.inject.Guice;
 import com.zaxxer.hikari.HikariDataSource;
 import de.chojo.gamejam.api.Api;
-import de.chojo.gamejam.commands.jamadmin.JamAdmin;
-import de.chojo.gamejam.commands.register.Register;
-import de.chojo.gamejam.commands.server.Server;
-import de.chojo.gamejam.commands.serveradmin.ServerAdmin;
-import de.chojo.gamejam.commands.settings.Settings;
-import de.chojo.gamejam.commands.team.Team;
-import de.chojo.gamejam.commands.unregister.Unregister;
-import de.chojo.gamejam.commands.vote.Votes;
 import de.chojo.gamejam.configuration.Configuration;
 import de.chojo.gamejam.data.access.Guilds;
+import de.chojo.gamejam.listener.InviteButtonListener;
 import de.chojo.gamejam.data.access.Teams;
+import de.chojo.gamejam.server.DockerService;
 import de.chojo.gamejam.server.ServerService;
+import de.chojo.gamejam.server.CommandContextProvider;
 import de.chojo.gamejam.util.LogNotify;
 import de.chojo.gamejam.util.Token;
-import de.chojo.jdautil.interactions.dispatching.InteractionHub;
 import de.chojo.jdautil.localization.ILocalizer;
 import de.chojo.jdautil.localization.Localizer;
 import de.chojo.sadu.core.exceptions.ExceptionTransformer;
@@ -35,6 +30,8 @@ import de.chojo.sadu.queries.api.configuration.ConnectedQueryConfiguration;
 import de.chojo.sadu.queries.api.configuration.QueryConfiguration;
 import de.chojo.sadu.updater.QueryReplacement;
 import de.chojo.sadu.updater.SqlUpdater;
+import io.github.kaktushose.jdac.JDACommands;
+import io.github.kaktushose.jdac.guice.GuiceExtensionData;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.RestAction;
@@ -46,19 +43,13 @@ import org.slf4j.Logger;
 
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.PosixFilePermission;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 import static de.chojo.sadu.queries.api.call.Call.call;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -80,6 +71,7 @@ public class Bot {
     private ShardManager shardManager;
     private Guilds guilds;
     private ServerService serverService;
+    private DockerService dockerService;
     private Teams teams;
     private Api api;
 
@@ -160,22 +152,12 @@ public class Bot {
     }
 
     private void buildCommands() {
-        InteractionHub.builder(shardManager)
-                .withLocalizer(localizer)
-                .withCommands(new JamAdmin(guilds),
-                        new Register(guilds),
-                        new Settings(guilds),
-                        new Team(guilds, configuration),
-                        new Unregister(guilds),
-                        new Votes(guilds),
-                        new Server(guilds, serverService, configuration),
-                        new ServerAdmin(guilds, serverService))
-                .withPagination(builder -> builder.withLocalizer(localizer)
-                        .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
-                .withMenuService(builder -> builder.withLocalizer(localizer)
-                        .withCache(cache -> cache.expireAfterAccess(30, TimeUnit.MINUTES)))
-                .withModalService(builder -> builder.withLocalizer(localizer))
-                .build();
+        var userContextProvider = new CommandContextProvider(guilds);
+        var injector = Guice.createInjector(new BotModule(serverService, userContextProvider));
+        JDACommands.builder(shardManager)
+                .extensionData(new GuiceExtensionData(injector))
+                .start();
+        shardManager.addEventListener(new InviteButtonListener(guilds));
     }
 
     private void initBot() {
@@ -189,8 +171,6 @@ public class Bot {
                 .setEventPool(Executors.newScheduledThreadPool(5, createThreadFactory("Event Worker")))
                 .build();
         RestAction.setDefaultFailure(throwable -> log.error("Unhandled exception occurred: ", throwable));
-        serverService.inject(teams);
-        serverService.syncVelocity();
     }
 
     private void initDb() throws IOException, SQLException {
@@ -243,23 +223,7 @@ public class Bot {
     }
 
     private void initServer() throws IOException {
-        serverService = ServerService.create(configuration);
-
-        var templateDir = Path.of(configuration.serverTemplate().templateDir());
-        var serverDir = Path.of(configuration.serverManagement().serverDir());
-        var pluginDir = Path.of(configuration.plugins().pluginDir());
-
-        Files.createDirectories(templateDir);
-        Files.createDirectories(serverDir);
-        Files.createDirectories(pluginDir);
-
-        Path wait = Path.of("wait.sh");
-        Files.copy(getClass().getClassLoader().getResourceAsStream("wait.sh"),
-                wait, StandardCopyOption.REPLACE_EXISTING);
-        try {
-            Files.setPosixFilePermissions(wait, Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
-        } catch (UnsupportedOperationException e) {
-            log.error("Use linux...");
-        }
+        serverService = new ServerService(configuration);
+        dockerService = new DockerService(configuration.docker(), configuration.plugins());
     }
 }

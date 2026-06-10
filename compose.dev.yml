@@ -43,6 +43,8 @@ services:
       JVM_DD_OPTS: javalin.port=30000
     volumes:
       - ./data/velocity/config:/config
+    ports:
+      - "127.0.0.1:27777:25577"
     networks:
       - plugin-jam-network
   lobby:

@@ -21,6 +21,8 @@ dependencies {
         exclude(module = "opus-java")
     }
 
+    implementation("io.github.kaktushose:jda-commands:5.0.0")
+
     implementation("net.dv8tion", "JDA", "6.4.1")
 
     implementation(libs.javalin.bundle)

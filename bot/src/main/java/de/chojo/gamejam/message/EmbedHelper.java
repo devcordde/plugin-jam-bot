@@ -6,42 +6,43 @@
 
 package de.chojo.gamejam.message;
 
-import de.chojo.gamejam.server.TeamServer;
-import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
-import de.chojo.jdautil.wrapper.EventContext;
+import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
+import de.chojo.gamejam.server.ServerService;
+import de.chojo.gamejam.server.ServerStatus;
+import io.github.kaktushose.jdac.dispatching.events.interactions.CommandEvent;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.concurrent.CompletableFuture;
 
 public class EmbedHelper {
 
-    public static CompletableFuture<MessageEmbed> embedDetailedStatus(TeamServer teamServer, EventContext context) {
+    public static CompletableFuture<MessageEmbed> embedDetailedStatus(Team team, ServerService serverService, CommandEvent event) {
         return CompletableFuture.supplyAsync(() -> {
+            var serverStatus = serverService.getServerStatus(team.id());
 
-            var builder = new LocalizedEmbedBuilder(context.guildLocalizer())
-                    .setTitle("%s #%d | %s".formatted(teamServer.statusEmoji(), teamServer.team().id(), teamServer.team().meta().name()));
-            if (!teamServer.exists()) {
-                builder.setDescription("teamserver.message.detailstatus.nonexisting.description");
+            var embed = event.embed("status");
+            embed.title("%s #%d | %s".formatted(serverStatus.emoji(), team.id(), team.meta().name()));
+
+            if (serverStatus == ServerStatus.VOID) {
+                embed.description("teamserver.message.detailstatus.nonexisting.description");
             } else {
-                if (teamServer.isRunning()) {
-                    builder.setDescription("teamserver.message.detailstatus.existing.description");
+                if (serverStatus == ServerStatus.RUNNING) {
+                    embed.description("teamserver.message.detailstatus.existing.description");
 
-                    var serverStats = teamServer.stats();
+                    var serverStats = serverService.serverHttpService().fetchServerStats(serverService.dockerService().containerName(team.id()));
                     serverStats.ifPresent(stats -> {
                         var memory = stats.memory();
-                        builder.addField("word.memory", "$word.used$ %d%n$word.total$: %d%n$word.max$: %d".formatted(memory.usedMb(), memory.totalMb(), memory.maxMb()), true)
-                                .addField("word.tps", "1 $word.min$: %.2f%n5 $word.min$: %.2f%n 15 $word.min$: %.2f%n$word.averageticktime$ %.2f".formatted(
-                                        stats.tps()[0], stats.tps()[1], stats.tps()[2], stats.averageTickTime()), true)
-                                .addField("word.players", String.valueOf(stats.onlinePlayers()), true)
-                                .addField("word.system", "$word.activethreads$: %d".formatted(stats.activeThreads()), true);
+                        embed.fields().add("word.memory", "$word.used$ %d%n$word.total$: %d%n$word.max$: %d".formatted(memory.usedMb(), memory.totalMb(), memory.maxMb()), true);
+                        embed.fields().add("word.tps", "1 $word.min$: %.2f%n5 $word.min$: %.2f%n 15 $word.min$: %.2f%n$word.averageticktime$ %.2f".formatted(
+                                stats.tps()[0], stats.tps()[1], stats.tps()[2], stats.averageTickTime()), true);
+                        embed.fields().add("word.players", String.valueOf(stats.onlinePlayers()), true);
+                        embed.fields().add("word.system", "$word.activethreads$: %d".formatted(stats.activeThreads()), true);
                     });
                 } else {
-                    builder.setDescription("word.serversetup")
-                            .addField("word.ports", "word.notrunning", true);
+                    embed.description("word.serversetup");
                 }
             }
-
-            return builder.build();
+            return embed.build();
         });
     }
 }

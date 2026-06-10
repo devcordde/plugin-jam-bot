@@ -37,9 +37,8 @@ public class Server {
 
             delete("", ctx -> {
                 var id = ctx.queryParam("id");
-                var port = ctx.queryParam("port");
                 var host = ctx.queryParam("host");
-                var registration = new Registration(Integer.parseInt(id), "", host, Integer.parseInt(port), 0);
+                var registration = new Registration(Integer.parseInt(id), "", host);
                 registry.unregister(registration);
                 ctx.status(HttpStatus.ACCEPTED);
             });

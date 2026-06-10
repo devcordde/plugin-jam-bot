@@ -4,7 +4,8 @@
  *     Copyright (C) 2022 DevCord Team and Contributor
  */
 
-package de.chojo.pluginjam.payload;
+package de.chojo.gamejam.commands.serveradmin;
 
-public record Registration(int id, String name, String host) {
+public class ServerAdminCommands {
+    //TODO: Readd admin commands
 }
