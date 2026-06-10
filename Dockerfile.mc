@@ -1,6 +1,6 @@
 FROM gradle:jdk25-alpine AS build
 WORKDIR /home/gradle
-COPY --chown=gradle:gradle settings.gradle* build.gradle* gradle.properties* ./
+COPY --chown=gradle:gradle settingsEntity.gradle* build.gradle* gradle.properties* ./
 COPY --chown=gradle:gradle bot/build.gradle* ./bot/
 COPY --chown=gradle:gradle plugin-api/build.gradle* ./plugin-api/
 COPY --chown=gradle:gradle plugin-paper/build.gradle* ./plugin-paper/

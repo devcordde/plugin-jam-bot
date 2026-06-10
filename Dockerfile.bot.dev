@@ -1,7 +1,7 @@
 FROM gradle:jdk25-alpine as build
 WORKDIR /home/gradle
 
-COPY --chown=gradle:gradle settings.gradle* build.gradle* gradle.properties* ./
+COPY --chown=gradle:gradle settingsEntity.gradle* build.gradle* gradle.properties* ./
 COPY --chown=gradle:gradle bot/build.gradle* ./bot/
 COPY --chown=gradle:gradle plugin-paper/build.gradle* ./plugin-paper/
 
@@ -22,7 +22,7 @@ RUN mkdir servers
 RUN mkdir template
 RUN mkdir template/plugins
 COPY docker/resources/bot/wait.sh .
-# Copy the plugin jam plugin into the template.
+# Copy the plugin jamEntity plugin into the template.
 COPY --from=build /home/gradle/plugin-paper/build/libs/plugin-paper-*-all.jar ./bot/template/plugins/pluginjam.jar
 
 COPY docker/resources/docker-entrypoint.sh .

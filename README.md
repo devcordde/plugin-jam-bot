@@ -1,4 +1,4 @@
-Bot and spigot plugin used for the dev cord plugin jam
+Bot and spigot plugin used for the dev cord plugin jamEntity
 
 ## Start Arguments for paper
 `-Dpluginjam.port`

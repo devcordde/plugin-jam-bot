@@ -31,7 +31,7 @@ services:
     networks:
       - plugin-jam-network
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
   velocity:
     build:
       context: .
@@ -65,3 +65,7 @@ networks:
   plugin-jam-network:
     name: plugin-jam-network
     driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local

@@ -4,10 +4,10 @@
  *     Copyright (C) 2022 DevCord Team and Contributor
  */
 
-package de.chojo.gamejam.data.dao.guild.jams.jam;
+package de.chojo.gamejam.data.dao.guild.jams.jamEntity;
 
 import de.chojo.gamejam.data.dao.guild.jams.Jam;
-import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
+import de.chojo.gamejam.data.dao.guild.jams.jamEntity.teams.Team;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -19,17 +19,17 @@ import static de.chojo.sadu.queries.api.call.Call.call;
 import static de.chojo.sadu.queries.api.query.Query.query;
 
 public class JamTeams {
-    private final Jam jam;
+    private final Jam jamEntity;
 
-    public JamTeams(Jam jam) {
-        this.jam = jam;
+    public JamTeams(Jam jamEntity) {
+        this.jamEntity = jamEntity;
     }
 
     public Team create(String name) {
         var teamId = query("""
                 INSERT INTO team(jam_id) VALUES(?) RETURNING id AS team_id;
                 """)
-                .single(call().bind(jam.jamId()))
+                .single(call().bind(jamEntity.jamId()))
                 .map(row -> row.getInt("team_id"))
                 .first()
                 .orElseThrow();
@@ -38,7 +38,7 @@ public class JamTeams {
                 """)
                 .single(call().bind(teamId).bind(name))
                 .insert();
-        return new Team(jam, teamId);
+        return new Team(jamEntity, teamId);
     }
 
     public List<Team> teams() {
@@ -49,8 +49,8 @@ public class JamTeams {
                    LEFT JOIN team_meta m ON t.id = m.team_id
                 WHERE jam_id = ?
                 """)
-                .single(call().bind(jam.jamId()))
-                .map(r -> new Team(jam, r.getInt("id")))
+                .single(call().bind(jamEntity.jamId()))
+                .map(r -> new Team(jamEntity, r.getInt("id")))
                 .all();
     }
 
@@ -63,11 +63,11 @@ public class JamTeams {
                 SELECT m.team_id
                 FROM team_member m
                     LEFT JOIN team t ON t.id = m.team_id
-                    LEFT JOIN jam j ON j.id = t.jam_id
+                    LEFT JOIN jamEntity j ON j.id = t.jam_id
                 WHERE j.id = ?
                     AND user_id = ?
                 """)
-                .single(call().bind(jam.jamId()).bind(member.getIdLong()))
+                .single(call().bind(jamEntity.jamId()).bind(member.getIdLong()))
                 .map(r -> r.getInt("team_id"))
                 .first()
                 .flatMap(this::byId);
@@ -79,7 +79,7 @@ public class JamTeams {
                 WHERE jam_id = ?
                     AND LOWER(m.team_name) = LOWER(?)
                 """)
-                .single(call().bind(jam.jamId()).bind(name))
+                .single(call().bind(jamEntity.jamId()).bind(name))
                 .map(r -> r.getInt("id"))
                 .first()
                 .flatMap(this::byId);
@@ -88,7 +88,7 @@ public class JamTeams {
     public Optional<Team> byId(int id) {
         return query("SELECT id, team_name FROM team t LEFT JOIN team_meta m ON t.id = m.team_id WHERE id = ?")
                 .single(call().bind(id))
-                .map(r -> new Team(jam, r.getInt("id")))
+                .map(r -> new Team(jamEntity, r.getInt("id")))
                 .first();
     }
 

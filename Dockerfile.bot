@@ -19,7 +19,7 @@ RUN mkdir servers
 RUN mkdir template
 RUN mkdir template/plugins
 COPY docker/resources/bot/wait.sh .
-# Copy the plugin jam plugin into the template.
+# Copy the plugin jamEntity plugin into the template.
 COPY --from=build /home/gradle/plugin-paper/build/libs/plugin-paper-*-all.jar ./bot/template/plugins/pluginjam.jar
 
 COPY docker/resources/docker-entrypoint.sh .
