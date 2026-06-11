@@ -4,15 +4,10 @@
  *     Copyright (C) 2022 DevCord Team and Contributor
  */
 
-package de.chojo.gamejam.commands.vote;
+package de.chojo.pluginjam.bot.commands.vote;
 
 import com.google.inject.Inject;
-import de.chojo.gamejam.data.access.Guilds;
-import de.chojo.gamejam.server.CommandContextProvider;
-import de.chojo.jdautil.interactions.slash.structure.handler.SlashHandler;
-import de.chojo.jdautil.localization.util.Format;
-import de.chojo.jdautil.localization.util.Replacement;
-import de.chojo.jdautil.wrapper.EventContext;
+import de.chojo.pluginjam.bot.commands.CommandContextProvider;
 import io.github.kaktushose.jdac.annotations.i18n.Bundle;
 import io.github.kaktushose.jdac.annotations.interactions.AutoComplete;
 import io.github.kaktushose.jdac.annotations.interactions.Interaction;
@@ -20,7 +15,6 @@ import io.github.kaktushose.jdac.annotations.interactions.Param;
 import io.github.kaktushose.jdac.dispatching.events.interactions.AutoCompleteEvent;
 import io.github.kaktushose.jdac.dispatching.events.interactions.CommandEvent;
 import io.github.kaktushose.jdac.message.placeholder.Entry;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 
 import java.util.Collections;
@@ -40,76 +34,76 @@ public class VoteCommand {
 
     @io.github.kaktushose.jdac.annotations.interactions.Command(value = "vote")
     public void onCommand(CommandEvent event, @Param("team") String team, @Param("points") int points) {
-        var guild = commandContextProvider.guilds().guild(event);
-        var optJam = guild.jams().nextOrCurrent();
+        var guildId = event.getGuild().getIdLong();
+        var optJam = commandContextProvider.pluginJamService().getCurrentOrUpcoming(guildId);
         if (optJam.isEmpty()) {
-            event.with().ephemeral(true).reply("error.nojamactive");
+            event.with().ephemeral(true).reply("error-nojamactive");
             return;
         }
 
         var jam = optJam.get();
 
         event.deferReply(true);
-        if (!jam.state().isVoting()) {
-            event.reply("command.votes.vote.message.notactive");
+        if (!jam.state().voting()) {
+            event.reply("command-votes-vote-message-notactive");
             return;
         }
 
         if (!jam.registrations().contains(event.getMember().getIdLong())) {
-            event.reply("error.notregistered");
+            event.reply("error-notregistered");
             return;
         }
 
-        var teams = jam.teams();
-        var teamCount = teams.teams().size();
-        var optVoteTeam = teams.byName(team);
+        var teams = commandContextProvider.teamService().getTeamsByJamId(jam.id());
+        var teamCount = teams.size();
+        var optVoteTeam = commandContextProvider.teamService().getTeamByName(jam.id(), team);
 
         if (optVoteTeam.isEmpty()) {
-            event.reply("error.unkownteam");
+            event.reply("error-unkownteam");
             return;
         }
 
         var voteTeam = optVoteTeam.get();
 
-        if (voteTeam.member(event.getMember()).isPresent()) {
-            event.reply("command.votes.vote.message.ownteam");
+        if (voteTeam.isMember(event.getUser())) {
+            event.reply("command-votes-vote-message-ownteam");
             return;
         }
 
-        var user = jam.user(event.getMember());
-
-        var pointsGiven = user.votesGiven();
+        var pointsGiven = commandContextProvider.voteService().getGivenPointsByUser(event.getUser());
 
         //TODO: Max points and max points per team are currently hardcoded. should be configurable in the future.
         var finalPoints = Math.clamp(points, 0, 5);
 
-        var votes = voteTeam.votes(event.getMember());
+        var votesForTeam = commandContextProvider.voteService().getPointsByTeam(voteTeam);
 
-        if (votes < finalPoints && pointsGiven + finalPoints > teamCount) {
-            event.reply("command.votes.vote.message.maxpointsreached", Entry.entry("REMAINING", bold(String.valueOf(teamCount - pointsGiven))));
+        if (votesForTeam < finalPoints && pointsGiven + finalPoints > teamCount) {
+            event.reply("command-votes-vote-message-maxpointsreached", Entry.entry("REMAINING", bold(String.valueOf(teamCount - pointsGiven))));
             return;
         }
 
-        voteTeam.vote(event.getMember(), finalPoints);
+        commandContextProvider.voteService().voteForTeam(event.getUser(), voteTeam, finalPoints);
+        var pointsGivenAfter = commandContextProvider.voteService().getGivenPointsByUser(event.getUser());
 
-        event.reply("command.votes.vote.message.done",
-                        Entry.entry("REMAINING", bold(String.valueOf(teamCount - user.votesGiven()))),
+        event.reply("command-votes-vote-message-done",
+                        Entry.entry("REMAINING", bold(String.valueOf(teamCount - pointsGivenAfter))),
                         Entry.entry("POINTS", bold(String.valueOf(finalPoints))),
-                        Entry.entry("TEAM", bold(voteTeam.meta().name()))
+                        Entry.entry("TEAM", bold(voteTeam.meta().getTeamName()))
         );
     }
 
     @AutoComplete(value = "vote", options = "team")
     public void onAutoCompleteTeam(AutoCompleteEvent event) {
-        var jam = commandContextProvider.guilds().guild(event).jams().nextOrCurrent();
+        var jam = commandContextProvider.pluginJamService().getActiveJam(event.getGuild().getIdLong());
 
         if (jam.isEmpty()) {
             event.replyChoices(Collections.emptyList());
             return;
         }
-        var teams = jam.get().teams().teams().stream()
-                .filter(team -> team.matchName(event.getValue()))
-                .map(team -> team.meta().name())
+
+        var teams = commandContextProvider.teamService().getTeamsByJamId(jam.get().id()).stream()
+                .filter(team -> team.meta().getTeamName().contains(event.getValue()))
+                .map(team -> team.meta().getTeamName())
                 .map(team -> new Command.Choice(team, team))
                 .toList();
         event.replyChoices(teams);

@@ -9,6 +9,7 @@ package de.chojo.pluginjam.bot.message;
 import de.chojo.pluginjam.bot.util.MentionUtil;
 import de.chojo.pluginjam.database.entity.SettingsEntity;
 import de.chojo.pluginjam.database.entity.jam.Jam;
+import de.chojo.pluginjam.database.entity.team.Team;
 import io.github.kaktushose.jdac.dispatching.events.interactions.CommandEvent;
 import io.github.kaktushose.jdac.message.resolver.MessageResolver;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -17,7 +18,6 @@ import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.utils.TimeFormat;
 
 import java.awt.*;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -55,6 +55,14 @@ public class EmbedHelper {
     }
 
     */
+
+    public static MessageEmbed teamProfileEmbed(Team team, CommandEvent event) {
+        var embed = new EmbedBuilder();
+        embed.setAuthor(team.meta().getTeamName(), null, team.meta().getProjectUrl());
+        embed.setDescription(team.meta().getProjectDescription());
+        team.members().forEach(member -> embed.addField(MentionUtil.user(member.userId()), "", true));
+        return embed.build();
+    }
 
     public static MessageEmbed buildJamListEmbed(List<Jam> jams, CommandEvent event, MessageResolver messageResolver, DiscordLocale locale) {
         var embed = new EmbedBuilder();

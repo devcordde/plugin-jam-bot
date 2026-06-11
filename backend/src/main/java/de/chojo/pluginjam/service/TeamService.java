@@ -6,11 +6,10 @@ import de.chojo.pluginjam.database.entity.team.TeamMeta;
 import de.chojo.pluginjam.database.repository.TeamMemberRepository;
 import de.chojo.pluginjam.database.repository.TeamMetaRepository;
 import de.chojo.pluginjam.database.repository.TeamRepository;
+import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,27 +46,39 @@ public class TeamService {
 
     public Optional<Team> getTeamByName(int jamId, String teamName) {
         return teamRepository.findByJamId(jamId).stream()
-                .filter(team -> team.meta() != null && teamName.equals(team.meta().teamName()))
+                .filter(team -> team.meta() != null && teamName.equals(team.meta().getTeamName()))
                 .findFirst();
     }
 
     public void joinTeam(Team team, Member user, Guild guild) {
         teamMemberRepository.save(new TeamMember(team.id(), user.getIdLong()));
-        guild.addRoleToMember(user, guild.getRoleById(team.meta().roleId())).queue();
+        guild.addRoleToMember(user, guild.getRoleById(team.meta().getRoleId())).queue();
     }
 
     public void leaveTeam(Team team, Member user, Guild guild) {
         teamMemberRepository.deleteByTeamIdAndUserId(team.id(), user.getIdLong());
-        guild.removeRoleFromMember(user, guild.getRoleById(team.meta().roleId())).queue();
+        guild.removeRoleFromMember(user, guild.getRoleById(team.meta().getRoleId())).queue();
     }
 
+    public List<Team> getTeamsByJamId(int jamId) {
+        return teamRepository.findByJamId(jamId);
+    }
+
+    @Transactional
     public void disbandTeam(Team team, Guild guild) {
         teamMemberRepository.deleteAllByTeamId(team.id());
         teamRepository.deleteById(team.id());
         teamMetaRepository.deleteById(team.id());
 
-        guild.getRoleById(team.meta().roleId()).delete().queue();
-        guild.getTextChannelById(team.meta().textChannelId()).delete().queue();
-        guild.getVoiceChannelById(team.meta().voiceChannelId()).delete().queue();
+        guild.getRoleById(team.meta().getRoleId()).delete().queue();
+        guild.getTextChannelById(team.meta().getTextChannelId()).delete().queue();
+        guild.getVoiceChannelById(team.meta().getVoiceChannelId()).delete().queue();
+    }
+
+    @Transactional
+    public void saveTeam(Team team) {
+        teamRepository.save(team);
+        teamMetaRepository.save(team.meta());
+        teamMemberRepository.saveAll(team.members());
     }
 }

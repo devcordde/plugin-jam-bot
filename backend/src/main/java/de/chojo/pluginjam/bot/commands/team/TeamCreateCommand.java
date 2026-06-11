@@ -102,8 +102,6 @@ public final class TeamCreateCommand {
                         .getIdLong(), Collections.emptySet(), EnumSet.of(Permission.VIEW_CHANNEL))
                 .complete();
 
-        //meta.token(Token.generate(40));
-
         var team = commandContextProvider.teamService().createTeam(
                 jam.id(),
                 teamName,

@@ -8,10 +8,12 @@ package de.chojo.pluginjam.bot;
 
 import com.google.inject.Guice;
 import de.chojo.pluginjam.bot.commands.CommandContextProvider;
+import de.chojo.pluginjam.bot.listener.InviteButtonListener;
 import de.chojo.pluginjam.database.repository.SettingsRepository;
 import de.chojo.pluginjam.service.JamService;
 import de.chojo.pluginjam.service.SettingsService;
 import de.chojo.pluginjam.service.TeamService;
+import de.chojo.pluginjam.service.VoteService;
 import io.github.kaktushose.jdac.JDACommands;
 import io.github.kaktushose.jdac.annotations.interactions.CommandConfig;
 import io.github.kaktushose.jdac.annotations.interactions.CommandScope;
@@ -42,14 +44,16 @@ public class Bot implements ApplicationEventListener<ApplicationStartupEvent> {
     private final JamService jamService;
     private final SettingsService settingsService;
     private final TeamService teamService;
+    private final VoteService voteService;
     private final String token;
 
     private ShardManager shardManager;
 
-    public Bot(JamService jamService, SettingsService settingsService, TeamService teamService, @Value("${bot.token}") String token) {
+    public Bot(JamService jamService, SettingsService settingsService, TeamService teamService, VoteService voteService, @Value("${bot.token}") String token) {
         this.jamService = jamService;
         this.settingsService = settingsService;
         this.teamService = teamService;
+        this.voteService = voteService;
         this.token = token;
     }
 
@@ -85,7 +89,8 @@ public class Bot implements ApplicationEventListener<ApplicationStartupEvent> {
         var userContextProvider = new CommandContextProvider(
                 jamService,
                 settingsService,
-                teamService
+                teamService,
+                voteService
         );
         var injector = Guice.createInjector(new BotModule(userContextProvider));
         JDACommands.builder(shardManager)
@@ -102,7 +107,7 @@ public class Bot implements ApplicationEventListener<ApplicationStartupEvent> {
                     }
                 })
                 .start();
-        //shardManager.addEventListener(new InviteButtonListener(guilds));
+        shardManager.addEventListener(new InviteButtonListener(teamService, settingsService, jamService));
     }
 
     private void initBot() {

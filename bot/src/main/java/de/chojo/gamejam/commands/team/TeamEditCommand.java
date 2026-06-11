@@ -34,7 +34,7 @@ public class TeamEditCommand {
     public void onCommand(CommandEvent event) {
         var optJam = commandContextProvider.guilds().guild(event).jams().nextOrCurrent();
         if (optJam.isEmpty()) {
-            event.with().ephemeral(true).reply("error.nojamactive");
+            event.with().ephemeral(true).reply("error-nojamactive");
             return;
         }
         var optTeam = optJam.get().teams().byMember(event.getMember());

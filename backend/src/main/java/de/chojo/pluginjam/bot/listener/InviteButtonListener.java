@@ -6,6 +6,9 @@
 
 package de.chojo.pluginjam.bot.listener;
 
+import de.chojo.pluginjam.service.JamService;
+import de.chojo.pluginjam.service.SettingsService;
+import de.chojo.pluginjam.service.TeamService;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.slf4j.Logger;
@@ -13,13 +16,17 @@ import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class InviteButtonListener extends ListenerAdapter {
-    /*private static final Logger log = getLogger(InviteButtonListener.class);
+    private static final Logger log = getLogger(InviteButtonListener.class);
     private static final String BUTTON_PREFIX = "invite-accept:";
 
-    private final Guilds guilds;
+    private final TeamService teamService;
+    private final SettingsService settingsService;
+    private final JamService jamService;
 
-    public InviteButtonListener(Guilds guilds) {
-        this.guilds = guilds;
+    public InviteButtonListener(TeamService teamService, SettingsService settingsService, JamService jamService) {
+        this.teamService = teamService;
+        this.settingsService = settingsService;
+        this.jamService = jamService;
     }
 
     @Override
@@ -58,46 +65,40 @@ public class InviteButtonListener extends ListenerAdapter {
 
         var user = manager.retrieveUserById(userId).complete();
         var member = guild.retrieveMember(user).complete();
-        var jamGuild = guilds.guild(guild);
-        var settings = jamGuild.jamSettings();
+        var settings = settingsService.getSettings(guildId);
 
-        var optJam = jamGuild.jams().nextOrCurrent();
+        var optJam = jamService.getCurrentOrUpcoming(guildId);
         if (optJam.isEmpty()) {
             event.getHook().editOriginal("The game jam is over.").queue();
             return;
         }
 
         var jam = optJam.get();
-        var optTeam = jam.teams().byId(teamId);
+        var optTeam = teamService.getTeam(teamId);
         if (optTeam.isEmpty()) {
             event.getHook().editOriginal("Team not found.").queue();
             return;
         }
 
         var team = optTeam.get();
-        var members = team.member();
+        var members = team.members();
 
-        if (members.size() >= settings.teamSize()) {
+        if (members.size() >= settings.getTeamSize()) {
             event.getHook().editOriginal("The team is already full.").queue();
             return;
         }
 
-        var currTeam = jam.teams().byMember(user);
+        var currTeam = teamService.getUserTeam(user.getIdLong());
         if (currTeam.isPresent()) {
             event.getHook().editOriginal("You are already part of a team.").queue();
             return;
         }
 
-        jam.user(member).join(team);
-        team.meta().role().ifPresent(role -> guild.addRoleToMember(member, role).queue());
+        teamService.joinTeam(team, member, guild);
         event.getHook().editOriginal("You have joined the team!").queue();
-        team.meta().textChannel().ifPresent(channel ->
-                channel.sendMessage(member.getAsMention() + " has joined the team!").queue()
-        );
 
-        // Disable the button after use
+        guild.getTextChannelById(team.meta().getTextChannelId()).sendMessage(member.getAsMention() + " has joined the team!").queue();
+
         event.getMessage().editMessageComponents().queue();
     }
-
-     */
 }
