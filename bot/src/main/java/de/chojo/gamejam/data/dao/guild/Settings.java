@@ -54,7 +54,7 @@ public class Settings {
 
     private boolean set(String column, Function<Call, Call> stmt) {
         return query("""
-                INSERT INTO settings(guild_id, %s) VALUES(?,?)
+                INSERT INTO settingsEntity(guild_id, %s) VALUES(?,?)
                 ON CONFLICT(guild_id)
                     DO UPDATE
                         SET %s = excluded.%s

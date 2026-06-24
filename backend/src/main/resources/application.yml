@@ -1,0 +1,46 @@
+micronaut:
+  application:
+    name: backend
+  security:
+    authentication: cookie
+    oauth2:
+      enabled: true
+      clients:
+        discord:
+          client-id: ${OAUTH_CLIENT_ID}
+          client-secret: ${OAUTH_CLIENT_SECRET}
+          openid:
+            issuer: ${OAUTH_ISSUER_URL}
+          scopes: openid,profile
+  server:
+    cors:
+      enabled: true
+      configurations:
+        web:
+          allowed-origins: ${FRONTEND_URL}
+          allowed-headers: authorization,content-type
+          allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+datasources:
+  default:
+    driver-class-name: org.postgresql.Driver
+    db-type: postgres
+    dialect: POSTGRES
+    jdbc-url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME}
+flyway:
+  datasources:
+    default:
+      enabled: true
+      default-schema: gamejam
+      create-schemas: true
+      schemas:
+        - gamejam
+bot:
+  api-key: ${BOT_API_KEY}
+  token: ${BOT_TOKEN}
+
+logger:
+  level:
+    de.chojo: TRACE
+    io.micronaut.data: TRACE

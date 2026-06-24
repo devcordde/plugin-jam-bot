@@ -58,7 +58,7 @@ public class ReportService implements Runnable {
 
     private void register() {
         log.info("Registering server at velocity instance");
-        var registration = new Registration(id, name,  host, plugin.getServer().getPort(), apiPort);
+        var registration = new Registration(id, name,  host);
         var builder = HttpRequest.newBuilder(apiUrl("v1", "server"))
                                  .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(registration)))
                                  .build();
@@ -74,7 +74,7 @@ public class ReportService implements Runnable {
     }
 
     private void ping() {
-        var registration = new Registration(id, name, host, plugin.getServer().getPort(), apiPort);
+        var registration = new Registration(id, name, host);
         var builder = HttpRequest.newBuilder(apiUrl("v1", "server"))
                                  .method("PATCH", HttpRequest.BodyPublishers.ofString(gson.toJson(registration)))
                                  .build();

@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: de.chojo.pluginjam
+testFramework: junit
+sourceLanguage: java
+buildTool: gradle_kotlin
+features: [ app-name, data, data-jdbc, flyway, gradle, http-client, http-client-test, java, java-application, jdbc-hikari, junit, logback, micronaut-aot, micronaut-build, micronaut-configuration-validation-gradle-plugin, micronaut-http-validation, netty-server, postgres, readme, security-oauth2, security-processor, serialization-jackson, shade, static-resources, test-resources, yaml, yaml-build ]

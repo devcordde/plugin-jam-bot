@@ -1,7 +1,7 @@
 CREATE SEQUENCE gamejam.jam_times_id_seq
     AS INTEGER;
 
-CREATE TABLE IF NOT EXISTS gamejam.jam
+CREATE TABLE IF NOT EXISTS gamejam.jamEntity
 (
     id       SERIAL,
     guild_id BIGINT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS gamejam.jam
 );
 
 CREATE INDEX IF NOT EXISTS jam_guild_id_index
-    ON gamejam.jam (guild_id);
+    ON gamejam.jamEntity (guild_id);
 
 CREATE TABLE IF NOT EXISTS gamejam.jam_time
 (
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS gamejam.jam_time
     CONSTRAINT jam_times_pk
         PRIMARY KEY (jam_id),
     CONSTRAINT jam_times_jam_id_fk
-        FOREIGN KEY (jam_id) REFERENCES gamejam.jam
+        FOREIGN KEY (jam_id) REFERENCES gamejam.jamEntity
             ON DELETE CASCADE
 );
 
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS gamejam.jam_meta
     CONSTRAINT jam_topic_pk
         PRIMARY KEY (jam_id),
     CONSTRAINT jam_topic_jam_id_fk
-        FOREIGN KEY (jam_id) REFERENCES gamejam.jam
+        FOREIGN KEY (jam_id) REFERENCES gamejam.jamEntity
             ON DELETE CASCADE
 );
 
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS gamejam.team
     CONSTRAINT team_pk
         PRIMARY KEY (id),
     CONSTRAINT team_jam_id_fk
-        FOREIGN KEY (jam_id) REFERENCES gamejam.jam
+        FOREIGN KEY (jam_id) REFERENCES gamejam.jamEntity
             ON DELETE CASCADE
 );
 
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS gamejam.jam_registrations
     jam_id  INTEGER NOT NULL,
     user_id BIGINT  NOT NULL,
     CONSTRAINT jam_registrations_jam_id_fk
-        FOREIGN KEY (jam_id) REFERENCES gamejam.jam
+        FOREIGN KEY (jam_id) REFERENCES gamejam.jamEntity
             ON DELETE CASCADE
 );
 
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS gamejam.jam_state
     CONSTRAINT jam_state_pk
         PRIMARY KEY (jam_id),
     CONSTRAINT jam_state_jam_id_fk
-        FOREIGN KEY (jam_id) REFERENCES gamejam.jam
+        FOREIGN KEY (jam_id) REFERENCES gamejam.jamEntity
             ON DELETE CASCADE
 );
 
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS gamejam.version
     patch INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS gamejam.settings
+CREATE TABLE IF NOT EXISTS gamejam.settingsEntity
 (
     guild_id     BIGINT NOT NULL,
     manager_role BIGINT,

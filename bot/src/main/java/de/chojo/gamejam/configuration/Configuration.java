@@ -6,17 +6,19 @@
 
 package de.chojo.gamejam.configuration;
 
-import de.chojo.gamejam.configuration.elements.Api;
-import de.chojo.gamejam.configuration.elements.BaseSettings;
-import de.chojo.gamejam.configuration.elements.Database;
-import de.chojo.gamejam.configuration.elements.Plugins;
-import de.chojo.gamejam.configuration.elements.ServerManagement;
-import de.chojo.gamejam.configuration.elements.ServerTemplate;
-import de.chojo.jdautil.configuration.BaseConfiguration;
+import de.chojo.gamejam.configuration.elements.*;
+import dev.chojo.ocular.Configurations;
+import dev.chojo.ocular.dataformats.YamlDataFormat;
+import dev.chojo.ocular.key.Key;
 
-public class Configuration extends BaseConfiguration<ConfigFile> {
+import java.nio.file.Path;
+import java.util.List;
+
+public class Configuration extends Configurations<ConfigFile> {
+    public static final Key<ConfigFile> MAIN = Key.builder(Path.of("config.yml"), ConfigFile::new).build();
+
     private Configuration() {
-        super(new ConfigFile());
+        super(Path.of("config"), MAIN, List.of(new YamlDataFormat()), Configuration.class.getClassLoader(), null);
     }
 
     public static Configuration create() {
@@ -27,26 +29,30 @@ public class Configuration extends BaseConfiguration<ConfigFile> {
 
 
     public Database database() {
-        return config().database();
+        return main().database();
+    }
+
+    public Docker docker() {
+        return main().docker();
     }
 
     public BaseSettings baseSettings() {
-        return config().baseSettings();
+        return main().baseSettings();
     }
 
     public Api api() {
-        return config().api();
+        return main().api();
     }
 
     public ServerManagement serverManagement() {
-        return config().serverManagement();
+        return main().serverManagement();
     }
 
     public Plugins plugins() {
-        return config().plugins();
+        return main().plugins();
     }
 
     public ServerTemplate serverTemplate() {
-        return config().serverTemplate();
+        return main().serverTemplate();
     }
 }

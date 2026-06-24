@@ -13,6 +13,8 @@ import de.chojo.gamejam.data.dao.guild.jams.jam.teams.team.TeamVote;
 import de.chojo.jdautil.localization.LocalizationContext;
 import de.chojo.jdautil.localization.util.LocalizedEmbedBuilder;
 import de.chojo.jdautil.util.MentionUtil;
+import io.github.kaktushose.jdac.dispatching.events.interactions.CommandEvent;
+import io.github.kaktushose.jdac.embeds.Embed;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -43,21 +45,21 @@ public class Team {
         meta.role().ifPresent(role -> role.delete().queue());
     }
 
-    public MessageEmbed profileEmbed(LocalizationContext localizer) {
+    public Embed profileEmbed(CommandEvent commandEvent) {
 
         var member = member().stream()
                 .map(u -> u.member().getAsMention())
                 .collect(Collectors.joining(", "));
 
         var meta = meta();
-        return new LocalizedEmbedBuilder(localizer)
-                .setTitle(meta.name())
-                .setDescription(meta.projectDescription())
-                .addField("command.team.profile.member", member, true)
-                .addField("command.team.profile.leader", MentionUtil.user(meta.leader()), true)
-                .addField("command.team.profile.projecturl", meta.projectUrl(), true)
-                .setFooter(String.format("#%s", id()))
-                .build();
+
+        var embed = commandEvent.embed("team-profile");
+        embed.title(meta.name());
+        embed.fields().add("command.team.profile.member", member, true);
+        embed.fields().add("command.team.profile.leader", MentionUtil.user(meta.leader()), true);
+        embed.fields().add("command.team.profile.projecturl", meta.projectUrl(), true);
+
+        return embed;
     }
 
     public List<TeamMember> member() {

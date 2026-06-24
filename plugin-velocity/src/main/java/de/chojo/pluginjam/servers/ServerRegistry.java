@@ -26,7 +26,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class ServerRegistry implements Runnable {
     private static final Logger log = getLogger(ServerRegistry.class);
     private final Map<Integer, Registration> ids = new HashMap<>();
-    private final Map<Integer, Registration> ports = new HashMap<>();
     private final Map<Registration, Instant> seen = new HashMap<>();
 
     private final ProxyServer proxy;
@@ -46,7 +45,7 @@ public class ServerRegistry implements Runnable {
         var timeout = Instant.now().minus(2, ChronoUnit.MINUTES);
         for (var entry : new HashMap<>(seen).entrySet()) {
             if (entry.getValue().isBefore(timeout)) {
-                log.info("Server {}:{} timed out.", entry.getKey().name(), entry.getKey().port());
+                log.info("Server {} timed out.", entry.getKey().name());
                 unregister(entry.getKey());
             }
         }
@@ -59,25 +58,18 @@ public class ServerRegistry implements Runnable {
             throw AlreadyRegisteredException.forName(registration.name());
         }
 
-        reg = ports.get(registration.port());
-
-        if (reg != null && !reg.equals(registration)) {
-            throw AlreadyRegisteredException.forPort(registration.port());
-        }
-
-        log.info("Registered server {} on port {}", registration.name(), registration.port());
+        log.info("Registered server {}", registration.name());
 
         ids.put(registration.id(), registration);
-        ports.put(registration.port(), registration);
 
-        proxy.registerServer(new ServerInfo(registration.name(), new InetSocketAddress(registration.host(), registration.port())));
+        proxy.registerServer(new ServerInfo(registration.name(), new InetSocketAddress(registration.host(), 25565)));
         ping(registration);
     }
 
     public void ping(Registration registration) {
         log.debug("Ping of server {} received.", registration.name());
         seen.put(registration, Instant.now());
-        if (!ids.containsKey(registration.id()) && !ports.containsKey(registration.port())) {
+        if (!ids.containsKey(registration.id())) {
             log.info("Received ping of unknown server {} with id {}", registration.id(), registration.name());
             log.info("Attempting to register server.");
             register(registration);
@@ -87,13 +79,12 @@ public class ServerRegistry implements Runnable {
     public void unregister(Registration registration) {
         var removed = ids.remove(registration.id());
         if (removed == null) {
-            log.warn("Unregistered server {} from port {}, but this server is not known.", registration.id(), registration.port());
+            log.warn("Unregistered server {}, but this server is not known.", registration.id());
             return;
         }
-        ports.remove(removed.port());
         seen.remove(removed);
-        log.info("Unregistered server {} on port {}", removed.name(), removed.port());
-        proxy.unregisterServer(new ServerInfo(removed.name(), new InetSocketAddress("localhost", removed.port())));
+        log.info("Unregistered server {}", removed.name());
+        proxy.unregisterServer(new ServerInfo(removed.name(), new InetSocketAddress("localhost", 25565)));
     }
 
     public Collection<Registration> server() {

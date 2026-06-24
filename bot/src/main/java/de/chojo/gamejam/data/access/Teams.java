@@ -6,7 +6,7 @@
 
 package de.chojo.gamejam.data.access;
 
-import de.chojo.gamejam.data.dao.guild.jams.jam.teams.Team;
+import de.chojo.gamejam.data.dao.guild.jams.jamEntity.teams.Team;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.slf4j.Logger;
 
@@ -30,7 +30,7 @@ public class Teams {
         return query("""
                 SELECT guild_id
                 FROM team t
-                LEFT JOIN jam j ON t.jam_id = j.id
+                LEFT JOIN jamEntity j ON t.jam_id = j.id
                 WHERE t.id = ?
                 """)
                 .single(call().bind(id))

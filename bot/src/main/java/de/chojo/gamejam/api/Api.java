@@ -7,7 +7,7 @@
 package de.chojo.gamejam.api;
 
 import de.chojo.gamejam.api.exception.InterruptException;
-import de.chojo.gamejam.api.v1.Server;
+import de.chojo.gamejam.api.v1.ServerRoute;
 import de.chojo.gamejam.api.v1.Teams;
 import de.chojo.gamejam.api.v1.Users;
 import de.chojo.gamejam.configuration.Configuration;
@@ -95,7 +95,7 @@ public class Api {
             users.routes();
             var teams = new Teams(shardManager, guilds);
             teams.routes();
-            Server server = new Server(serverService, this.teams);
+            ServerRoute server = new ServerRoute(serverService, this.teams);
             server.routes();
         });
 

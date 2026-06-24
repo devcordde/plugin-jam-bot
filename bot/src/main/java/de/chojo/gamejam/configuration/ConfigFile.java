@@ -6,12 +6,7 @@
 
 package de.chojo.gamejam.configuration;
 
-import de.chojo.gamejam.configuration.elements.Api;
-import de.chojo.gamejam.configuration.elements.BaseSettings;
-import de.chojo.gamejam.configuration.elements.Database;
-import de.chojo.gamejam.configuration.elements.Plugins;
-import de.chojo.gamejam.configuration.elements.ServerManagement;
-import de.chojo.gamejam.configuration.elements.ServerTemplate;
+import de.chojo.gamejam.configuration.elements.*;
 
 @SuppressWarnings("FieldMayBeFinal")
 public class ConfigFile {
@@ -19,7 +14,14 @@ public class ConfigFile {
     private Database database = new Database();
     private Api api = new Api();
     private ServerManagement serverManagement = new ServerManagement();
+
+    private Docker docker = new Docker();
     private Plugins plugins = new Plugins();
+
+    public void setServerTemplate(ServerTemplate serverTemplate) {
+        this.serverTemplate = serverTemplate;
+    }
+
     private ServerTemplate serverTemplate = new ServerTemplate();
 
     public BaseSettings baseSettings() {
@@ -36,6 +38,10 @@ public class ConfigFile {
 
     public ServerManagement serverManagement(){
         return serverManagement;
+    }
+
+    public Docker docker() {
+        return docker;
     }
 
     public Plugins plugins() {
