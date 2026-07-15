@@ -23,9 +23,14 @@ dependencies {
     implementation("io.micronaut.data:micronaut-data-jdbc")
     implementation("io.micronaut.flyway:micronaut-flyway")
     implementation("io.micronaut.security:micronaut-security-oauth2")
+    implementation("io.micronaut.security:micronaut-security-jwt")
+    implementation("io.micronaut.security:micronaut-security")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
     implementation("io.micronaut.reactor:micronaut-reactor")
+
+    implementation("com.github.docker-java:docker-java:3.7.1")
+    implementation("com.github.docker-java:docker-java-transport-httpclient5:3.7.1")
 
     // discord
     implementation("io.github.kaktushose:jda-commands:5.0.0") {
@@ -89,8 +94,6 @@ micronaut {
         deduceEnvironment = true
         optimizeNetty = true
         replaceLogbackXml = true
-        configurationProperties.put("micronaut.security.jwks.enabled", "false")
-        configurationProperties.put("micronaut.security.openid-configuration.enabled", "false")
     }
 
 }

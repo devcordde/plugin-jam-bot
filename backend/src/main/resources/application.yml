@@ -2,24 +2,63 @@ micronaut:
   application:
     name: backend
   security:
+    enabled: true
     authentication: cookie
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: "${JWT_GENERATOR_SIGNATURE_SECRET:pleaseChangeThisToALongSecretKey1234567890}"
+    endpoints:
+      oauth:
+        enabled: true
+      logout:
+        get-allowed: true
+        enabled: true
+    redirect:
+      login-success: ${FRONTEND_URL:http://localhost:3000}/app/console
+      login-failure: ${FRONTEND_URL:http://localhost:3000}?error=login_failed
+      unauthorized:
+        url: ${FRONTEND_URL:http://localhost:3000}?error=unauthorized
+      forbidden:
+        url: ${FRONTEND_URL:http://localhost:3000}?error=forbidden
     oauth2:
       enabled: true
       clients:
         discord:
-          client-id: ${OAUTH_CLIENT_ID}
-          client-secret: ${OAUTH_CLIENT_SECRET}
-          openid:
-            issuer: ${OAUTH_ISSUER_URL}
-          scopes: openid,profile
+          client-id: "${OAUTH_CLIENT_ID:deine_client_id}"
+          client-secret: "${OAUTH_CLIENT_SECRET:dein_client_secret}"
+          token:
+            url: "${OAUTH_TOKEN_URL:https://discord.com/api/oauth2/token}"
+            auth-method: client-secret-post
+          authorization:
+            url: "${OAUTH_AUTH_URL:https://discord.com/oauth2/authorize}"
+          scopes:
+            - identify
   server:
     cors:
       enabled: true
       configurations:
         web:
-          allowed-origins: ${FRONTEND_URL}
-          allowed-headers: authorization,content-type
-          allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+          allowed-origins: 
+            - ${FRONTEND_URL:http://localhost:3000}
+          allowed-headers: 
+            - authorization
+            - content-type
+            - x-requested-with
+            - cookie
+            - set-cookie
+            - last-event-id
+          allowed-methods: 
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          allow-credentials: true
+          exposed-headers:
+            - content-type
 datasources:
   default:
     driver-class-name: org.postgresql.Driver
@@ -41,6 +80,9 @@ bot:
   token: ${BOT_TOKEN}
 
 logger:
-  level:
+  levels:
     de.chojo: TRACE
     io.micronaut.data: TRACE
+    io.micronaut.security: TRACE
+    io.micronaut.http.server: TRACE
+    io.micronaut.http.client: TRACE
