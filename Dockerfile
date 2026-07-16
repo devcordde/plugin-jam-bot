@@ -1,5 +1,5 @@
 # This dockerfile is far from best practice and is a pure "Make it work" approach. Please do not use it as a reference of any kind.
-FROM gradle:jdk21-alpine as build
+FROM gradle:jdk25-alpine as build
 
 COPY . .
 RUN gradle clean :bot:build :plugin-paper:build --no-daemon
