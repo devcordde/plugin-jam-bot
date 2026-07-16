@@ -34,7 +34,7 @@ dependencyResolutionManagement {
             library("eldoutil-plugin", "de.eldoria.util", "plugin").versionRef("eldoutil")
             bundle("eldoutil", listOf("eldoutil-plugin"))
 
-            library("velocity", "com.velocitypowered:velocity-api:3.5.1")
+            library("velocity", "com.velocitypowered:velocity-api:4.0.0")
             library("paper", "io.papermc.paper:paper-api:26.1.2.build.74-stable")
             plugin("shadow", "com.gradleup.shadow").version("9.6.0")
             plugin("pluginyml", "net.minecrell.plugin-yml.bukkit").version("0.6.0")
