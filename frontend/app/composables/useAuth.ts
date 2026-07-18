@@ -5,20 +5,20 @@ export const useAuth = () => {
   const fetchUser = async () => {
     try {
       const headers = useRequestHeaders(['cookie'])
-      const data = await $fetch<User>('/api/user/me', {
+      user.value = await $fetch<User>('/api/user/me', {
         baseURL: config.public.apiBase,
         credentials: 'include',
         headers
       })
-      console.log('User data:', data)
-      user.value = data
     } catch (e) {
       user.value = null
     }
   }
 
   const login = () => {
-    window.location.href = `${config.public.apiBase}/oauth/login/discord`
+     navigateTo(`${config.public.apiBase}/oauth/login/discord`, {
+       external: true,
+     })
   }
 
   const logout = async () => {
@@ -34,7 +34,7 @@ export const useAuth = () => {
       })
     } finally {
       user.value = null
-      window.location.href = '/'
+      navigateTo('/')
     }
   }
 

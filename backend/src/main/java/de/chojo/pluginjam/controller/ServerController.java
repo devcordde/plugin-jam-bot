@@ -1,8 +1,9 @@
 package de.chojo.pluginjam.controller;
 
-import de.chojo.pluginjam.model.PowerSignalDTO;
+import de.chojo.pluginjam.model.payload.CommandPayload;
+import de.chojo.pluginjam.model.payload.PowerSignalPayload;
 import de.chojo.pluginjam.model.ServerStatus;
-import de.chojo.pluginjam.service.ServerService;
+import de.chojo.pluginjam.service.DockerService;import de.chojo.pluginjam.service.ServerService;
 import de.chojo.pluginjam.service.TeamService;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
@@ -13,38 +14,37 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 
+import java.util.Map;
+
 @Controller("api/server")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 public class ServerController {
     private final ServerService serverService;
-    private final TeamService teamService;
+    private final TeamService teamService;private final DockerService dockerService;
 
-    public ServerController(ServerService serverService, TeamService teamService) {
+    public ServerController(ServerService serverService, TeamService teamService, DockerService dockerService) {
         this.serverService = serverService;
-        this.teamService = teamService;
-    }
+        this.teamService = teamService;this.dockerService = dockerService;}
 
     @Get("/status/")
     public HttpResponse<ServerStatus> getStatus(Authentication authentication) {
         var team = teamService.getUserTeam(Long.parseLong(authentication.getName()));
-        if (team.isEmpty()) {
-            return HttpResponse.notAllowed();
-        }
+        return team.map(value -> HttpResponse.ok(dockerService.serverStatus(value.id())))
+                .orElseGet(HttpResponse::notAllowed);
 
-        return HttpResponse.ok(serverService.dockerService().serverStatus(team.get().id()));
     }
 
     @Get("/exists")
-    public HttpResponse<java.util.Map<String, Object>> exists(Authentication authentication) {
+    public HttpResponse<Map<String, Object>> exists(Authentication authentication) {
         var team = teamService.getUserTeam(Long.parseLong(authentication.getName()));
         if (team.isEmpty()) {
             return HttpResponse.notAllowed();
         }
 
-        boolean exists = serverService.dockerService().exists(team.get().id());
+        boolean exists = dockerService.exists(team.get().id());
         boolean provisioning = serverService.isProvisioning(team.get().id());
         
-        return HttpResponse.ok(java.util.Map.of(
+        return HttpResponse.ok(Map.of(
                 "exists", exists,
                 "provisioning", provisioning
         ));
@@ -71,28 +71,24 @@ public class ServerController {
     }
 
     @Post("/power")
-    public HttpResponse<Void> powerSignal(Authentication authentication, @Body PowerSignalDTO powerSignal) {
+    public HttpResponse<Void> powerSignal(Authentication authentication, @Body PowerSignalPayload powerSignalPayload) {
         var team = teamService.getUserTeam(Long.parseLong(authentication.getName()));
         if (team.isEmpty()) {
             return HttpResponse.notAllowed();
         }
-        System.out.println("[DEBUG_LOG] Received power signal: " + powerSignal.signal() + " for team: " + team.get().id());
-        serverService.handlePowerSignal(powerSignal, team.get().id());
+        System.out.println("[DEBUG_LOG] Received power signal: " + powerSignalPayload.signal() + " for team: " + team.get().id());
+        serverService.handlePowerSignal(powerSignalPayload, team.get().id());
         return HttpResponse.ok();
     }
 
     @Post("/command")
-    public HttpResponse<Void> sendCommand(Authentication authentication, @Body java.util.Map<String, String> body) {
+    public HttpResponse<Void> sendCommand(Authentication authentication, @Body CommandPayload commandPayload) {
         var team = teamService.getUserTeam(Long.parseLong(authentication.getName()));
         if (team.isEmpty()) {
             return HttpResponse.notAllowed();
         }
-        String command = body.get("command");
-        if (command == null || command.isBlank()) {
-            return HttpResponse.badRequest();
-        }
-        serverService.dockerService().sendCommand(team.get().id(), command);
+
+        dockerService.sendCommand(team.get().id(), commandPayload.command());
         return HttpResponse.ok();
     }
-
 }

@@ -6,11 +6,13 @@
 
 package de.chojo.pluginjam.service;
 
-import de.chojo.pluginjam.model.PowerSignalDTO;
+import de.chojo.pluginjam.model.payload.PowerSignalPayload;
 import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -18,7 +20,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class ServerService {
     private static final Logger log = getLogger(ServerService.class);
     private final DockerService dockerService;
-    private final java.util.Set<Integer> provisioningTeams = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private final Set<Integer> provisioningTeams = ConcurrentHashMap.newKeySet();
 
     public ServerService(DockerService dockerService) {
         this.dockerService = dockerService;
@@ -75,20 +77,16 @@ public class ServerService {
         dockerService.restartServer(id);
     }
 
-    public void handlePowerSignal(PowerSignalDTO signal, int teamId) {
+    public void handlePowerSignal(PowerSignalPayload signal, int teamId) {
         log.info("Handling power signal {} for team {}", signal.signal(), teamId);
-        if (signal.signal() == PowerSignalDTO.Signal.START) {
+        if (signal.signal() == PowerSignalPayload.Signal.START) {
             startServer(teamId);
-        } else if (signal.signal() == PowerSignalDTO.Signal.STOP) {
+        } else if (signal.signal() == PowerSignalPayload.Signal.STOP) {
             stopServer(teamId);
-        } else if (signal.signal() == PowerSignalDTO.Signal.RESTART) {
+        } else if (signal.signal() == PowerSignalPayload.Signal.RESTART) {
             restartServer(teamId);
         } else {
             log.warn("Received unknown power signal: {}", signal.signal());
         }
-    }
-
-    public DockerService dockerService() {
-        return dockerService;
     }
 }

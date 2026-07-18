@@ -10,6 +10,8 @@ micronaut:
           secret:
             generator:
               secret: "${JWT_GENERATOR_SIGNATURE_SECRET:pleaseChangeThisToALongSecretKey1234567890}"
+    csrf:
+      enabled: false
     endpoints:
       oauth:
         enabled: true
@@ -37,6 +39,8 @@ micronaut:
           scopes:
             - identify
   server:
+    multipart:
+      enabled: true
     cors:
       enabled: true
       configurations:
@@ -79,6 +83,44 @@ bot:
   api-key: ${BOT_API_KEY}
   token: ${BOT_TOKEN}
 
+files:
+  rules:
+    - pattern: ".cache"
+      read-only: true
+      show: false
+    - pattern: ".cache/**"
+      read-only: true
+      show: false
+    - pattern: "cache"
+      read-only: true
+      show: false
+    - pattern: "cache/**"
+      read-only: true
+      show: false
+    - pattern: "libraries"
+      read-only: true
+      show: false
+    - pattern: "libraries/**"
+      read-only: true
+      show: false
+    - pattern: "versions"
+      read-only: true
+      show: false
+    - pattern: "versions/**"
+      read-only: true
+      show: false
+    - pattern: ".paper*"
+      read-only: true
+      show: false
+    - pattern: ".rcon*"
+      read-only: true
+      show: false
+    - pattern: "version_history.json"
+      read-only: true
+      show: false
+    - pattern: "eula.txt"
+      read-only: true
+      show: false
 logger:
   levels:
     de.chojo: TRACE

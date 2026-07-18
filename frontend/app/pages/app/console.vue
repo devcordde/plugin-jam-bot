@@ -1,42 +1,32 @@
 <script setup lang="ts">
+import type {ServerStatus} from "~/utils/types";
+
 definePageMeta({
   layout: 'dashboard',
   title: 'Console'
 })
 
-type ServerStatus = 'RUNNING' | 'STOPPED' | 'STARTING_STOPPING' | 'VOID'
-
-interface LogEntry {
-  timestamp?: string
-  level?: string
-  message: string
-}
-
 const config = useRuntimeConfig()
-const logs = ref<LogEntry[]>([])
-let lastLevel = ''
-
-function parseLog(rawLog: string): LogEntry {
-  // Regex to match [HH:mm:ss LEVEL]: message
-  const match = rawLog.match(/^\[(\d{2}:\d{2}:\d{2})\s+([A-Z]+)\]:\s*(.*)$/)
-  if (match) {
-    lastLevel = match[2] || lastLevel
-    return {
-      timestamp: match[1],
-      level: match[2],
-      message: match[3] || ''
-    }
-  }
-  return {
-    level: lastLevel,
-    message: rawLog
-  }
-}
 
 const command = ref('')
 const terminal = ref<HTMLElement | null>(null)
 const serverStatus = ref<ServerStatus | null>(null)
-let statusInterval: any = null
+
+const logsStore = useLogsStore()
+const { logs, isConnected } = storeToRefs(logsStore)
+const { openWs } = logsStore
+
+onMounted(async () => {
+  openWs()
+  await fetchServerStatus()
+})
+
+watch(logs, async () => {
+  await nextTick()
+  if (terminal.value) {
+    terminal.value.scrollTop = terminal.value.scrollHeight
+  }
+}, { deep: true })
 
 const statusColors = computed(() => {
   switch (serverStatus.value) {
@@ -51,9 +41,6 @@ const statusColors = computed(() => {
   }
 })
 
-let ws: WebSocket | null = null
-let reconnectTimeout: any = null
-
 const fetchServerStatus = async () => {
   try {
     serverStatus.value = await $fetch(`/api/server/status`, {
@@ -64,90 +51,8 @@ const fetchServerStatus = async () => {
   } catch (error) {
     console.error('Failed to fetch server status:', error)
   }
+  setTimeout(fetchServerStatus, 1000)
 }
-
-const shouldConnect = () => {
-  return serverStatus.value !== 'STOPPED' && serverStatus.value !== 'VOID'
-}
-
-const connectWebSocket = () => {
-  if (!shouldConnect()) {
-    return
-  }
-  if (reconnectTimeout) {
-    clearTimeout(reconnectTimeout)
-    reconnectTimeout = null
-  }
-  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
-    return
-  }
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const host = config.public.apiBase.replace(/^https?:\/\//, '')
-  const url = `${protocol}//${host}/api/server/logs/ws`
-  ws = new WebSocket(url)
-
-  ws.onmessage = (event) => {
-    logs.value.push(parseLog(event.data))
-    if (logs.value.length > 1000) {
-      logs.value.shift()
-    }
-    nextTick(scrollToBottom)
-  }
-
-  ws.onerror = (error) => {
-    console.error('WebSocket failed:', error)
-  }
-
-  ws.onclose = () => {
-    console.log('WebSocket closed. Reconnecting in 5s...')
-    if (shouldConnect()) {
-      reconnectTimeout = setTimeout(connectWebSocket, 5000)
-    }
-  }
-}
-
-watch(serverStatus, (newStatus, oldStatus) => {
-  if (newStatus === 'STOPPED' || newStatus === 'VOID') {
-    if (reconnectTimeout) {
-      clearTimeout(reconnectTimeout)
-      reconnectTimeout = null
-    }
-    if (ws) {
-      ws.onclose = null
-      ws.close()
-      ws = null
-    }
-  } else if ((oldStatus === 'STOPPED' || oldStatus === 'VOID') && shouldConnect()) {
-    connectWebSocket()
-  }
-})
-
-const scrollToBottom = () => {
-  if (terminal.value) {
-    terminal.value.scrollTop = terminal.value.scrollHeight
-  }
-}
-
-onMounted(async () => {
-  await fetchServerStatus()
-  if (shouldConnect()) {
-    connectWebSocket()
-  }
-  statusInterval = setInterval(fetchServerStatus, 2000)
-})
-
-onUnmounted(() => {
-  if (reconnectTimeout) {
-    clearTimeout(reconnectTimeout)
-  }
-  if (ws) {
-    ws.onclose = null
-    ws.close()
-  }
-  if (statusInterval) {
-    clearInterval(statusInterval)
-  }
-})
 
 async function sendPowerAction(action: 'START' | 'STOP' | 'RESTART') {
   await $fetch(`${config.public.apiBase}/api/server/power`, {
@@ -155,7 +60,6 @@ async function sendPowerAction(action: 'START' | 'STOP' | 'RESTART') {
     body: {signal: action},
     credentials: 'include'
   })
-  await fetchServerStatus()
 }
 
 async function sendCommand() {
@@ -186,7 +90,7 @@ async function sendCommand() {
           <Icon name="lucide:server" :class="statusColors.light" class="w-6 h-6"/>
         </template>
         <template v-else>
-          <Icon name="lucide:skull" :class="statusColors.light" class="w-6 h-6"/>>
+          <Icon name="lucide:skull" :class="statusColors.light" class="w-6 h-6"/>
         </template>
       </div>
       <!-- power actions -->

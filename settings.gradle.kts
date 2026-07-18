@@ -1,5 +1,5 @@
 rootProject.name = "gamejam"
-include("bot")
+include("backend")
 include("plugin-api")
 include("plugin-paper")
 include("plugin-velocity")

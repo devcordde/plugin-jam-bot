@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
-  if (!to.path.startsWith('/app') || to.path === '/app/setup') {
+  if (!to.path.startsWith('/app')) {
     return
   }
 
@@ -12,7 +12,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   if (!user.value) {
     login()
-    return navigateTo('/');
+    return
+  }
+
+  if (to.path === '/app/setup') {
+    return
   }
 
   try {

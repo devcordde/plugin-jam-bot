@@ -20,3 +20,14 @@ export interface Team {
         textChannelId: number,
     }
 }
+
+export interface FileInfo {
+    name: string
+    path: string
+    isDirectory: boolean
+    readOnly: boolean
+    size: number
+    lastModified: string
+}
+
+export type ServerStatus = 'RUNNING' | 'STOPPED' | 'STARTING_STOPPING' | 'VOID'
