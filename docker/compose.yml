@@ -1,14 +1,12 @@
 services:
   mc-server-image:
     build:
-      context: .
-      dockerfile: Dockerfile.mc
+      context: ..
+      dockerfile: docker/mc.Dockerfile
     image: plugin-jam-mc-server
     entrypoint: ["echo", "image built"]
   bot:
-    build:
-      context: .
-      dockerfile: Dockerfile.bot.dev
+    image: ghcr.io/devcordde/plugin-jam-bot:latest
     depends_on:
       mc-server-image:
         condition: service_completed_successfully
@@ -18,24 +16,12 @@ services:
       - ./data/bot/servers:/app/servers
       - ./data/bot/template:/app/template
       - /var/run/docker.sock:/var/run/docker.sock
-    group_add:
-      - 131
     networks:
       - plugin-jam-network
-  database:
-    image: postgres:16
-    environment:
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "127.0.0.1:5433:5432"
-    networks:
-      - plugin-jam-network
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
   velocity:
     build:
-      context: .
-      dockerfile: Dockerfile.velocity
+      context: ..
+      dockerfile: docker/velocity.Dockerfile
     tty: true
     environment:
       EULA: "TRUE"
@@ -43,8 +29,6 @@ services:
       JVM_DD_OPTS: javalin.port=30000
     volumes:
       - ./data/velocity/config:/config
-    ports:
-      - "127.0.0.1:27777:25577"
     networks:
       - plugin-jam-network
   lobby:
@@ -52,9 +36,8 @@ services:
     stdin_open: true
     tty: true
     environment:
-      VERSION: 26.1.2
+      VERSION: 1.21
       TYPE: PAPER
-      EULA: "TRUE"
       MEMORY: 2G
     volumes:
       - ./data/lobby:/data
@@ -65,7 +48,3 @@ networks:
   plugin-jam-network:
     name: plugin-jam-network
     driver: bridge
-
-volumes:
-  postgres-data:
-    driver: local

@@ -81,6 +81,7 @@ micronaut {
         annotations("de.chojo.pluginjam.*")
     }
     testResources {
+        enabled = false
         version = "4.0.0"
     }
     aot {

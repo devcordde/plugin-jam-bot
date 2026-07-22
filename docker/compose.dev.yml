@@ -1,0 +1,83 @@
+services:
+  mc-server-image:
+    build:
+      context: ..
+      dockerfile: docker/mc.Dockerfile
+    image: plugin-jam-mc-server
+    entrypoint: ["echo", "image built"]
+    volumes:
+      - ..:/home/gradle/project
+  backend:
+    env_file:
+      - ../.env
+    build:
+      context: ..
+      dockerfile: docker/backend.dev.Dockerfile
+    depends_on:
+      mc-server-image:
+        condition: service_completed_successfully
+      database:
+        condition: service_started
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - plugin-jam-data:/data
+      - ..:/home/gradle/project
+    group_add:
+      - 131
+    networks:
+      - plugin-jam-network
+    ports:
+      - "127.0.0.1:8080:8080"
+  database:
+    image: postgres:16
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-postgres}
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - plugin-jam-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+#  velocity:
+#    build:
+#      context: ..
+#      dockerfile: docker/velocity.Dockerfile
+#    tty: true
+#    environment:
+#      EULA: "TRUE"
+#      TYPE: VELOCITY
+#      JVM_DD_OPTS: javalin.port=30000
+#    volumes:
+#      - ./data/velocity/config:/config
+#    ports:
+#      - "127.0.0.1:27777:25577"
+#    networks:
+#      - plugin-jam-network
+  lobby:
+    image: itzg/minecraft-server:latest
+    stdin_open: true
+    tty: true
+    environment:
+      VERSION: 26.1.2
+      TYPE: PAPER
+      EULA: "TRUE"
+      MEMORY: 2G
+    volumes:
+      - ./data/lobby:/data
+    networks:
+      - plugin-jam-network
+
+networks:
+  plugin-jam-network:
+    name: plugin-jam-network
+    driver: bridge
+
+volumes:
+  plugin-jam-data:
+    driver: local
+  postgres-data:
+    driver: local
