@@ -60,6 +60,7 @@ async function sendPowerAction(action: 'START' | 'STOP' | 'RESTART') {
     body: {signal: action},
     credentials: 'include'
   })
+  openWs()
 }
 
 async function sendCommand() {

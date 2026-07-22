@@ -42,12 +42,6 @@ export const useLogsStore = defineStore('logs', () => {
         },
         onDisconnected: (ws) => {
             console.log('WebSocket connection closed')
-        },
-        autoReconnect: {
-            delay: 3000,
-            onFailed: () => {
-                console.log('WebSocket connection failed, retrying...')
-            }
         }
     })
 
