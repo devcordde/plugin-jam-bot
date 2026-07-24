@@ -43,6 +43,7 @@ export default defineNuxtConfig({
             {name: 'Baloo Paaji 2', provider: 'google'},
             {name: 'DynaPuff', provider: 'google'},
             {name: 'Open Sans', provider: 'google'},
+            {name: 'JetBrains Mono', provider: 'google'},
         ]
     },
 

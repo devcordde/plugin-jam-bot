@@ -8,17 +8,22 @@ export interface TeamMember {
     userId: number
 }
 
+export interface TeamMeta {
+    teamId: number,
+    teamName: string,
+    leaderId: string,
+    roleId: string,
+    voiceChannelId: string,
+    textChannelId: string,
+    projectDescription: string,
+    projectUrl: string
+}
+
 export interface Team {
     id: number,
     jamId: number,
     members: TeamMember[],
-    meta: {
-        teamName: string,
-        leaderId: string,
-        roleId: number,
-        voiceChannelId: number,
-        textChannelId: number,
-    }
+    meta: TeamMeta
 }
 
 export interface FileInfo {

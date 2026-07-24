@@ -54,7 +54,7 @@ public class TeamRenameCommand {
             return;
         }
 
-        team.meta().getTeamName(teamName);
+        team.meta().setTeamName(teamName);
 
         commandContextProvider.teamService().saveTeam(team);
         event.with().ephemeral(true).reply("command-team-rename-message-done");

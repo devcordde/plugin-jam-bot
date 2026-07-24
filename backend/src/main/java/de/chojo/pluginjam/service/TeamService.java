@@ -87,4 +87,10 @@ public class TeamService {
         teamMetaRepository.save(team.meta());
         teamMemberRepository.saveAll(team.members());
     }
+
+    public void updateMeta(Team team, String projectDescription, String projectUrl) {
+        team.meta().setProjectDescription(projectDescription);
+        team.meta().setProjectUrl(projectUrl);
+        teamMetaRepository.update(team.meta());
+    }
 }

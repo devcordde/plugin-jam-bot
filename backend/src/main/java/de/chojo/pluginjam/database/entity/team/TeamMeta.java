@@ -101,35 +101,35 @@ public final class TeamMeta {
         return token;
     }
 
-    public void getTeamName(String teamName) {
+    public void setTeamName(String teamName) {
         this.teamName = teamName;
     }
 
-    public void getLeaderId(Long leaderId) {
+    public void setLeaderId(Long leaderId) {
         this.leaderId = leaderId;
     }
 
-    public void getRoleId(Long roleId) {
+    public void setRoleId(Long roleId) {
         this.roleId = roleId;
     }
 
-    public void getTextChannelId(Long textChannelId) {
+    public void setTextChannelId(Long textChannelId) {
         this.textChannelId = textChannelId;
     }
 
-    public void getVoiceChannelId(Long voiceChannelId) {
+    public void setVoiceChannelId(Long voiceChannelId) {
         this.voiceChannelId = voiceChannelId;
     }
 
-    public void getProjectDescription(String projectDescription) {
+    public void setProjectDescription(String projectDescription) {
         this.projectDescription = projectDescription;
     }
 
-    public void getProjectUrl(String projectUrl) {
+    public void setProjectUrl(String projectUrl) {
         this.projectUrl = projectUrl;
     }
 
-    public void token(String token) {
+    public void setToken(String token) {
         this.token = token;
     }
 }

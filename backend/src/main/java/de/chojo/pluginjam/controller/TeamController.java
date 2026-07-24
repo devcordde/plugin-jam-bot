@@ -6,11 +6,14 @@
 
 package de.chojo.pluginjam.controller;
 
+import de.chojo.pluginjam.model.payload.TeamMetaUpdatePayload;
 import de.chojo.pluginjam.database.entity.team.Team;
 import de.chojo.pluginjam.service.TeamService;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.Put;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
@@ -30,5 +33,15 @@ public class TeamController {
     public HttpResponse<Team> getMyTeam(Authentication authentication) {
         Optional<Team> team = teamService.getUserTeam(Long.parseLong(authentication.getName()));
         return team.map(HttpResponse::ok).orElseGet(HttpResponse::notFound);
+    }
+
+    @Put("/my-team/meta")
+    public HttpResponse<Void> updateMyTeamMeta(Authentication authentication, @Body TeamMetaUpdatePayload update) {
+        Optional<Team> team = teamService.getUserTeam(Long.parseLong(authentication.getName()));
+        if (team.isEmpty()) {
+            return HttpResponse.notFound();
+        }
+        teamService.updateMeta(team.get(), update.projectDescription(), update.projectUrl());
+        return HttpResponse.noContent();
     }
 }

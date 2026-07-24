@@ -46,7 +46,7 @@ public class TeamPromoteCommand {
                 return;
             }
 
-            targetTeam.meta().getLeaderId(member.getIdLong());
+            targetTeam.meta().setLeaderId(member.getIdLong());
             commandContextProvider.teamService().saveTeam(targetTeam);
             event.with().ephemeral(true).reply("command.team.promote.message.done");
         }, () -> {

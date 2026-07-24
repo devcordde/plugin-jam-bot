@@ -27,6 +27,7 @@
 @theme {
   --font-sans: 'Open Sans', sans-serif;
   --font-accent: 'DynaPuff', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
 :root {
