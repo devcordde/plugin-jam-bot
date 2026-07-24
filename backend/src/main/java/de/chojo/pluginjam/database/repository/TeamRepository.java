@@ -1,3 +1,9 @@
+/*
+ *     SPDX-License-Identifier: AGPL-3.0-only
+ *
+ *     Copyright (C) 2022 DevCord Team and Contributor
+ */
+
 package de.chojo.pluginjam.database.repository;
 
 import de.chojo.pluginjam.database.entity.team.Team;
