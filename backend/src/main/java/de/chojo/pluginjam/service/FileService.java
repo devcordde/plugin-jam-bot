@@ -39,12 +39,15 @@ public class FileService {
         UserPrincipalLookupService lookupService = FileSystems.getDefault().getUserPrincipalLookupService();
         UserPrincipal user = null;
         GroupPrincipal group = null;
+
         try {
-            user = lookupService.lookupPrincipalByName("minecraft");
-            group = lookupService.lookupPrincipalByGroupName("minecraft");
+            user = lookupService.lookupPrincipalByName(String.valueOf(dockerConfig.getUid()));
+            group = lookupService.lookupPrincipalByGroupName(String.valueOf(dockerConfig.getGid()));
+
         } catch (IOException e) {
-            log.warn("Could not find user or group 'minecraft'. File ownership will not be set.");
+            log.warn("Could not find or group with UID {} or GID {}", dockerConfig.getUid(), dockerConfig.getGid());
         }
+
         this.minecraftUser = user;
         this.minecraftGroup = group;
     }
@@ -231,10 +234,15 @@ public class FileService {
 
     public void createSecureDirectory(Path dirPath) throws IOException {
         if (Files.exists(dirPath)) return;
+        Path parent = dirPath.getParent();
+        if (parent != null && !Files.exists(parent)) {
+            createSecureDirectory(parent);
+        }
+
         var perms = PosixFilePermissions.fromString("rwxrwxr-x");
         var attr = PosixFilePermissions.asFileAttribute(perms);
 
-        Files.createDirectories(dirPath, attr);
+        Files.createDirectory(dirPath, attr);
         setSecurePermissions(dirPath, true);
     }
 

@@ -21,6 +21,8 @@ public class DockerConfig {
     private String teamServerImage = "plugin-jam-mc-server:latest";
     private String dataPath = "/data";
     private String volumeName = "docker_plugin-jam-data";
+    private int uid = 1000;
+    private int gid = 1000;
 
     public String getHost() {
         return host;
@@ -64,5 +66,13 @@ public class DockerConfig {
 
     public String getVolumeName() {
         return volumeName;
+    }
+
+    public int getUid() {
+        return uid;
+    }
+
+    public int getGid() {
+        return gid;
     }
 }

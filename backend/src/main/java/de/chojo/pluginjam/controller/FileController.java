@@ -67,7 +67,7 @@ public class FileController {
         }
 
         try {
-            fileService.uploadFile(team.get().id(), path, file.getName(), file.getBytes());
+            fileService.uploadFile(team.get().id(), path, file.getFilename(), file.getBytes());
         } catch (IOException e) {
             return HttpResponse.serverError();
         }
