@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type {TableColumn, TableRow} from "@nuxt/ui"
 import type { FileInfo } from '~/utils/types'
-import {UButton, UCheckbox, UDropdownMenu, UIcon} from "#components";
+import {UButton, UCheckbox, UDropdownMenu, UIcon, UModal, UFormField, UInput} from "#components";
 
 const toast = useToast()
 
@@ -113,6 +113,66 @@ const navigateToBreadcrumb = (path: string) => {
 
 const isDragging = ref(false)
 const dragCounter = ref(0)
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const showCreateModal = ref(false)
+const isDirectory = ref(false)
+const newFileName = ref('')
+
+const openCreateModal = (dir: boolean) => {
+  isDirectory.value = dir
+  newFileName.value = ''
+  showCreateModal.value = true
+}
+
+const createFile = async () => {
+  if (!newFileName.value) return
+  
+  const path = currentPath.value ? `${currentPath.value}/${newFileName.value}` : newFileName.value
+  
+  try {
+    await $fetch(`/api/server/files/create`, {
+      method: 'POST',
+      baseURL: config.public.apiBase,
+      query: { 
+        path,
+        isDirectory: isDirectory.value
+      },
+      credentials: 'include',
+      headers: {
+        ...useRequestHeaders(['cookie'])
+      }
+    })
+    
+    toast.add({
+      title: 'Success',
+      description: `Created ${isDirectory.value ? 'directory' : 'file'} ${newFileName.value}`,
+      color: 'success'
+    })
+    
+    showCreateModal.value = false
+    await fetchFiles()
+  } catch (error) {
+    console.error('Failed to create:', error)
+    toast.add({
+      title: 'Error',
+      description: `Failed to create ${newFileName.value}`,
+      color: 'error'
+    })
+  }
+}
+
+const triggerFileUpload = () => {
+  fileInput.value?.click()
+}
+
+const handleFileSelect = async (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    await uploadFiles(Array.from(target.files))
+    target.value = ''
+  }
+}
 
 const onDragEnter = (e: DragEvent) => {
   e.preventDefault()
@@ -353,25 +413,89 @@ const columns: TableColumn<FileInfo>[] = [{
       </div>
     </div>
 
-    <div class="flex items-center gap-2">
-      <UButton
-        icon="i-lucide-arrow-left"
-        variant="ghost"
-        :disabled="!currentPath"
-        @click="goBack"
-      />
-      <div class="flex items-center gap-1">
-        <template v-for="(bc, index) in getBreadcrumbs" :key="bc.path">
-          <UButton
-            :label="bc.label"
-            variant="link"
-            class="px-1"
-            @click="navigateToBreadcrumb(bc.path)"
-          />
-          <span v-if="index < getBreadcrumbs.length - 1" class="text-gray-500">/</span>
-        </template>
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <UButton
+          icon="i-lucide-arrow-left"
+          variant="ghost"
+          :disabled="!currentPath"
+          @click="goBack"
+        />
+        <div class="flex items-center gap-1">
+          <template v-for="(bc, index) in getBreadcrumbs" :key="bc.path">
+            <UButton
+              :label="bc.label"
+              variant="link"
+              class="px-1"
+              @click="navigateToBreadcrumb(bc.path)"
+            />
+            <span v-if="index < getBreadcrumbs.length - 1" class="text-gray-500">/</span>
+          </template>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <UButton
+          icon="i-lucide-file-plus"
+          label="New File"
+          variant="subtle"
+          color="neutral"
+          @click="openCreateModal(false)"
+        />
+        <UButton
+          icon="i-lucide-folder-plus"
+          label="New Directory"
+          variant="subtle"
+          color="neutral"
+          @click="openCreateModal(true)"
+        />
+        <UButton
+          icon="i-lucide-upload"
+          label="Upload"
+          variant="subtle"
+          color="neutral"
+          @click="triggerFileUpload"
+        />
+        <input
+          ref="fileInput"
+          type="file"
+          class="hidden"
+          multiple
+          @change="handleFileSelect"
+        />
       </div>
     </div>
+
+    <UModal v-model:open="showCreateModal" :title="`Create ${isDirectory ? 'Directory' : 'File'}`">
+      <template #body>
+        <div class="flex flex-col gap-2">
+          <span class="text-sm font-medium">{{ isDirectory ? 'Directory' : 'File' }} Name</span>
+          <UInput
+            v-model="newFileName"
+            :placeholder="`Enter ${isDirectory ? 'directory' : 'file'} name...`"
+            class="w-full"
+            autofocus
+            @keyup.enter="createFile"
+          />
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton
+            label="Cancel"
+            variant="ghost"
+            color="neutral"
+            @click="showCreateModal = false"
+          />
+          <UButton
+            label="Create"
+            color="primary"
+            :disabled="!newFileName"
+            @click="createFile"
+          />
+        </div>
+      </template>
+    </UModal>
 
     <UCard :ui="{ body: 'p-0' }">
       <UTable
