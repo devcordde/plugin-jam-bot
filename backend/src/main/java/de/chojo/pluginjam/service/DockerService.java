@@ -20,6 +20,7 @@ import de.chojo.pluginjam.bot.config.PluginsConfig;
 import de.chojo.pluginjam.model.ServerStatus;
 import io.micronaut.http.sse.Event;
 import jakarta.inject.Singleton;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -136,7 +137,7 @@ public class DockerService {
         var folder = new File(dockerConfig.getDataPath(), teamFolder);
 
         try {
-            Files.deleteIfExists(folder.toPath());
+            FileUtils.deleteDirectory(folder);
         } catch (IOException e) {
             log.error("Failed to delete team folder {}", folder.getAbsolutePath(), e);
         }

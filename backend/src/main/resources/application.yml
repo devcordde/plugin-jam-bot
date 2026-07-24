@@ -125,7 +125,7 @@ files:
 logger:
   levels:
     de.chojo: TRACE
-    io.micronaut.data: TRACE
-    io.micronaut.security: TRACE
-    io.micronaut.http.server: TRACE
-    io.micronaut.http.client: TRACE
+    io.micronaut.data: INFO
+    io.micronaut.security: INFO
+    io.micronaut.http.server: INFO
+    io.micronaut.http.client: INFO
