@@ -25,6 +25,7 @@ const getLanguageExtension = (filename: string) => {
     case 'yaml':
       return yaml()
     case 'json':
+    case 'mcmeta':
       return json()
     default:
       return []
@@ -50,7 +51,7 @@ onMounted(() => {
 
   view = new EditorView({
     state,
-    parent: editorContainer.value
+    parent: editorContainer.value,
   })
 })
 
