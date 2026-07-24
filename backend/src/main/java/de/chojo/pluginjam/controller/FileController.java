@@ -49,11 +49,7 @@ public class FileController {
             return HttpResponse.notAllowed();
         }
 
-        try {
-            fileService.uploadFile(team.get().id(), path, content.getBytes());
-        } catch (IOException e) {
-            return HttpResponse.serverError();
-        }
+        fileService.writeFileContent(team.get().id(), path, content.getBytes());
         return HttpResponse.ok();
     }
 
@@ -65,10 +61,20 @@ public class FileController {
         }
 
         try {
-            fileService.uploadFile(team.get().id(), path, file.getBytes());
-        } catch (java.io.IOException e) {
+            fileService.uploadFile(team.get().id(), path, file.getName(), file.getBytes());
+        } catch (IOException e) {
             return HttpResponse.serverError();
         }
+        return HttpResponse.ok();
+    }
+
+    @Post("/create")
+    public HttpResponse<Void> createFile(Authentication authentication, @QueryValue String path, @QueryValue(defaultValue = "false") boolean isDirectory) {
+        var team = teamService.getUserTeam(Long.parseLong(authentication.getName()));
+        if (team.isEmpty()) {
+            return HttpResponse.notAllowed();
+        }
+        fileService.createFile(team.get().id(), path, isDirectory);
         return HttpResponse.ok();
     }
 

@@ -13,6 +13,8 @@ public class DockerConfig {
     private String registryUrl;
     private String networkName = "plugin-jam-network";
     private String teamServerImage = "plugin-jam-mc-server:latest";
+    private String dataPath = "/data";
+    private String volumeName = "docker_plugin-jam-data";
 
     public String getHost() {
         return host;
@@ -48,5 +50,13 @@ public class DockerConfig {
 
     public String getTeamServerImage() {
         return teamServerImage;
+    }
+
+    public String getDataPath() {
+        return dataPath;
+    }
+
+    public String getVolumeName() {
+        return volumeName;
     }
 }
