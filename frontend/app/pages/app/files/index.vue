@@ -37,7 +37,7 @@ const fetchFiles = async () => {
   try {
     files.value = await $fetch(`/api/server/files/list`, {
       baseURL: config.public.apiBase,
-      params: { path: currentPath.value },
+      query: { path: currentPath.value },
       credentials: 'include',
 
       headers: useRequestHeaders(['cookie'])
@@ -146,7 +146,7 @@ const deleteFile = async (path: string) => {
   await $fetch(`/api/server/files/delete`, {
     method: 'POST',
     baseURL: config.public.apiBase,
-    params: { path },
+    query: { path },
     credentials: 'include',
     headers: {
       ...useRequestHeaders(['cookie'])
@@ -170,7 +170,7 @@ const uploadFiles = async (filesToUpload: File[]) => {
       await $fetch(`/api/server/files/upload`, {
         method: 'POST',
         baseURL: config.public.apiBase,
-        params: { path: currentPath.value },
+        query: { path: currentPath.value },
         body: formData,
         credentials: 'include',
         headers: {
