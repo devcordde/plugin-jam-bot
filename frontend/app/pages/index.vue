@@ -1,7 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col">
-    <AppHeader />
-    <main class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <UMain class="grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-3xl w-full text-center space-y-8">
         <div>
           <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white">
@@ -32,6 +30,5 @@
           </UButton>
         </div>
       </div>
-    </main>
-  </div>
+    </UMain>
 </template>

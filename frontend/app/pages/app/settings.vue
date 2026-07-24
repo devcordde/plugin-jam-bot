@@ -9,11 +9,10 @@ definePageMeta({
 const config = useRuntimeConfig()
 const isReinstalling = ref(false)
 const toast = useToast()
+const modalOpen = ref(false)
 
 const reinstallServer = async () => {
-  if (!confirm('Are you sure you want to reinstall the server? This will delete the current container and provision a new one.')) {
-    return
-  }
+  modalOpen.value = false
 
   isReinstalling.value = true
   try {
@@ -41,29 +40,39 @@ const reinstallServer = async () => {
 
 <template>
   <div class="space-y-6">
-    <SettingsGroup title="Danger Zone" description="These actions can result in data loss or downtime. Use with caution." color="error">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded bg-gray-900/30 p-4">
+    <SettingsGroup title="Danger Zone" color="error">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded py-4">
         <div>
-          <span class="font-medium text-white">Reinstall Server</span>
-          <p class="text-sm text-gray-400">
+          <span class="font-medium">Reinstall Server</span>
+          <p class="text-sm ">
             Deletes the current server container and provisions a new one.
             Use this if your server is stuck or broken.
           </p>
         </div>
-        <UButton
-            color="error"
-            variant="solid"
-            :loading="isReinstalling"
-            icon="i-heroicons-arrow-path"
-            @click="reinstallServer"
-        >
-          Reinstall
-        </UButton>
+        <UModal
+            v-model:open="modalOpen"
+        title="Reinstall Server"
+        description="Are you sure you want to reinstall the server? This will delete the current container and provision a new one.">
+          <UButton
+              color="error"
+              variant="solid"
+              :loading="isReinstalling"
+              icon="i-heroicons-arrow-path"
+          >
+            Reinstall
+          </UButton>
+          <template #body>
+            <div class="flex justify-end gap-2">
+              <UButton color="neutral" variant="soft" @click="modalOpen = false">
+                Cancel
+              </UButton>
+              <UButton color="error" @click="reinstallServer">
+                Reinstall
+              </UButton>
+            </div>
+          </template>
+        </UModal>
       </div>
     </SettingsGroup>
   </div>
 </template>
-
-<style scoped>
-
-</style>
