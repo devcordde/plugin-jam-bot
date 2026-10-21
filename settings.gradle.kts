@@ -30,7 +30,7 @@ dependencyResolutionManagement {
             library("javalin-openapi", "io.javalin.community.openapi", "javalin-openapi-plugin").versionRef("javalin")
             library("javalin-swagger", "io.javalin.community.openapi", "javalin-swagger-plugin").versionRef("javalin")
 
-            version("eldoutil", "2.1.11")
+            version("eldoutil", "3.0.1")
             library("eldoutil-plugin", "de.eldoria.util", "plugin").versionRef("eldoutil")
             bundle("eldoutil", listOf("eldoutil-plugin"))
 
