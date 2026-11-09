@@ -35,7 +35,7 @@ dependencyResolutionManagement {
             bundle("eldoutil", listOf("eldoutil-plugin"))
 
             library("velocity", "com.velocitypowered:velocity-api:4.3.1")
-            library("paper", "io.papermc.paper:paper-api:26.3.build.245-stable")
+            library("paper", "io.papermc.paper:paper-api:26.3.build.246-stable")
             plugin("shadow", "com.gradleup.shadow").version("9.6.1")
             plugin("pluginyml", "net.minecrell.plugin-yml.bukkit").version("0.6.0")
             plugin("spotless", "com.diffplug.spotless").version("8.10.3")
